@@ -1,0 +1,10 @@
+path: /home/room305/ZZF/URPC2020half
+train: images/train
+val: images/test
+test: images/test
+names:
+  0: holothurian
+  1: echinus
+  2: scallop
+  3: starfish
+

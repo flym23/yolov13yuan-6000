@@ -1,0 +1,7 @@
+FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
+Traceback (most recent call last):
+  File "/home/room305/ZZF/yolov13yuan-6000/test.py", line 258, in <module>
+    main()
+  File "/home/room305/ZZF/yolov13yuan-6000/test.py", line 208, in main
+    layers, parameters, gradients, gflops = model.model.info(verbose=False, imgsz=args.imgsz)
+TypeError: cannot unpack non-iterable NoneType object

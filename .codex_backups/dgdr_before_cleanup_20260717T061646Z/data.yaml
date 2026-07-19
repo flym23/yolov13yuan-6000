@@ -1,0 +1,16 @@
+path: /home/rtx6000/ZZF/URPC2019 # dataset root dir
+train: /home/rtx6000/ZZF/URPC2019/images/train # train images
+val: /home/rtx6000/ZZF/URPC2019/images/val # val images
+test:
+
+# Classes
+
+names:
+  0: echinus
+  1: starfish
+  2: holothurian
+  3: scallop
+
+
+
+

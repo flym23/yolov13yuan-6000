@@ -1,0 +1,12 @@
+path: /home/rtx6000/ZZF/URPC2020
+train: images/train
+val: images/test
+test: images/test
+names:
+  0: holothurian
+  1: echinus
+  2: scallop
+  3: starfish
+
+
+

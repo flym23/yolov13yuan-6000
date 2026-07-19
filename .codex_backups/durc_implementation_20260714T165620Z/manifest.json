@@ -1,0 +1,266 @@
+{
+  "created_at": "2026-07-14T16:56:22.699548+00:00",
+  "remote_root": "/home/rtx6000/ZZF/yolov13yuan-6000",
+  "backup_root": "/home/rtx6000/ZZF/yolov13yuan-6000/.codex_backups/durc_implementation_20260714T165620Z",
+  "files": [
+    {
+      "relative_path": "ultralytics/cfg/__init__.py",
+      "existed": true,
+      "before_sha256": "f71058a9faf8571683c77324c8ad1e3c83abf2267b05f082d87d5536a7c52274",
+      "uploaded_sha256": "f71058a9faf8571683c77324c8ad1e3c83abf2267b05f082d87d5536a7c52274",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/cfg/default.yaml",
+      "existed": true,
+      "before_sha256": "830a3dd3805ee23108176e4ec787b2d5a239dbc1579455c579ddccbddae08426",
+      "uploaded_sha256": "830a3dd3805ee23108176e4ec787b2d5a239dbc1579455c579ddccbddae08426",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13.yaml",
+      "existed": true,
+      "before_sha256": "ef506f2db1fb267f43fe789d7701252975610f2fba6325563103a78c4b91af86",
+      "uploaded_sha256": "7d96b52a47269ed5e80f55e32e45772bf5f91b25a5da1f225d2c6220a2bb121a",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v8/yolov8.yaml",
+      "existed": true,
+      "before_sha256": "855ce6e48b28ccb8e383bc24ad7cf7c1cf0b326e10fd9c6e6ca2d7da47eb5152",
+      "uploaded_sha256": "c5153ec7766230c91b086d82ddc0b47589a3e02a485e23c63b40b74d0b9f883d",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/data/dataset.py",
+      "existed": true,
+      "before_sha256": "1dd8a4d046b47f067a16f1986a0a187da69bed4aca8918d5bddb9bcc0e742f8e",
+      "uploaded_sha256": "971b47dc9cad36eea7b223c02217b4b86b861a9919e1946abd733a789c3dad75",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/data/utils.py",
+      "existed": true,
+      "before_sha256": "32e2b5c7491e6fab512d77fbdadb819763d568e5fb77ff8cb071d26a71730f5a",
+      "uploaded_sha256": "1284a5c5ccf9a2b8c284165bb73808c9d74ab8edc315cb8a5510545afa4493fe",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/engine/trainer.py",
+      "existed": true,
+      "before_sha256": "d734fe0bd61e07244e4cef2712adfc7f319832dd79b22ce402e0c771160472ef",
+      "uploaded_sha256": "d734fe0bd61e07244e4cef2712adfc7f319832dd79b22ce402e0c771160472ef",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/nn/modules/block.py",
+      "existed": true,
+      "before_sha256": "be8120a21bd07612f178f78bc1f36397759bb4b5467741f82b44d507536bbc3b",
+      "uploaded_sha256": "121bb40c36af4f6f2bd3be9dd400e08e8dacde8ffca376fa1f5192f543d69086",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/nn/modules/head.py",
+      "existed": true,
+      "before_sha256": "b421372e36bf4058199e1667ab730154b8bf6f88eaaaa37c2633d3b690206395",
+      "uploaded_sha256": "b421372e36bf4058199e1667ab730154b8bf6f88eaaaa37c2633d3b690206395",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/nn/modules/__init__.py",
+      "existed": true,
+      "before_sha256": "5ee711f298a46aeb7c8599a25d02ed374be6d0c89139ac7a99f714743fc0bc44",
+      "uploaded_sha256": "8811ffd4814185575b374b8a6f7d8ca6ccb008f635a920202ca64b59c5dda3ab",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/nn/tasks.py",
+      "existed": true,
+      "before_sha256": "cc5db0385a7fe914ac7d51706143e43ac87babc83a911e6386a871aeda6abbaa",
+      "uploaded_sha256": "1ee6e4980307c424caa3343a7466d51d17bc9405672aea53ddb54f84aeb45115",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/utils/loss.py",
+      "existed": true,
+      "before_sha256": "91cabfcc746e6a42510f8f991ce028d02b8578a4d27069463339d983c31009e6",
+      "uploaded_sha256": "7c0688704196009cca3f93d3ceee4da70930eea13fefb9e2c4a14ce8dff31359",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/utils/metrics.py",
+      "existed": true,
+      "before_sha256": "b576dc4b69b65e438ff8389928136f2d04db7836b91ec28f938954a85cc10636",
+      "uploaded_sha256": "161f86fcc7c1f725e3d4971cfbeb7ecd90ba422af9b7d750ac5896635b02988f",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/utils/tal.py",
+      "existed": true,
+      "before_sha256": "0cef9cd34e87108eb6a5cacd4699ade25a6a24f0b9caedef7910cebd4b84c67a",
+      "uploaded_sha256": "0cef9cd34e87108eb6a5cacd4699ade25a6a24f0b9caedef7910cebd4b84c67a",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/utils/torch_utils.py",
+      "existed": true,
+      "before_sha256": "250f07bea2150fe88beb8d2f3c10f87bdb8e8a185584cb852f61be051f80c523",
+      "uploaded_sha256": "250f07bea2150fe88beb8d2f3c10f87bdb8e8a185584cb852f61be051f80c523",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "tests/test_durc.py",
+      "existed": true,
+      "before_sha256": "c8ef4a1d70b2ad6eaa3c2bb4e385c7f26f1106fdbfeb7742a4b7be37cccdc050",
+      "uploaded_sha256": "d42cc4f2a678cc0fe8855285e07d687c4e3d9b28588bdbe5e2c563240142575b",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/durc_experiments.py",
+      "existed": true,
+      "before_sha256": "0549cae6fa7fbfbaec97a95ef97059e6af5e09a41c103d3a875b8e9e3501d2c8",
+      "uploaded_sha256": "0549cae6fa7fbfbaec97a95ef97059e6af5e09a41c103d3a875b8e9e3501d2c8",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/run_durc_selfcheck.py",
+      "existed": true,
+      "before_sha256": "df2d3c00e5498bba2e0fff416811dc511c750c888be071d867bddbbfe31ef1f3",
+      "uploaded_sha256": "bdc73d40b00a474609891d58ea2d0f0d11bfb733825eaa4693bd8b6be2728690",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/validate_durc_models.py",
+      "existed": true,
+      "before_sha256": "d5911f2072b0d39b5dae2e14653e007b65b5d7dec5d5fea4d1500ee5d30f48aa",
+      "uploaded_sha256": "d9fa0ec314a5e2f05b7465c26e81a9c0bb3991a99caea91b1b00eac4d74c1591",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/train_durc_worker.py",
+      "existed": true,
+      "before_sha256": "70a5ed86bd36d035d330deb18e3a2ae9479592d2628c2e75df10cdc7e5b96d88",
+      "uploaded_sha256": "823de274292b9291897244bf976888f0438df9b25b8c455932c2c6400beea271",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/collect_durc_ablation.py",
+      "existed": true,
+      "before_sha256": "3702ff85b4065d371f06fd091469c160d613fe739712688948a559a3a50bc24c",
+      "uploaded_sha256": "0a71e27198bae0306c1651ce8dbb0296bf65f3837fcef3118f5375716dd9e8f1",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/audit_durc_checkpoint.py",
+      "existed": true,
+      "before_sha256": "f7c1ceb2c6d7f36b86cb98df73c1eb682280003452d5d82d30356bbf278655c7",
+      "uploaded_sha256": "1d969e255ec38ed9e6b8b0661c399c8a32950c993553e14a9d8553c36ae5e5e1",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "run_durc_ablation_parallel.sh",
+      "existed": true,
+      "before_sha256": "caf489831ea013a4040aa262b2f25c18f750af9aab920760543399b3af61b1d6",
+      "uploaded_sha256": "caf489831ea013a4040aa262b2f25c18f750af9aab920760543399b3af61b1d6",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-s1.yaml",
+      "existed": true,
+      "before_sha256": "77fdb50e3087831202b5d24d0cd76ffbb0561a10f5c9bd6ebe827b2698f88e48",
+      "uploaded_sha256": "77fdb50e3087831202b5d24d0cd76ffbb0561a10f5c9bd6ebe827b2698f88e48",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-s2.yaml",
+      "existed": true,
+      "before_sha256": "b31963b37aa4a447a74f9d6ffef367ddd223dd13ceddcc3b11a5080609702b95",
+      "uploaded_sha256": "b31963b37aa4a447a74f9d6ffef367ddd223dd13ceddcc3b11a5080609702b95",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-s3.yaml",
+      "existed": true,
+      "before_sha256": "e7c292c0b95c61d2f02902c9afaba237c98369b5b85065b01baf4b22fc6fd4fb",
+      "uploaded_sha256": "e7c292c0b95c61d2f02902c9afaba237c98369b5b85065b01baf4b22fc6fd4fb",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-a1-drsc-p2.yaml",
+      "existed": true,
+      "before_sha256": "76dcaadcaf8905c22abb1eb95ff1121df4aadf5094289c4d5f267c2524ede701",
+      "uploaded_sha256": "76dcaadcaf8905c22abb1eb95ff1121df4aadf5094289c4d5f267c2524ede701",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-a2-drsc-p3.yaml",
+      "existed": true,
+      "before_sha256": "391f0d2fdd98e4ca555b42b73951d289a4ecf2de0062b4ad77f1ca78a6c1240f",
+      "uploaded_sha256": "391f0d2fdd98e4ca555b42b73951d289a4ecf2de0062b4ad77f1ca78a6c1240f",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-a3-drsc-p2p3.yaml",
+      "existed": true,
+      "before_sha256": "77fdb50e3087831202b5d24d0cd76ffbb0561a10f5c9bd6ebe827b2698f88e48",
+      "uploaded_sha256": "77fdb50e3087831202b5d24d0cd76ffbb0561a10f5c9bd6ebe827b2698f88e48",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-b1-hrct-p3.yaml",
+      "existed": true,
+      "before_sha256": "d961578a9b28e06b48608cb8e094801a582a6a56ff479cd6e08fac0679fe71fe",
+      "uploaded_sha256": "d961578a9b28e06b48608cb8e094801a582a6a56ff479cd6e08fac0679fe71fe",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-b2-hrct-p4.yaml",
+      "existed": true,
+      "before_sha256": "6a5b01bc1e667aeda6b80d88c8517dbf9b78cc6e9c74f3b1e8c59163f16a7fb5",
+      "uploaded_sha256": "6a5b01bc1e667aeda6b80d88c8517dbf9b78cc6e9c74f3b1e8c59163f16a7fb5",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-b3-hrct-p3p4.yaml",
+      "existed": true,
+      "before_sha256": "00ea88ca754b427f70013b6cfbdf8256c26017648b8aa8848c37806964512b9f",
+      "uploaded_sha256": "00ea88ca754b427f70013b6cfbdf8256c26017648b8aa8848c37806964512b9f",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-b4-hrct-all.yaml",
+      "existed": true,
+      "before_sha256": "b31963b37aa4a447a74f9d6ffef367ddd223dd13ceddcc3b11a5080609702b95",
+      "uploaded_sha256": "b31963b37aa4a447a74f9d6ffef367ddd223dd13ceddcc3b11a5080609702b95",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-c1-nudfl.yaml",
+      "existed": true,
+      "before_sha256": "2d7d28c07c6f2ac69b546a021eef71736f67d2b4c14345940d868fbc5e16c449",
+      "uploaded_sha256": "2d7d28c07c6f2ac69b546a021eef71736f67d2b4c14345940d868fbc5e16c449",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-c2-softlabel.yaml",
+      "existed": true,
+      "before_sha256": "d3189b432f3d4b1ff832d667544b284d768bf970225f6966b6dc3d4fe010dbab",
+      "uploaded_sha256": "d3189b432f3d4b1ff832d667544b284d768bf970225f6966b6dc3d4fe010dbab",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-c3-uncertainty.yaml",
+      "existed": true,
+      "before_sha256": "5153ff0474ab9209771a9a654c98e8f28b1906f61ac4b4993a15cc491b94cbd5",
+      "uploaded_sha256": "5153ff0474ab9209771a9a654c98e8f28b1906f61ac4b4993a15cc491b94cbd5",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-c4-full.yaml",
+      "existed": true,
+      "before_sha256": "e7c292c0b95c61d2f02902c9afaba237c98369b5b85065b01baf4b22fc6fd4fb",
+      "uploaded_sha256": "e7c292c0b95c61d2f02902c9afaba237c98369b5b85065b01baf4b22fc6fd4fb",
+      "mode": "0o644"
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+{
+  "created_at": "2026-07-14T16:17:39.094041+00:00",
+  "remote_root": "/home/rtx6000/ZZF/yolov13yuan-6000",
+  "backup_root": "/home/rtx6000/ZZF/yolov13yuan-6000/.codex_backups/durc_implementation_20260714T161736Z",
+  "files": [
+    {
+      "relative_path": "ultralytics/nn/modules/block.py",
+      "existed": true,
+      "before_sha256": "be8120a21bd07612f178f78bc1f36397759bb4b5467741f82b44d507536bbc3b",
+      "uploaded_sha256": "be8120a21bd07612f178f78bc1f36397759bb4b5467741f82b44d507536bbc3b",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/nn/modules/head.py",
+      "existed": true,
+      "before_sha256": "b421372e36bf4058199e1667ab730154b8bf6f88eaaaa37c2633d3b690206395",
+      "uploaded_sha256": "b421372e36bf4058199e1667ab730154b8bf6f88eaaaa37c2633d3b690206395",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/nn/modules/__init__.py",
+      "existed": true,
+      "before_sha256": "5ee711f298a46aeb7c8599a25d02ed374be6d0c89139ac7a99f714743fc0bc44",
+      "uploaded_sha256": "5ee711f298a46aeb7c8599a25d02ed374be6d0c89139ac7a99f714743fc0bc44",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/nn/tasks.py",
+      "existed": true,
+      "before_sha256": "cc5db0385a7fe914ac7d51706143e43ac87babc83a911e6386a871aeda6abbaa",
+      "uploaded_sha256": "cc5db0385a7fe914ac7d51706143e43ac87babc83a911e6386a871aeda6abbaa",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/utils/loss.py",
+      "existed": true,
+      "before_sha256": "91cabfcc746e6a42510f8f991ce028d02b8578a4d27069463339d983c31009e6",
+      "uploaded_sha256": "91cabfcc746e6a42510f8f991ce028d02b8578a4d27069463339d983c31009e6",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "tests/test_durc.py",
+      "existed": true,
+      "before_sha256": "c8ef4a1d70b2ad6eaa3c2bb4e385c7f26f1106fdbfeb7742a4b7be37cccdc050",
+      "uploaded_sha256": "c8ef4a1d70b2ad6eaa3c2bb4e385c7f26f1106fdbfeb7742a4b7be37cccdc050",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/durc_experiments.py",
+      "existed": true,
+      "before_sha256": "0549cae6fa7fbfbaec97a95ef97059e6af5e09a41c103d3a875b8e9e3501d2c8",
+      "uploaded_sha256": "0549cae6fa7fbfbaec97a95ef97059e6af5e09a41c103d3a875b8e9e3501d2c8",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/run_durc_selfcheck.py",
+      "existed": false,
+      "before_sha256": null,
+      "uploaded_sha256": "df2d3c00e5498bba2e0fff416811dc511c750c888be071d867bddbbfe31ef1f3",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/validate_durc_models.py",
+      "existed": true,
+      "before_sha256": "d5911f2072b0d39b5dae2e14653e007b65b5d7dec5d5fea4d1500ee5d30f48aa",
+      "uploaded_sha256": "d5911f2072b0d39b5dae2e14653e007b65b5d7dec5d5fea4d1500ee5d30f48aa",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/train_durc_worker.py",
+      "existed": true,
+      "before_sha256": "70a5ed86bd36d035d330deb18e3a2ae9479592d2628c2e75df10cdc7e5b96d88",
+      "uploaded_sha256": "70a5ed86bd36d035d330deb18e3a2ae9479592d2628c2e75df10cdc7e5b96d88",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/collect_durc_ablation.py",
+      "existed": true,
+      "before_sha256": "3702ff85b4065d371f06fd091469c160d613fe739712688948a559a3a50bc24c",
+      "uploaded_sha256": "3702ff85b4065d371f06fd091469c160d613fe739712688948a559a3a50bc24c",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "tools/audit_durc_checkpoint.py",
+      "existed": true,
+      "before_sha256": "f7c1ceb2c6d7f36b86cb98df73c1eb682280003452d5d82d30356bbf278655c7",
+      "uploaded_sha256": "f7c1ceb2c6d7f36b86cb98df73c1eb682280003452d5d82d30356bbf278655c7",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "run_durc_ablation_parallel.sh",
+      "existed": true,
+      "before_sha256": "e47f10e67efe57377ae6a9dfa5e24e457f636ab55ce5b3e68fd116acd9eea553",
+      "uploaded_sha256": "caf489831ea013a4040aa262b2f25c18f750af9aab920760543399b3af61b1d6",
+      "mode": "0o755"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-s1.yaml",
+      "existed": true,
+      "before_sha256": "77fdb50e3087831202b5d24d0cd76ffbb0561a10f5c9bd6ebe827b2698f88e48",
+      "uploaded_sha256": "77fdb50e3087831202b5d24d0cd76ffbb0561a10f5c9bd6ebe827b2698f88e48",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-s2.yaml",
+      "existed": true,
+      "before_sha256": "b31963b37aa4a447a74f9d6ffef367ddd223dd13ceddcc3b11a5080609702b95",
+      "uploaded_sha256": "b31963b37aa4a447a74f9d6ffef367ddd223dd13ceddcc3b11a5080609702b95",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-s3.yaml",
+      "existed": true,
+      "before_sha256": "e7c292c0b95c61d2f02902c9afaba237c98369b5b85065b01baf4b22fc6fd4fb",
+      "uploaded_sha256": "e7c292c0b95c61d2f02902c9afaba237c98369b5b85065b01baf4b22fc6fd4fb",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-a1-drsc-p2.yaml",
+      "existed": true,
+      "before_sha256": "76dcaadcaf8905c22abb1eb95ff1121df4aadf5094289c4d5f267c2524ede701",
+      "uploaded_sha256": "76dcaadcaf8905c22abb1eb95ff1121df4aadf5094289c4d5f267c2524ede701",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-a2-drsc-p3.yaml",
+      "existed": true,
+      "before_sha256": "391f0d2fdd98e4ca555b42b73951d289a4ecf2de0062b4ad77f1ca78a6c1240f",
+      "uploaded_sha256": "391f0d2fdd98e4ca555b42b73951d289a4ecf2de0062b4ad77f1ca78a6c1240f",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-a3-drsc-p2p3.yaml",
+      "existed": true,
+      "before_sha256": "77fdb50e3087831202b5d24d0cd76ffbb0561a10f5c9bd6ebe827b2698f88e48",
+      "uploaded_sha256": "77fdb50e3087831202b5d24d0cd76ffbb0561a10f5c9bd6ebe827b2698f88e48",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-b1-hrct-p3.yaml",
+      "existed": true,
+      "before_sha256": "d961578a9b28e06b48608cb8e094801a582a6a56ff479cd6e08fac0679fe71fe",
+      "uploaded_sha256": "d961578a9b28e06b48608cb8e094801a582a6a56ff479cd6e08fac0679fe71fe",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-b2-hrct-p4.yaml",
+      "existed": true,
+      "before_sha256": "6a5b01bc1e667aeda6b80d88c8517dbf9b78cc6e9c74f3b1e8c59163f16a7fb5",
+      "uploaded_sha256": "6a5b01bc1e667aeda6b80d88c8517dbf9b78cc6e9c74f3b1e8c59163f16a7fb5",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-b3-hrct-p3p4.yaml",
+      "existed": true,
+      "before_sha256": "00ea88ca754b427f70013b6cfbdf8256c26017648b8aa8848c37806964512b9f",
+      "uploaded_sha256": "00ea88ca754b427f70013b6cfbdf8256c26017648b8aa8848c37806964512b9f",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-b4-hrct-all.yaml",
+      "existed": true,
+      "before_sha256": "b31963b37aa4a447a74f9d6ffef367ddd223dd13ceddcc3b11a5080609702b95",
+      "uploaded_sha256": "b31963b37aa4a447a74f9d6ffef367ddd223dd13ceddcc3b11a5080609702b95",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-c1-nudfl.yaml",
+      "existed": true,
+      "before_sha256": "2d7d28c07c6f2ac69b546a021eef71736f67d2b4c14345940d868fbc5e16c449",
+      "uploaded_sha256": "2d7d28c07c6f2ac69b546a021eef71736f67d2b4c14345940d868fbc5e16c449",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-c2-softlabel.yaml",
+      "existed": true,
+      "before_sha256": "d3189b432f3d4b1ff832d667544b284d768bf970225f6966b6dc3d4fe010dbab",
+      "uploaded_sha256": "d3189b432f3d4b1ff832d667544b284d768bf970225f6966b6dc3d4fe010dbab",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-c3-uncertainty.yaml",
+      "existed": true,
+      "before_sha256": "5153ff0474ab9209771a9a654c98e8f28b1906f61ac4b4993a15cc491b94cbd5",
+      "uploaded_sha256": "5153ff0474ab9209771a9a654c98e8f28b1906f61ac4b4993a15cc491b94cbd5",
+      "mode": "0o644"
+    },
+    {
+      "relative_path": "ultralytics/cfg/models/v13/yolov13-durc-c4-full.yaml",
+      "existed": true,
+      "before_sha256": "e7c292c0b95c61d2f02902c9afaba237c98369b5b85065b01baf4b22fc6fd4fb",
+      "uploaded_sha256": "e7c292c0b95c61d2f02902c9afaba237c98369b5b85065b01baf4b22fc6fd4fb",
+      "mode": "0o644"
+    }
+  ]
+}

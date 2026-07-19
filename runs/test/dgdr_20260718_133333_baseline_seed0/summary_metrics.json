@@ -1,0 +1,24 @@
+{
+  "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/dgdr_20260718_133333_baseline_seed0/weights/best.pt",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "amp": false,
+  "model": {
+    "layers": 648,
+    "parameters": 2460691,
+    "gradients": 0,
+    "gflops": 6.3714303999999995
+  },
+  "metrics": {
+    "metrics/precision(B)": 0.7767050861932027,
+    "metrics/recall(B)": 0.7380500313846441,
+    "metrics/mAP50(B)": 0.7878575305523015,
+    "metrics/mAP75(B)": 0.46745269037234705,
+    "metrics/mAP50-95(B)": 0.4510819685258983,
+    "fitness": 0.4510819685258983
+  },
+  "scale_metrics_percent": {
+    "APS": 13.214508578536153,
+    "APM": 38.20279578926412,
+    "APL": 46.69406197637329
+  }
+}

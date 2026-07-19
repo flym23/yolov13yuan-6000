@@ -1,0 +1,25 @@
+{
+  "run_id": "dgdr_20260719_055351",
+  "status": "running",
+  "stage": "g4",
+  "exit_code": 0,
+  "launcher_pid": 1135735,
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "workers": 2,
+  "plots": false,
+  "dependency_state": "/home/room305/ZZF/yolov13-6000/runs/urpc2020_medcra_m0_m7/state.json",
+  "stage_order": [
+    "g1",
+    "g2",
+    "g3",
+    "g4",
+    "g5",
+    "g6",
+    "g7"
+  ],
+  "start_stage": "g1",
+  "updated_at": "2026-07-19T12:45:54.176944+00:00"
+}

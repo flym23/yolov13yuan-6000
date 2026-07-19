@@ -1,0 +1,2 @@
+FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
+DGDR configuration verification passed for n/s/l/x.

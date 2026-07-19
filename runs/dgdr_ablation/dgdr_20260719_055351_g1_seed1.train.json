@@ -1,0 +1,20 @@
+{
+  "stage": "g1",
+  "structure": {
+    "layer_3": "DAPD",
+    "layer_4": "DSC3k2",
+    "layer_32": "Detect"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-dgdr-g1-dapd.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "started_at": "2026-07-19T05:54:10.148244+00:00",
+  "completed_at": "2026-07-19T08:15:49.659279+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/dgdr_20260719_055351_g1_seed1/weights/best.pt"
+}

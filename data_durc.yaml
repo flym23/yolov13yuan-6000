@@ -1,0 +1,8 @@
+path: /home/rtx6000/ZZF/yolov13yuan-6000/.durc_dataset
+names:
+  0: echinus
+  1: starfish
+  2: holothurian
+  3: scallop
+train: images/train
+val: images/val

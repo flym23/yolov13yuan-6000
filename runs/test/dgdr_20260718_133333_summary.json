@@ -1,0 +1,127 @@
+{
+  "run_id": "dgdr_20260718_133333",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "amp": false,
+    "workers": 2,
+    "plots": false
+  },
+  "seed_overrides": {},
+  "name_overrides": {
+    "baseline:1": "dgdr_20260719_055351_baseline_seed1_recovery"
+  },
+  "stages": {
+    "baseline": {
+      "structure": {
+        "layer_3": "Conv",
+        "layer_4": "DSC3k2",
+        "layer_32": "Detect"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "baseline",
+          "seed": 0,
+          "test_name": "dgdr_20260718_133333_baseline_seed0",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "DSC3k2",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/dgdr_20260718_133333_baseline_seed0/weights/best.pt",
+          "P": 77.67050861932027,
+          "R": 73.80500313846441,
+          "mAP50": 78.78575305523015,
+          "mAP75": 46.745269037234706,
+          "mAP50-95": 45.108196852589835,
+          "APS": 13.214508578536153,
+          "APM": 38.20279578926412,
+          "APL": 46.69406197637329,
+          "Params": 2460691,
+          "GFLOPs": 6.3714303999999995
+        },
+        {
+          "stage": "baseline",
+          "seed": 1,
+          "test_name": "dgdr_20260719_055351_baseline_seed1_recovery",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "DSC3k2",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/dgdr_20260719_055351_baseline_seed1_recovery/weights/best.pt",
+          "P": 79.80195239364457,
+          "R": 73.97632614038126,
+          "mAP50": 78.9471953515263,
+          "mAP75": 48.732274430055114,
+          "mAP50-95": 45.6958476508606,
+          "APS": 13.216604743726732,
+          "APM": 38.722972159439614,
+          "APL": 47.767511966937924,
+          "Params": 2460691,
+          "GFLOPs": 6.3714303999999995
+        },
+        {
+          "stage": "baseline",
+          "seed": 2,
+          "test_name": "dgdr_20260718_133333_baseline_seed2",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "DSC3k2",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/dgdr_20260718_133333_baseline_seed2/weights/best.pt",
+          "P": 79.95026244727272,
+          "R": 73.15717402018305,
+          "mAP50": 79.18323531837272,
+          "mAP75": 46.86504797234707,
+          "mAP50-95": 45.18784285018227,
+          "APS": 14.52308363597758,
+          "APM": 38.03855569837696,
+          "APL": 46.30574386252329,
+          "Params": 2460691,
+          "GFLOPs": 6.3714303999999995
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 79.14090782007919,
+          "std": 1.2755603965301436
+        },
+        "R": {
+          "mean": 73.64616776634291,
+          "std": 0.4320579308195131
+        },
+        "mAP50": {
+          "mean": 78.97206124170972,
+          "std": 0.1999044065277123
+        },
+        "mAP75": {
+          "mean": 47.447530479878964,
+          "std": 1.1142315789187751
+        },
+        "mAP50-95": {
+          "mean": 45.33062911787757,
+          "std": 0.3187856707238136
+        },
+        "APS": {
+          "mean": 13.651398986080155,
+          "std": 0.7549017784634129
+        },
+        "APM": {
+          "mean": 38.32144121569357,
+          "std": 0.35730102987935813
+        },
+        "APL": {
+          "mean": 46.922439268611505,
+          "std": 0.7571714723089671
+        }
+      },
+      "Params": 2460691,
+      "GFLOPs": 6.3714303999999995
+    }
+  },
+  "csv": "/home/room305/ZZF/yolov13yuan-6000/runs/test/dgdr_20260718_133333_ablation.csv"
+}
