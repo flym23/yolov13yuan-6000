@@ -1,8 +1,8 @@
 {
   "run_id": "dgdr_20260719_055351",
-  "status": "running",
-  "stage": "g4",
-  "exit_code": 0,
+  "status": "failed",
+  "stage": "g7",
+  "exit_code": 127,
   "launcher_pid": 1135735,
   "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
   "epochs": 300,
@@ -21,5 +21,5 @@
     "g7"
   ],
   "start_stage": "g1",
-  "updated_at": "2026-07-19T12:45:54.176944+00:00"
+  "updated_at": "2026-07-19T22:30:08.240679+00:00"
 }
