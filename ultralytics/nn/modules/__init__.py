@@ -67,6 +67,9 @@ from .block import (
     DAPD,
     ContourGuidedAdaptiveGeometry,
     CAGDSC3k2,
+    ShallowEvidenceRouter,
+    CenterPreservedPartialGeometry,
+    SCPGDSC3k2,
 )
 from .conv import (
     CBAM,
@@ -95,6 +98,8 @@ from .head import (
     RTDETRDecoder,
     SUDLDetect,
     SBRHDetect,
+    P3TaskAdapter,
+    P3DecoupledDetect,
     Segment,
     WorldDetect,
     v10Detect,
@@ -194,9 +199,14 @@ __all__ = (
     "DAPD",
     "ContourGuidedAdaptiveGeometry",
     "CAGDSC3k2",
+    "ShallowEvidenceRouter",
+    "CenterPreservedPartialGeometry",
+    "SCPGDSC3k2",
     "HRCTDetect",
     "NonUniformDFL",
     "SUDLDetect",
     "SBRHDetect",
+    "P3TaskAdapter",
+    "P3DecoupledDetect",
     "DSConv",
 )

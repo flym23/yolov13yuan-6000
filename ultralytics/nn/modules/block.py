@@ -59,6 +59,9 @@ __all__ = (
     "DAPD",
     "ContourGuidedAdaptiveGeometry",
     "CAGDSC3k2",
+    "ShallowEvidenceRouter",
+    "CenterPreservedPartialGeometry",
+    "SCPGDSC3k2",
 )
 
 
@@ -1921,6 +1924,262 @@ class CAGDSC3k2(DSC3k2):
 
     def forward(self, x):
         return self.geometry(super().forward(x))
+
+
+
+
+class ShallowEvidenceRouter(nn.Module):
+    """Route anti-aliased shallow P2 evidence into a semantic P3 tensor."""
+
+    def __init__(self, c_shallow, c_out, max_gain=0.08, reduction=4, eps=1e-6):
+        super().__init__()
+        self.c_shallow, self.c_out = int(c_shallow), int(c_out)
+        self.max_gain, self.eps = float(max_gain), float(eps)
+        if self.c_shallow <= 0 or self.c_out <= 0:
+            raise ValueError(f"channels must be positive, got {c_shallow}->{c_out}.")
+        if self.max_gain < 0.0 or int(reduction) < 1 or self.eps <= 0.0:
+            raise ValueError("max_gain must be non-negative, reduction >= 1, and eps positive.")
+
+        hidden = max(self.c_out // int(reduction), 16)
+        blur = torch.tensor(((1.0, 2.0, 1.0), (2.0, 4.0, 2.0), (1.0, 2.0, 1.0)), dtype=torch.float32)
+        self.register_buffer("blur_kernel", (blur / blur.sum())[None, None], persistent=False)
+        self.low_proj = Conv(self.c_shallow, self.c_out, 1, 1, act=False)
+        self.contrast_proj = Conv(self.c_shallow, self.c_out, 1, 1, act=False)
+        self.route_gate = nn.Sequential(
+            Conv(3 * self.c_out, hidden, 1, 1),
+            nn.Conv2d(hidden, self.c_out, 1, bias=True),
+            nn.Sigmoid(),
+        )
+        self.micro_gate = nn.Sequential(
+            nn.Conv2d(3, 8, 3, 1, 1, bias=True),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(8, 1, 1, bias=True),
+            nn.Sigmoid(),
+        )
+        self.out_proj = nn.Conv2d(self.c_out, self.c_out, 1, bias=True)
+        nn.init.kaiming_normal_(self.out_proj.weight, mode="fan_out", nonlinearity="linear")
+        nn.init.zeros_(self.out_proj.bias)
+        # Zero gain preserves the original DSC3k2 path at initialization.
+        self.alpha_raw = nn.Parameter(torch.zeros(1, dtype=torch.float32))
+
+    def _blur_downsample(self, x):
+        kernel = self.blur_kernel.to(device=x.device, dtype=x.dtype).repeat(x.shape[1], 1, 1, 1)
+        return F.conv2d(F.pad(x, (1, 1, 1, 1), mode="replicate"), kernel, stride=2, groups=x.shape[1])
+
+    @staticmethod
+    def _align(x, size):
+        return x if x.shape[-2:] == size else F.interpolate(x, size=size, mode="bilinear", align_corners=False)
+
+    def forward(self, shallow, semantic):
+        if shallow.ndim != 4 or semantic.ndim != 4:
+            raise ValueError("ShallowEvidenceRouter expects two NCHW tensors.")
+        if shallow.shape[0] != semantic.shape[0] or shallow.shape[1] != self.c_shallow:
+            raise ValueError("invalid shallow tensor batch size or channel count.")
+        if semantic.shape[1] != self.c_out:
+            raise ValueError(f"expected {self.c_out} semantic channels, got {semantic.shape[1]}.")
+
+        target = semantic.shape[-2:]
+        low_raw = self._align(self._blur_downsample(shallow), target)
+        average = F.adaptive_avg_pool2d(shallow, target)
+        contrast_raw = (F.adaptive_max_pool2d(shallow, target) - average).clamp_min(0.0)
+        low, contrast = self.low_proj(low_raw), self.contrast_proj(contrast_raw)
+        route = self.route_gate(torch.cat((low, contrast, semantic), dim=1))
+        micro = self.micro_gate(
+            torch.cat(
+                (
+                    low.abs().mean(dim=1, keepdim=True),
+                    contrast.abs().mean(dim=1, keepdim=True),
+                    semantic.abs().mean(dim=1, keepdim=True),
+                ),
+                dim=1,
+            )
+        )
+        delta = self.out_proj(route * (low + contrast))
+        gain = self.max_gain * torch.tanh(self.alpha_raw)
+        return semantic + gain * delta, micro
+
+
+class CenterPreservedPartialGeometry(nn.Module):
+    """Resample only partial channels while enforcing a center sampling floor."""
+
+    def __init__(
+        self,
+        channels,
+        geom_ratio=0.50,
+        samples=5,
+        min_radius=0.25,
+        max_radius=1.50,
+        center_floor=0.50,
+        max_gain=0.08,
+        reduction=4,
+        eps=1e-6,
+    ):
+        super().__init__()
+        self.channels, self.samples = int(channels), int(samples)
+        self.min_radius, self.max_radius = float(min_radius), float(max_radius)
+        self.center_floor, self.max_gain, self.eps = float(center_floor), float(max_gain), float(eps)
+        if self.channels <= 0:
+            raise ValueError(f"channels must be positive, got {channels}.")
+        if not 0.0 < float(geom_ratio) <= 1.0:
+            raise ValueError(f"geom_ratio must be in (0, 1], got {geom_ratio}.")
+        if self.samples < 3 or self.samples % 2 == 0:
+            raise ValueError(f"samples must be an odd integer >= 3, got {samples}.")
+        if not 0.0 <= self.min_radius <= self.max_radius:
+            raise ValueError("require 0 <= min_radius <= max_radius.")
+        if not 0.0 <= self.center_floor <= 1.0:
+            raise ValueError("center_floor must be in [0, 1].")
+        if self.max_gain < 0.0 or int(reduction) < 1 or self.eps <= 0.0:
+            raise ValueError("max_gain must be non-negative, reduction >= 1, and eps positive.")
+
+        self.geom_channels = min(self.channels, max(int(round(self.channels * float(geom_ratio) / 8.0)) * 8, 8))
+        hidden = max(self.geom_channels // int(reduction), 16)
+        self.reduce = Conv(self.channels, self.geom_channels, 1, 1)
+        self.geometry_trunk = nn.Sequential(
+            Conv(self.geom_channels + 3, hidden, 3, 1),
+            Conv(hidden, hidden, 3, 1, g=hidden),
+            Conv(hidden, hidden, 1, 1),
+        )
+        self.offset_head = nn.Conv2d(hidden, 2 * self.samples, 1, bias=True)
+        self.weight_head = nn.Conv2d(hidden, self.samples, 1, bias=True)
+        nn.init.zeros_(self.offset_head.weight)
+        nn.init.zeros_(self.offset_head.bias)
+        nn.init.zeros_(self.weight_head.weight)
+        nn.init.zeros_(self.weight_head.bias)
+        self.out_proj = nn.Conv2d(self.geom_channels, self.channels, 1, bias=True)
+        nn.init.kaiming_normal_(self.out_proj.weight, mode="fan_out", nonlinearity="linear")
+        nn.init.zeros_(self.out_proj.bias)
+
+        sobel_x = torch.tensor(((-1.0, 0.0, 1.0), (-2.0, 0.0, 2.0), (-1.0, 0.0, 1.0)), dtype=torch.float32)
+        self.register_buffer("sobel_x", sobel_x[None, None], persistent=False)
+        self.register_buffer("sobel_y", sobel_x.t().contiguous()[None, None], persistent=False)
+        offsets = [(0.0, 0.0)] + [
+            (math.cos(2.0 * math.pi * index / (self.samples - 1)), math.sin(2.0 * math.pi * index / (self.samples - 1)))
+            for index in range(self.samples - 1)
+        ]
+        self.register_buffer("base_offsets", torch.tensor(offsets, dtype=torch.float32), persistent=False)
+        self.alpha_raw = nn.Parameter(torch.zeros(1, dtype=torch.float32))
+
+    def _contour_cues(self, x):
+        summary = F.pad(x.float().mean(dim=1, keepdim=True), (1, 1, 1, 1), mode="replicate")
+        grad_x_raw = F.conv2d(summary, self.sobel_x.to(device=x.device, dtype=summary.dtype))
+        grad_y_raw = F.conv2d(summary, self.sobel_y.to(device=x.device, dtype=summary.dtype))
+        rms = (grad_x_raw.square() + grad_y_raw.square()).mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        grad_x, grad_y = grad_x_raw / rms, grad_y_raw / rms
+        magnitude = (grad_x.square() + grad_y.square() + self.eps).sqrt()
+        return grad_x.to(x.dtype), grad_y.to(x.dtype), magnitude.to(x.dtype)
+
+    @staticmethod
+    def _base_grid(batch, height, width, device):
+        y = (torch.arange(height, device=device, dtype=torch.float32) + 0.5) * (2.0 / max(height, 1)) - 1.0
+        x = (torch.arange(width, device=device, dtype=torch.float32) + 0.5) * (2.0 / max(width, 1)) - 1.0
+        grid_y, grid_x = torch.meshgrid(y, x, indexing="ij")
+        return torch.stack((grid_x, grid_y), dim=-1).unsqueeze(0).expand(batch, -1, -1, -1)
+
+    def _predict_geometry(self, x, micro):
+        grad_x, grad_y, magnitude = self._contour_cues(x)
+        geometry = self.geometry_trunk(torch.cat((x, grad_x, grad_y, magnitude), dim=1))
+        batch, _, height, width = x.shape
+        offset_raw = self.offset_head(geometry).view(batch, self.samples, 2, height, width)
+        if micro.shape[-2:] != (height, width):
+            micro = F.interpolate(micro, size=(height, width), mode="bilinear", align_corners=False)
+        if micro.shape[0] != batch or micro.shape[1] != 1:
+            raise ValueError("micro must have shape [B, 1, H, W].")
+        radius = self.min_radius + (self.max_radius - self.min_radius) * (1.0 - micro.clamp(0.0, 1.0))
+        base = self.base_offsets.to(device=x.device, dtype=offset_raw.dtype).view(1, self.samples, 2, 1, 1)
+        residual_limit = 0.5 * (self.max_radius - self.min_radius)
+        offsets = (base * radius.unsqueeze(1) + residual_limit * torch.tanh(offset_raw)).clamp(
+            -self.max_radius, self.max_radius
+        )
+        soft_weights = self.weight_head(geometry).softmax(dim=1)
+        center_prior = torch.cat((torch.ones_like(soft_weights[:, :1]), torch.zeros_like(soft_weights[:, 1:])), dim=1)
+        weights = (1.0 - self.center_floor) * soft_weights + self.center_floor * center_prior
+        return offsets, weights
+
+    def _sample(self, x, offsets):
+        batch, channels, height, width = x.shape
+        base = self._base_grid(batch, height, width, x.device).unsqueeze(1)
+        grid = base + torch.stack(
+            (
+                offsets[:, :, 0].float() * (2.0 / max(width, 1)),
+                offsets[:, :, 1].float() * (2.0 / max(height, 1)),
+            ),
+            dim=-1,
+        )
+        source = x.float().unsqueeze(1).expand(-1, self.samples, -1, -1, -1).reshape(
+            batch * self.samples, channels, height, width
+        )
+        sampled = F.grid_sample(
+            source,
+            grid.reshape(batch * self.samples, height, width, 2),
+            mode="bilinear",
+            padding_mode="border",
+            align_corners=False,
+        )
+        return sampled.reshape(batch, self.samples, channels, height, width).to(dtype=x.dtype)
+
+    def forward(self, x, micro):
+        if x.ndim != 4 or micro.ndim != 4 or x.shape[1] != self.channels:
+            raise ValueError(f"expected x=[B,{self.channels},H,W] and micro=[B,1,H,W].")
+        geometry_feature = self.reduce(x)
+        offsets, weights = self._predict_geometry(geometry_feature, micro)
+        sampled = (self._sample(geometry_feature, offsets) * weights.unsqueeze(2).to(geometry_feature.dtype)).sum(dim=1)
+        delta = self.out_proj(sampled - geometry_feature)
+        return x + self.max_gain * torch.tanh(self.alpha_raw) * delta
+
+
+class SCPGDSC3k2(DSC3k2):
+    """Original DSC3k2 main path plus SER and center-preserved partial geometry."""
+
+    def __init__(
+        self,
+        c_shallow,
+        c_p3,
+        c2,
+        n=1,
+        dsc3k=False,
+        e=0.25,
+        geom_ratio=0.50,
+        samples=5,
+        min_radius=0.25,
+        max_radius=1.50,
+        center_floor=0.50,
+        detail_gain=0.08,
+        geom_gain=0.08,
+        reduction=4,
+        g=1,
+        shortcut=True,
+        k1=3,
+        k2=7,
+        d2=1,
+    ):
+        super().__init__(c1=c_p3, c2=c2, n=n, dsc3k=dsc3k, e=e, g=g, shortcut=shortcut, k1=k1, k2=k2, d2=d2)
+        self.c_shallow, self.c_p3, self.c2 = int(c_shallow), int(c_p3), int(c2)
+        self.dsc3k_enabled = bool(dsc3k)
+        self.detail_router = ShallowEvidenceRouter(self.c_shallow, self.c2, max_gain=detail_gain, reduction=reduction)
+        self.geometry = CenterPreservedPartialGeometry(
+            self.c2,
+            geom_ratio=geom_ratio,
+            samples=samples,
+            min_radius=min_radius,
+            max_radius=max_radius,
+            center_floor=center_floor,
+            max_gain=geom_gain,
+            reduction=reduction,
+        )
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 2:
+            raise ValueError("SCPGDSC3k2 expects [P2_shallow, P3_downsampled].")
+        shallow, p3 = x
+        if shallow.ndim != 4 or p3.ndim != 4 or shallow.shape[0] != p3.shape[0]:
+            raise ValueError("SCPGDSC3k2 inputs must be compatible NCHW tensors.")
+        if shallow.shape[1] != self.c_shallow or p3.shape[1] != self.c_p3:
+            raise ValueError(
+                f"expected P2/P3 channels {self.c_shallow}/{self.c_p3}, got {shallow.shape[1]}/{p3.shape[1]}."
+            )
+        base = super().forward(p3)
+        routed, micro = self.detail_router(shallow, base)
+        return self.geometry(routed, micro)
 
 
 class AdaHyperedgeGen(nn.Module):

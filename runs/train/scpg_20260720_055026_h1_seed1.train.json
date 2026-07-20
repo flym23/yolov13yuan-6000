@@ -1,0 +1,21 @@
+{
+  "stage": "h1",
+  "structure": {
+    "layer_3": "Conv",
+    "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.00)",
+    "layer_32": "Detect"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-scpg-h1-ser.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "started_at": "2026-07-20T05:50:31.795986+00:00",
+  "completed_at": "2026-07-20T07:39:07.584222+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h1_seed1/weights/best.pt"
+}

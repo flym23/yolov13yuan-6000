@@ -1,0 +1,22 @@
+{
+  "run_id": "scpg_20260720_055026",
+  "status": "complete",
+  "stage": "complete",
+  "exit_code": 0,
+  "launcher_pid": 1431540,
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "workers": 2,
+  "plots": false,
+  "pin_memory": false,
+  "stage_order": [
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5"
+  ],
+  "updated_at": "2026-07-20T17:04:57.514820+00:00"
+}

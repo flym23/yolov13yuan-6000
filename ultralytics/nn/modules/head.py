@@ -22,6 +22,8 @@ __all__ = (
     "NonUniformDFL",
     "SUDLDetect",
     "SBRHDetect",
+    "P3TaskAdapter",
+    "P3DecoupledDetect",
     "Segment",
     "Pose",
     "Classify",
@@ -469,6 +471,92 @@ class SBRHDetect(Detect):
             coarse_logits = self.cv2[index][2](regression_feature)
             box_logits = coarse_logits if skip_refinement else self._refine_box_logits(regression_feature, coarse_logits)
             outputs.append(torch.cat((box_logits, self.cv3[index](x[index])), dim=1))
+        if self.training:
+            return outputs
+        prediction = self._inference(outputs)
+        return prediction if self.export else (prediction, outputs)
+
+
+
+
+class P3TaskAdapter(nn.Module):
+    """Identity-initialized task-specific residual adapter for the P3 feature only."""
+
+    def __init__(self, channels, max_gain=0.10, reduction=4):
+        super().__init__()
+        self.channels, self.max_gain = int(channels), float(max_gain)
+        if self.channels <= 0:
+            raise ValueError(f"channels must be positive, got {channels}.")
+        if self.max_gain < 0.0 or int(reduction) < 1:
+            raise ValueError("max_gain must be non-negative and reduction must be >= 1.")
+
+        self.local_branch = nn.Sequential(
+            nn.Conv2d(self.channels, self.channels, 3, 1, 1, groups=self.channels, bias=False),
+            nn.BatchNorm2d(self.channels),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(self.channels, self.channels, 1, bias=True),
+        )
+        self.horizontal = nn.Conv2d(self.channels, self.channels, (1, 5), 1, (0, 2), groups=self.channels, bias=False)
+        self.vertical = nn.Conv2d(self.channels, self.channels, (5, 1), 1, (2, 0), groups=self.channels, bias=False)
+        self.boundary_norm = nn.BatchNorm2d(self.channels)
+        self.boundary_act = nn.SiLU(inplace=True)
+        hidden = max(self.channels // int(reduction), 16)
+        self.task_gate = nn.Sequential(
+            nn.Conv2d(3, hidden, 3, 1, 1, bias=True),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(hidden, 2, 1, bias=True),
+            nn.Sigmoid(),
+        )
+        self.reg_out = nn.Conv2d(self.channels, self.channels, 1, bias=True)
+        self.cls_out = nn.Conv2d(self.channels, self.channels, 1, bias=True)
+        for projection in (self.reg_out, self.cls_out):
+            nn.init.kaiming_normal_(projection.weight, mode="fan_out", nonlinearity="linear")
+            nn.init.zeros_(projection.bias)
+        # [regression, classification], zero-start to exactly preserve Detect at initialization.
+        self.alpha_raw = nn.Parameter(torch.zeros(2, dtype=torch.float32))
+
+    def forward(self, x):
+        if x.ndim != 4 or x.shape[1] != self.channels:
+            raise ValueError(f"expected [B,{self.channels},H,W], got {tuple(x.shape)}.")
+        local = self.local_branch(x)
+        boundary = self.boundary_act(self.boundary_norm(self.horizontal(x) + self.vertical(x)))
+        gate = self.task_gate(
+            torch.cat(
+                (
+                    x.abs().mean(dim=1, keepdim=True),
+                    local.abs().mean(dim=1, keepdim=True),
+                    boundary.abs().mean(dim=1, keepdim=True),
+                ),
+                dim=1,
+            )
+        )
+        gains = self.max_gain * torch.tanh(self.alpha_raw)
+        regression = x + gains[0] * self.reg_out(boundary * gate[:, :1])
+        classification = x + gains[1] * self.cls_out(local * gate[:, 1:2])
+        return regression, classification
+
+
+class P3DecoupledDetect(Detect):
+    """Original Detect output contract with task adaptation only for the P3 input."""
+
+    def __init__(self, nc=80, max_gain=0.10, reduction=4, ch=()):
+        super().__init__(nc=nc, ch=ch)
+        if self.end2end:
+            raise NotImplementedError("P3DecoupledDetect supports only the standard Detect path.")
+        if self.nl != 3 or len(ch) != 3:
+            raise ValueError(f"P3DecoupledDetect requires P3/P4/P5, got channels={ch}.")
+        self.p3_adapter = P3TaskAdapter(channels=ch[0], max_gain=max_gain, reduction=reduction)
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != self.nl:
+            raise ValueError(f"P3DecoupledDetect expects {self.nl} feature maps.")
+        features = list(x)
+        p3_regression, p3_classification = self.p3_adapter(features[0])
+        outputs = []
+        for index in range(self.nl):
+            regression_input = p3_regression if index == 0 else features[index]
+            classification_input = p3_classification if index == 0 else features[index]
+            outputs.append(torch.cat((self.cv2[index](regression_input), self.cv3[index](classification_input)), dim=1))
         if self.training:
             return outputs
         prediction = self._inference(outputs)

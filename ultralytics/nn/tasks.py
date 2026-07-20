@@ -76,7 +76,9 @@ from ultralytics.nn.modules import (
     DRSCDSC3k2,
     DAPD,
     CAGDSC3k2,
+    SCPGDSC3k2,
     SBRHDetect,
+    P3DecoupledDetect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -974,7 +976,20 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-        if m in {
+        if m is SCPGDSC3k2:
+            if not isinstance(f, (list, tuple)) or len(f) != 2:
+                raise ValueError("SCPGDSC3k2 requires from=[P2_layer, P3_layer].")
+            c_shallow, c_p3 = ch[f[0]], ch[f[1]]
+            c2 = args[0]
+            if c2 != nc:
+                c2 = make_divisible(min(c2 * width, max_channels), 8)
+            # Constructor: c_shallow, c_p3, c2, n, dsc3k, e, ...
+            args = [c_shallow, c_p3, c2, n, *args[1:]]
+            n = 1
+            legacy = False
+            if scale in "lx":
+                args[4] = True
+        elif m in {
             Classify,
             Conv,
             ConvTranspose,
@@ -1070,11 +1085,23 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in {Detect, HRCTDetect, SUDLDetect, SBRHDetect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}:
+        elif m in {
+            Detect,
+            HRCTDetect,
+            SUDLDetect,
+            SBRHDetect,
+            P3DecoupledDetect,
+            WorldDetect,
+            Segment,
+            Pose,
+            OBB,
+            ImagePoolingAttn,
+            v10Detect,
+        }:
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, HRCTDetect, SUDLDetect, SBRHDetect, Segment, Pose, OBB}:
+            if m in {Detect, HRCTDetect, SUDLDetect, SBRHDetect, P3DecoupledDetect, Segment, Pose, OBB}:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])

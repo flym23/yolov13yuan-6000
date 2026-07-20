@@ -1,0 +1,560 @@
+{
+  "run_id": "scpg_20260720_055026",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "amp": false,
+    "workers": 2,
+    "plots": false,
+    "pin_memory": false
+  },
+  "stages": {
+    "h1": {
+      "structure": {
+        "layer_3": "Conv",
+        "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.00)",
+        "layer_32": "Detect"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "h1",
+          "seed": 0,
+          "test_name": "scpg_20260720_055026_h1_seed0",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.00)",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h1_seed0/weights/best.pt",
+          "P": 79.5364105260612,
+          "R": 73.61976209931264,
+          "mAP50": 79.11995517648722,
+          "mAP75": 47.528433170228226,
+          "mAP50-95": 45.18810726396166,
+          "APS": 13.337261449217392,
+          "APM": 38.58987619183834,
+          "APL": 46.970462776743034,
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001
+        },
+        {
+          "stage": "h1",
+          "seed": 1,
+          "test_name": "scpg_20260720_055026_h1_seed1",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.00)",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h1_seed1/weights/best.pt",
+          "P": 79.23793888326037,
+          "R": 72.7953050443826,
+          "mAP50": 78.7773410969879,
+          "mAP75": 47.91963597831941,
+          "mAP50-95": 45.34921861730313,
+          "APS": 12.449206187882886,
+          "APM": 37.54337661564516,
+          "APL": 47.5076593819814,
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001
+        },
+        {
+          "stage": "h1",
+          "seed": 2,
+          "test_name": "scpg_20260720_055026_h1_seed2",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.00)",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h1_seed2/weights/best.pt",
+          "P": 82.04539944292412,
+          "R": 72.37385715048023,
+          "mAP50": 78.86539514366827,
+          "mAP75": 47.50147916514455,
+          "mAP50-95": 45.21057000422448,
+          "APS": 13.00158513692636,
+          "APM": 37.67619100863592,
+          "APL": 47.12752919557529,
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.27324961741523,
+          "std": 1.5419654935916853
+        },
+        "R": {
+          "mean": 72.92964143139183,
+          "std": 0.633722718574368
+        },
+        "mAP50": {
+          "mean": 78.9208971390478,
+          "std": 0.1779226109467957
+        },
+        "mAP75": {
+          "mean": 47.649849437897394,
+          "std": 0.23403036692312523
+        },
+        "mAP50-95": {
+          "mean": 45.249298628496426,
+          "std": 0.0872590785957423
+        },
+        "APS": {
+          "mean": 12.929350924675546,
+          "std": 0.4484126145199263
+        },
+        "APM": {
+          "mean": 37.936481272039806,
+          "std": 0.5697399465197064
+        },
+        "APL": {
+          "mean": 47.20188378476657,
+          "std": 0.27620916326266043
+        }
+      },
+      "Params": 2537949,
+      "GFLOPs": 7.365324800000001
+    },
+    "h2": {
+      "structure": {
+        "layer_3": "Conv",
+        "layer_4": "SCPGDSC3k2(detail_gain=0.00, geom_gain=0.08)",
+        "layer_32": "Detect"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "h2",
+          "seed": 0,
+          "test_name": "scpg_20260720_055026_h2_seed0",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.00, geom_gain=0.08)",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h2_seed0/weights/best.pt",
+          "P": 80.80528715194613,
+          "R": 71.86429564941801,
+          "mAP50": 78.73796042782466,
+          "mAP75": 48.075592211613326,
+          "mAP50-95": 45.548837592192,
+          "APS": 12.675342351470329,
+          "APM": 38.16635614276177,
+          "APL": 48.0221914521773,
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001
+        },
+        {
+          "stage": "h2",
+          "seed": 1,
+          "test_name": "scpg_20260720_055026_h2_seed1",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.00, geom_gain=0.08)",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h2_seed1/weights/best.pt",
+          "P": 80.39907621509121,
+          "R": 73.72339240421425,
+          "mAP50": 79.18309748663373,
+          "mAP75": 48.381878727284814,
+          "mAP50-95": 45.64646563136062,
+          "APS": 12.162738415557133,
+          "APM": 38.770072972817104,
+          "APL": 47.52782976547369,
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001
+        },
+        {
+          "stage": "h2",
+          "seed": 2,
+          "test_name": "scpg_20260720_055026_h2_seed2",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.00, geom_gain=0.08)",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h2_seed2/weights/best.pt",
+          "P": 80.8046025682779,
+          "R": 72.11595553594074,
+          "mAP50": 78.69380431617664,
+          "mAP75": 46.884499655569456,
+          "mAP50-95": 45.240015897312816,
+          "APS": 13.21813018150902,
+          "APM": 37.83820804273478,
+          "APL": 47.337527822202304,
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.66965531177175,
+          "std": 0.23432862145721878
+        },
+        "R": {
+          "mean": 72.56788119652434,
+          "std": 1.0085820680261552
+        },
+        "mAP50": {
+          "mean": 78.87162074354501,
+          "std": 0.2706487791637619
+        },
+        "mAP75": {
+          "mean": 47.78065686482253,
+          "std": 0.7910601527018922
+        },
+        "mAP50-95": {
+          "mean": 45.47843970695514,
+          "std": 0.21217267321983005
+        },
+        "APS": {
+          "mean": 12.68540364951216,
+          "std": 0.527767815614476
+        },
+        "APM": {
+          "mean": 38.25821238610455,
+          "std": 0.47267455935360103
+        },
+        "APL": {
+          "mean": 47.62918301328443,
+          "std": 0.35340547842948733
+        }
+      },
+      "Params": 2537949,
+      "GFLOPs": 7.365324800000001
+    },
+    "h3": {
+      "structure": {
+        "layer_3": "Conv",
+        "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.08)",
+        "layer_32": "Detect"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "h3",
+          "seed": 0,
+          "test_name": "scpg_20260720_055026_h3_seed0",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.08)",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h3_seed0/weights/best.pt",
+          "P": 81.7854198055072,
+          "R": 72.66510355465194,
+          "mAP50": 79.0609892178607,
+          "mAP75": 47.61789436546058,
+          "mAP50-95": 45.50964386307168,
+          "APS": 14.36105484724589,
+          "APM": 38.76918119703515,
+          "APL": 46.8091614503685,
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001
+        },
+        {
+          "stage": "h3",
+          "seed": 1,
+          "test_name": "scpg_20260720_055026_h3_seed1",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.08)",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h3_seed1/weights/best.pt",
+          "P": 81.60879720339544,
+          "R": 73.3679875589953,
+          "mAP50": 79.26945265000775,
+          "mAP75": 47.68325669179325,
+          "mAP50-95": 45.519610939293095,
+          "APS": 11.863038063471185,
+          "APM": 38.52580662599784,
+          "APL": 47.59974105517049,
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001
+        },
+        {
+          "stage": "h3",
+          "seed": 2,
+          "test_name": "scpg_20260720_055026_h3_seed2",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.08)",
+            "layer_32": "Detect"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h3_seed2/weights/best.pt",
+          "P": 82.41314203926552,
+          "R": 72.17094053407732,
+          "mAP50": 78.64745054310137,
+          "mAP75": 47.981659993685625,
+          "mAP50-95": 45.36528520313377,
+          "APS": 14.522021926452855,
+          "APM": 37.6924140394083,
+          "APL": 47.42068721848092,
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 81.93578634938939,
+          "std": 0.42272949611663313
+        },
+        "R": {
+          "mean": 72.73467721590818,
+          "std": 0.6015486395310815
+        },
+        "mAP50": {
+          "mean": 78.99263080365661,
+          "std": 0.31658539107698414
+        },
+        "mAP75": {
+          "mean": 47.76093701697982,
+          "std": 0.1939253277947702
+        },
+        "mAP50-95": {
+          "mean": 45.46484666849952,
+          "std": 0.08636665844775647
+        },
+        "APS": {
+          "mean": 13.582038279056643,
+          "std": 1.490871861037777
+        },
+        "APM": {
+          "mean": 38.329133954147096,
+          "std": 0.5646830817597033
+        },
+        "APL": {
+          "mean": 47.27652990800664,
+          "std": 0.4145359158198508
+        }
+      },
+      "Params": 2537949,
+      "GFLOPs": 7.365324800000001
+    },
+    "h4": {
+      "structure": {
+        "layer_3": "Conv",
+        "layer_4": "DSC3k2",
+        "layer_32": "P3DecoupledDetect(max_gain=0.10, reduction=4)"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "h4",
+          "seed": 0,
+          "test_name": "scpg_20260720_055026_h4_seed0",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "DSC3k2",
+            "layer_32": "P3DecoupledDetect(max_gain=0.10, reduction=4)"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h4_seed0/weights/best.pt",
+          "P": 81.74998003211951,
+          "R": 72.0130590365417,
+          "mAP50": 78.82649925112037,
+          "mAP75": 46.87136819792844,
+          "mAP50-95": 45.20619234588429,
+          "APS": 12.367853696773542,
+          "APM": 37.963213760797075,
+          "APL": 47.02508018570081,
+          "Params": 2475127,
+          "GFLOPs": 6.556774399999999
+        },
+        {
+          "stage": "h4",
+          "seed": 1,
+          "test_name": "scpg_20260720_055026_h4_seed1",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "DSC3k2",
+            "layer_32": "P3DecoupledDetect(max_gain=0.10, reduction=4)"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h4_seed1/weights/best.pt",
+          "P": 80.25684637698618,
+          "R": 72.3726809901514,
+          "mAP50": 78.95597530527745,
+          "mAP75": 47.37289740365067,
+          "mAP50-95": 45.29999513941131,
+          "APS": 12.580184012024395,
+          "APM": 38.47490787781337,
+          "APL": 47.10423210890358,
+          "Params": 2475127,
+          "GFLOPs": 6.556774399999999
+        },
+        {
+          "stage": "h4",
+          "seed": 2,
+          "test_name": "scpg_20260720_055026_h4_seed2",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "DSC3k2",
+            "layer_32": "P3DecoupledDetect(max_gain=0.10, reduction=4)"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h4_seed2/weights/best.pt",
+          "P": 81.1662832658691,
+          "R": 71.63342306647856,
+          "mAP50": 78.82932703745895,
+          "mAP75": 47.58401621208672,
+          "mAP50-95": 45.43717388148208,
+          "APS": 12.813810416697006,
+          "APM": 38.78268889809796,
+          "APL": 46.69129680194686,
+          "Params": 2475127,
+          "GFLOPs": 6.556774399999999
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 81.0577032249916,
+          "std": 0.7524654457054344
+        },
+        "R": {
+          "mean": 72.00638769772388,
+          "std": 0.3696741125633299
+        },
+        "mAP50": {
+          "mean": 78.87060053128559,
+          "std": 0.07395024083473231
+        },
+        "mAP75": {
+          "mean": 47.27609393788861,
+          "std": 0.36605324921190846
+        },
+        "mAP50-95": {
+          "mean": 45.314453788925896,
+          "std": 0.11616758091704282
+        },
+        "APS": {
+          "mean": 12.587282708498314,
+          "std": 0.22306309114227146
+        },
+        "APM": {
+          "mean": 38.40693684556947,
+          "std": 0.4139443453917472
+        },
+        "APL": {
+          "mean": 46.94020303218375,
+          "std": 0.21916201843551394
+        }
+      },
+      "Params": 2475127,
+      "GFLOPs": 6.556774399999999
+    },
+    "h5": {
+      "structure": {
+        "layer_3": "Conv",
+        "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.08)",
+        "layer_32": "P3DecoupledDetect(max_gain=0.10, reduction=4)"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "h5",
+          "seed": 0,
+          "test_name": "scpg_20260720_055026_h5_seed0",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.08)",
+            "layer_32": "P3DecoupledDetect(max_gain=0.10, reduction=4)"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h5_seed0/weights/best.pt",
+          "P": 82.26503975597731,
+          "R": 72.00973975684015,
+          "mAP50": 79.1067052813401,
+          "mAP75": 47.21255388120692,
+          "mAP50-95": 45.52082055236127,
+          "APS": 13.441787136585518,
+          "APM": 37.98280712365298,
+          "APL": 47.60908974552659,
+          "Params": 2552385,
+          "GFLOPs": 7.5506688
+        },
+        {
+          "stage": "h5",
+          "seed": 1,
+          "test_name": "scpg_20260720_055026_h5_seed1",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.08)",
+            "layer_32": "P3DecoupledDetect(max_gain=0.10, reduction=4)"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h5_seed1/weights/best.pt",
+          "P": 80.66821442757028,
+          "R": 71.97501700847211,
+          "mAP50": 78.69961282590879,
+          "mAP75": 47.64472529060766,
+          "mAP50-95": 45.25993654016586,
+          "APS": 13.722636348901904,
+          "APM": 38.13568250916549,
+          "APL": 47.128434075600154,
+          "Params": 2552385,
+          "GFLOPs": 7.5506688
+        },
+        {
+          "stage": "h5",
+          "seed": 2,
+          "test_name": "scpg_20260720_055026_h5_seed2",
+          "structure": {
+            "layer_3": "Conv",
+            "layer_4": "SCPGDSC3k2(detail_gain=0.08, geom_gain=0.08)",
+            "layer_32": "P3DecoupledDetect(max_gain=0.10, reduction=4)"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h5_seed2/weights/best.pt",
+          "P": 78.88752994892074,
+          "R": 73.95800153773602,
+          "mAP50": 78.71922154622925,
+          "mAP75": 48.16114400109698,
+          "mAP50-95": 45.43874231553949,
+          "APS": 12.501334575645352,
+          "APM": 38.625130063041944,
+          "APL": 47.18944589604476,
+          "Params": 2552385,
+          "GFLOPs": 7.5506688
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.6069280441561,
+          "std": 1.689588748715147
+        },
+        "R": {
+          "mean": 72.64758610101609,
+          "std": 1.1349858500919616
+        },
+        "mAP50": {
+          "mean": 78.84184655115938,
+          "std": 0.2295838315144579
+        },
+        "mAP75": {
+          "mean": 47.67280772430385,
+          "std": 0.4749181731624762
+        },
+        "mAP50-95": {
+          "mean": 45.40649980268888,
+          "std": 0.13339715769455365
+        },
+        "APS": {
+          "mean": 13.221919353710925,
+          "std": 0.6396490340800507
+        },
+        "APM": {
+          "mean": 38.24787323195347,
+          "std": 0.3355365230881521
+        },
+        "APL": {
+          "mean": 47.308989905723834,
+          "std": 0.26167832532657437
+        }
+      },
+      "Params": 2552385,
+      "GFLOPs": 7.5506688
+    }
+  },
+  "csv": "/home/room305/ZZF/yolov13yuan-6000/runs/test/scpg_20260720_055026_ablation.csv"
+}

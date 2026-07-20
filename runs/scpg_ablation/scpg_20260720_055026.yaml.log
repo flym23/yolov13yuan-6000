@@ -1,0 +1,6 @@
+ultralytics/cfg/models/v13/yolov13-scpg-h1-ser.yaml
+ultralytics/cfg/models/v13/yolov13-scpg-h2-cppg.yaml
+ultralytics/cfg/models/v13/yolov13-scpg-h3-ser-cppg.yaml
+ultralytics/cfg/models/v13/yolov13-scpg-h4-p3tda.yaml
+ultralytics/cfg/models/v13/yolov13-scpg-h5-full.yaml
+ultralytics/cfg/models/v13/yolov13-scpg.yaml
