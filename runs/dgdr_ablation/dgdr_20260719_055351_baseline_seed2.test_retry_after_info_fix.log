@@ -1,7 +1,0 @@
-FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
-Traceback (most recent call last):
-  File "/home/room305/ZZF/yolov13yuan-6000/test.py", line 264, in <module>
-    main()
-  File "/home/room305/ZZF/yolov13yuan-6000/test.py", line 206, in main
-    raise FileNotFoundError(path)
-FileNotFoundError: /home/room305/ZZF/yolov13yuan-6000/runs/train/dgdr_20260719_055351_baseline_seed2/weights/best.pt

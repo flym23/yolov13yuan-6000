@@ -1,2 +1,0 @@
-FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
-DGDR checkpoint migration verification passed: /home/room305/ZZF/yolov13yuan-6000/runs/dgdr_ablation/dgdr_20260718_065147.checkpoint_preflight.json

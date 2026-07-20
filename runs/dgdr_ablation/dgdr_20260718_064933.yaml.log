@@ -1,8 +1,0 @@
-ultralytics/cfg/models/v13/yolov13-dgdr-g1-dapd.yaml
-ultralytics/cfg/models/v13/yolov13-dgdr-g2-cagb.yaml
-ultralytics/cfg/models/v13/yolov13-dgdr-g3-sbrh.yaml
-ultralytics/cfg/models/v13/yolov13-dgdr-g4-dapd-cagb.yaml
-ultralytics/cfg/models/v13/yolov13-dgdr-g5-dapd-sbrh.yaml
-ultralytics/cfg/models/v13/yolov13-dgdr-g6-cagb-sbrh.yaml
-ultralytics/cfg/models/v13/yolov13-dgdr-g7-full.yaml
-ultralytics/cfg/models/v13/yolov13-dgdr.yaml
