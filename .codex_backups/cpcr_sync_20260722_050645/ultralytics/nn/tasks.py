@@ -80,7 +80,6 @@ from ultralytics.nn.modules import (
     SBRHDetect,
     P3DecoupledDetect,
     RAMPDetect,
-    CPCRDetect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -1094,15 +1093,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             detect_channels = [ch[index] for index in f[1:]]
             # YAML args: [nc, max_gain, reduction, gain_init, use_ambiguity, use_channel].
             # Append P2 guidance channels and exactly three Detect channels; P2 is not a detection scale.
-            args.extend((c_shallow, detect_channels))
-            c2 = detect_channels[0]
-            m.legacy = legacy
-        elif m is CPCRDetect:
-            if not isinstance(f, (list, tuple)) or len(f) != 4:
-                raise ValueError("CPCRDetect requires from=[P2, P3, P4, P5].")
-            c_shallow = ch[f[0]]
-            detect_channels = [ch[index] for index in f[1:]]
-            # P2 is gradient-isolated guidance, not a fourth detection level.
             args.extend((c_shallow, detect_channels))
             c2 = detect_channels[0]
             m.legacy = legacy

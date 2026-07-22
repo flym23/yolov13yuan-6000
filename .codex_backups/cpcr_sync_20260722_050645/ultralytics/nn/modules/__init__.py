@@ -104,9 +104,6 @@ from .head import (
     AmbiguityReactivationGate,
     P2RecallReactivation,
     RAMPDetect,
-    GradientIsolatedShallowEncoder,
-    ClassPrototypeComplementaryRecovery,
-    CPCRDetect,
     Segment,
     WorldDetect,
     v10Detect,
@@ -219,8 +216,5 @@ __all__ = (
     "AmbiguityReactivationGate",
     "P2RecallReactivation",
     "RAMPDetect",
-    "GradientIsolatedShallowEncoder",
-    "ClassPrototypeComplementaryRecovery",
-    "CPCRDetect",
     "DSConv",
 )

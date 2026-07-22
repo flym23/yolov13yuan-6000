@@ -1,0 +1,2 @@
+FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
+CPCR configuration verification passed for L1--L5 and n/s/l/x.
