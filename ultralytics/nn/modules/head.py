@@ -24,6 +24,10 @@ __all__ = (
     "SBRHDetect",
     "P3TaskAdapter",
     "P3DecoupledDetect",
+    "HighResolutionEvidenceEncoder",
+    "AmbiguityReactivationGate",
+    "P2RecallReactivation",
+    "RAMPDetect",
     "Segment",
     "Pose",
     "Classify",
@@ -557,6 +561,185 @@ class P3DecoupledDetect(Detect):
             regression_input = p3_regression if index == 0 else features[index]
             classification_input = p3_classification if index == 0 else features[index]
             outputs.append(torch.cat((self.cv2[index](regression_input), self.cv3[index](classification_input)), dim=1))
+        if self.training:
+            return outputs
+        prediction = self._inference(outputs)
+        return prediction if self.export else (prediction, outputs)
+
+
+class HighResolutionEvidenceEncoder(nn.Module):
+    """Encode anti-aliased P2 evidence at the final P3 spatial resolution."""
+
+    def __init__(self, c_shallow, c_p3, reduction=4, eps=1e-6):
+        super().__init__()
+        self.c_shallow, self.c_p3, self.eps = int(c_shallow), int(c_p3), float(eps)
+        reduction = int(reduction)
+        if self.c_shallow <= 0 or self.c_p3 <= 0:
+            raise ValueError(f"Channels must be positive, got {self.c_shallow}->{self.c_p3}.")
+        if reduction < 1 or self.eps <= 0.0:
+            raise ValueError(f"reduction and eps must be positive, got {reduction}, {self.eps}.")
+
+        self.evidence_channels = max(self.c_p3 // 4, 16)
+        hidden = max(self.c_p3 // reduction, 16)
+        blur = torch.tensor(((1.0, 2.0, 1.0), (2.0, 4.0, 2.0), (1.0, 2.0, 1.0)), dtype=torch.float32)
+        self.register_buffer("blur_kernel", (blur / blur.sum())[None, None], persistent=False)
+        self.low_proj = Conv(self.c_shallow, self.evidence_channels, 1, 1)
+        self.contrast_proj = Conv(self.c_shallow, self.evidence_channels, 1, 1)
+        self.fuse = nn.Sequential(
+            Conv(2 * self.evidence_channels, hidden, 3, 1),
+            Conv(hidden, self.evidence_channels, 1, 1),
+        )
+
+    @staticmethod
+    def _zscore_map(x, eps):
+        """Return a per-image spatial z-score with a safe zero-variance path."""
+        x_float = x.float()
+        mean = x_float.mean(dim=(2, 3), keepdim=True)
+        std = x_float.var(dim=(2, 3), keepdim=True, unbiased=False).add(eps).sqrt()
+        return ((x_float - mean) / std).to(dtype=x.dtype)
+
+    def _blur_downsample(self, x, target_size):
+        channels = x.shape[1]
+        kernel = self.blur_kernel.to(device=x.device, dtype=x.dtype).repeat(channels, 1, 1, 1)
+        output = F.conv2d(F.pad(x, (1, 1, 1, 1), mode="replicate"), kernel, stride=2, groups=channels)
+        return F.interpolate(output, size=target_size, mode="bilinear", align_corners=False) if output.shape[-2:] != target_size else output
+
+    def forward(self, shallow, target_size):
+        if shallow.ndim != 4 or shallow.shape[1] != self.c_shallow:
+            raise ValueError(f"Expected NCHW shallow tensor with channels={self.c_shallow}, got {tuple(shallow.shape)}.")
+        if not isinstance(target_size, (tuple, list)) or len(target_size) != 2:
+            raise ValueError(f"target_size must be (height, width), got {target_size}.")
+        target_size = tuple(map(int, target_size))
+        if min(target_size) <= 0:
+            raise ValueError(f"target_size must be positive, got {target_size}.")
+
+        low_raw = self._blur_downsample(shallow, target_size)
+        average_raw = F.adaptive_avg_pool2d(shallow, target_size)
+        contrast_raw = (F.adaptive_max_pool2d(shallow, target_size) - average_raw).clamp_min(0.0)
+        evidence = self.fuse(torch.cat((self.low_proj(low_raw), self.contrast_proj(contrast_raw)), dim=1))
+        raw_energy = contrast_raw.float().mean(dim=1, keepdim=True)
+        prior = torch.sigmoid(self._zscore_map(raw_energy, self.eps))
+        prior = (0.5 * prior + 0.5 * F.avg_pool2d(prior, kernel_size=3, stride=1, padding=1)).clamp(0.0, 1.0)
+        return evidence, prior.to(dtype=evidence.dtype)
+
+
+class AmbiguityReactivationGate(nn.Module):
+    """Activate P2-supported locations whose final P3 response is relatively weak."""
+
+    def __init__(self, evidence_channels, c_p3, reduction=4, eps=1e-6):
+        super().__init__()
+        self.evidence_channels, self.c_p3, self.eps = int(evidence_channels), int(c_p3), float(eps)
+        reduction = int(reduction)
+        if self.evidence_channels <= 0 or self.c_p3 <= 0:
+            raise ValueError("evidence_channels and c_p3 must be positive.")
+        if reduction < 1 or self.eps <= 0.0:
+            raise ValueError(f"reduction and eps must be positive, got {reduction}, {self.eps}.")
+
+        hidden = max(self.c_p3 // reduction, 16)
+        self.semantic_proj = Conv(self.c_p3, self.evidence_channels, 1, 1)
+        self.compatibility = nn.Sequential(
+            Conv(2 * self.evidence_channels, hidden, 3, 1),
+            Conv(hidden, hidden, 3, 1, g=hidden),
+            nn.Conv2d(hidden, 1, 1, bias=True),
+        )
+        nn.init.zeros_(self.compatibility[-1].weight)
+        nn.init.zeros_(self.compatibility[-1].bias)
+
+    @staticmethod
+    def _zscore_map(x, eps):
+        x_float = x.float()
+        mean = x_float.mean(dim=(2, 3), keepdim=True)
+        std = x_float.var(dim=(2, 3), keepdim=True, unbiased=False).add(eps).sqrt()
+        return ((x_float - mean) / std).to(dtype=x.dtype)
+
+    def forward(self, evidence, evidence_prior, p3):
+        if evidence.ndim != 4 or evidence_prior.ndim != 4 or p3.ndim != 4:
+            raise ValueError("evidence, evidence_prior and p3 must be NCHW tensors.")
+        if evidence.shape[0] != p3.shape[0] or evidence.shape[1] != self.evidence_channels or p3.shape[1] != self.c_p3:
+            raise ValueError("Unexpected batch size or channel count in ambiguity gate.")
+        if evidence_prior.shape[:2] != (p3.shape[0], 1) or evidence.shape[-2:] != p3.shape[-2:] or evidence_prior.shape[-2:] != p3.shape[-2:]:
+            raise ValueError("evidence, evidence_prior and p3 must share the required NCHW shape.")
+
+        semantic = self.semantic_proj(p3)
+        compatibility = torch.sigmoid(self.compatibility(torch.cat((evidence, semantic), dim=1)))
+        semantic_energy = p3.float().abs().mean(dim=1, keepdim=True)
+        semantic_confidence = torch.sigmoid(self._zscore_map(semantic_energy, self.eps)).to(dtype=p3.dtype)
+        ambiguity = evidence_prior.detach() * (1.0 - semantic_confidence.detach()) * compatibility
+        return ambiguity.clamp(0.0, 1.0)
+
+
+class P2RecallReactivation(nn.Module):
+    """Positive-only spatial-channel P2 evidence reactivation for P3 classification."""
+
+    def __init__(
+        self, c_shallow, c_p3, max_gain=0.10, reduction=4, gain_init=-4.0, use_ambiguity=True, use_channel=True, eps=1e-6
+    ):
+        super().__init__()
+        self.c_shallow, self.c_p3, self.max_gain = int(c_shallow), int(c_p3), float(max_gain)
+        reduction, gain_init, eps = int(reduction), float(gain_init), float(eps)
+        if self.c_shallow <= 0 or self.c_p3 <= 0:
+            raise ValueError(f"Channels must be positive, got {self.c_shallow}->{self.c_p3}.")
+        if self.max_gain < 0.0 or reduction < 1 or eps <= 0.0:
+            raise ValueError(f"Invalid max_gain/reduction/eps: {self.max_gain}, {reduction}, {eps}.")
+        self.use_ambiguity, self.use_channel = bool(use_ambiguity), bool(use_channel)
+        self.encoder = HighResolutionEvidenceEncoder(self.c_shallow, self.c_p3, reduction=reduction, eps=eps)
+        self.ambiguity_gate = AmbiguityReactivationGate(self.encoder.evidence_channels, self.c_p3, reduction=reduction, eps=eps)
+        self.channel_gate = nn.Conv2d(self.encoder.evidence_channels, self.c_p3, 1, bias=True)
+        nn.init.zeros_(self.channel_gate.weight)
+        nn.init.zeros_(self.channel_gate.bias)
+        self.gain_raw = nn.Parameter(torch.tensor(gain_init, dtype=torch.float32))
+
+    def forward(self, shallow, p3):
+        if shallow.ndim != 4 or p3.ndim != 4 or shallow.shape[0] != p3.shape[0]:
+            raise ValueError("P2RecallReactivation expects two same-batch NCHW tensors.")
+        if shallow.shape[1] != self.c_shallow or p3.shape[1] != self.c_p3:
+            raise ValueError(f"Expected channels {self.c_shallow}->{self.c_p3}, got {shallow.shape[1]}->{p3.shape[1]}.")
+        evidence, evidence_prior = self.encoder(shallow, p3.shape[-2:])
+        spatial_gate = self.ambiguity_gate(evidence, evidence_prior, p3) if self.use_ambiguity else evidence_prior.detach()
+        channel_gate = torch.sigmoid(self.channel_gate(evidence)) if self.use_channel else torch.ones_like(p3)
+        gain = (self.max_gain * torch.sigmoid(self.gain_raw)).to(dtype=p3.dtype)
+        multiplier = 1.0 + gain * spatial_gate * channel_gate
+        return p3 * multiplier, spatial_gate
+
+
+class RAMPDetect(Detect):
+    """Standard three-scale Detect head with P2-guided P3 classification reactivation."""
+
+    def __init__(
+        self, nc=80, max_gain=0.10, reduction=4, gain_init=-4.0, use_ambiguity=True, use_channel=True, c_shallow=0, ch=()
+    ):
+        if not isinstance(ch, (list, tuple)) or len(ch) != 3:
+            raise ValueError(f"RAMPDetect requires P3/P4/P5 channels, got {ch}.")
+        c_shallow = int(c_shallow)
+        if c_shallow <= 0:
+            raise ValueError(f"c_shallow must be positive, got {c_shallow}.")
+        super().__init__(nc=nc, ch=ch)
+        if self.end2end:
+            raise NotImplementedError("RAMPDetect supports only the standard one-to-many path.")
+        if self.nl != 3:
+            raise ValueError(f"RAMPDetect requires exactly 3 detection levels, got {self.nl}.")
+        self.c_shallow = c_shallow
+        self.p3_reactivation = P2RecallReactivation(
+            c_shallow=c_shallow,
+            c_p3=int(ch[0]),
+            max_gain=max_gain,
+            reduction=reduction,
+            gain_init=gain_init,
+            use_ambiguity=use_ambiguity,
+            use_channel=use_channel,
+        )
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 4:
+            raise ValueError("RAMPDetect expects [P2, P3, P4, P5].")
+        shallow, p3, p4, p5 = x
+        if shallow.shape[1] != self.c_shallow:
+            raise ValueError(f"Expected P2 channels={self.c_shallow}, got {shallow.shape[1]}.")
+        p3_classification, _ = self.p3_reactivation(shallow, p3)
+        features, outputs = (p3, p4, p5), []
+        for index, feature in enumerate(features):
+            class_input = p3_classification if index == 0 else feature
+            outputs.append(torch.cat((self.cv2[index](feature), self.cv3[index](class_input)), dim=1))
         if self.training:
             return outputs
         prediction = self._inference(outputs)

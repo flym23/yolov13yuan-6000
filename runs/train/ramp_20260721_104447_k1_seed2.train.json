@@ -1,0 +1,19 @@
+{
+  "stage": "k1",
+  "structure": {
+    "backbone": "Original DSC3k2 at layer 4",
+    "head": "RAMPDetect(P2 guidance; ambiguity=True; channel=True)",
+    "purpose": "Test whether RAMP independently restores recall from the baseline backbone."
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-ramp-k1-baseline.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 2,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "started_at": "2026-07-21T10:44:53.267618+00:00"
+}

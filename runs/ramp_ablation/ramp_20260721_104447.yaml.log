@@ -1,0 +1,5 @@
+ultralytics/cfg/models/v13/yolov13-ramp-k1-baseline.yaml
+ultralytics/cfg/models/v13/yolov13-ramp-k2-prior.yaml
+ultralytics/cfg/models/v13/yolov13-ramp-k3-ambiguity.yaml
+ultralytics/cfg/models/v13/yolov13-ramp-k4-full.yaml
+ultralytics/cfg/models/v13/yolov13-ramp.yaml

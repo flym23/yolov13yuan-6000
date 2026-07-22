@@ -1,0 +1,21 @@
+{
+  "stage": "k3",
+  "structure": {
+    "backbone": "SCPG H3: SER + CPPG at layer 4",
+    "head": "RAMPDetect(P2 prior + ambiguity; channel=False)",
+    "purpose": "Measure ambiguity selection without channel multiplexing."
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-ramp-k3-ambiguity.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 0,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "started_at": "2026-07-21T20:44:54.185799+00:00",
+  "completed_at": "2026-07-21T23:04:49.279120+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k3_seed0/weights/best.pt"
+}

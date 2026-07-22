@@ -6,6 +6,7 @@ import os
 import random
 import subprocess
 import time
+import uuid
 import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -713,10 +714,25 @@ def save_dataset_cache_file(prefix, path, x, version):
     """Save an Ultralytics dataset *.cache dictionary x to path."""
     x["version"] = version  # add cache version
     if is_dir_writeable(path.parent):
-        if path.exists():
-            path.unlink()  # remove *.cache file if exists
-        np.save(str(path), x)  # save cache for next time
-        path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
+        # Parallel experiments can build the same labels cache at the same time.  Never delete the shared target:
+        # write to a process-unique sibling, then atomically replace the target with a complete NumPy file.
+        temporary = path.with_name(f".{path.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp")
+        temporary_npy = Path(f"{temporary}.npy")
+        try:
+            np.save(str(temporary), x)
+            for attempt in range(10):
+                try:
+                    os.replace(temporary_npy, path)
+                    break
+                except PermissionError:
+                    if attempt == 9:
+                        raise
+                    time.sleep(0.01 * (attempt + 1))
+        finally:
+            try:
+                temporary_npy.unlink()
+            except (FileNotFoundError, PermissionError):
+                pass
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
         LOGGER.warning(f"{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")

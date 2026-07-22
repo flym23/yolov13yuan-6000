@@ -1,0 +1,452 @@
+{
+  "run_id": "ramp_20260721_163821",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "reference_k0": "Existing SCPG H3 runs; intentionally not retrained.",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "amp": false,
+    "workers": 2,
+    "plots": false,
+    "pin_memory": false
+  },
+  "stages": {
+    "k1": {
+      "structure": {
+        "backbone": "Original DSC3k2 at layer 4",
+        "head": "RAMPDetect(P2 guidance; ambiguity=True; channel=True)",
+        "purpose": "Test whether RAMP independently restores recall from the baseline backbone."
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "k1",
+          "seed": 0,
+          "test_name": "ramp_20260721_163821_k1_seed0",
+          "structure": {
+            "backbone": "Original DSC3k2 at layer 4",
+            "head": "RAMPDetect(P2 guidance; ambiguity=True; channel=True)",
+            "purpose": "Test whether RAMP independently restores recall from the baseline backbone."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k1_seed0/weights/best.pt",
+          "P": 80.34624557955915,
+          "R": 72.86670810808744,
+          "mAP50": 78.48467340658554,
+          "mAP75": 46.894595905706666,
+          "mAP50-95": 44.93251988274352,
+          "APS": 13.380716633315846,
+          "APM": 38.01623671721286,
+          "APL": 46.800380257253735,
+          "Params": 2474709,
+          "GFLOPs": 6.552883199999999
+        },
+        {
+          "stage": "k1",
+          "seed": 1,
+          "test_name": "ramp_20260721_163821_k1_seed1",
+          "structure": {
+            "backbone": "Original DSC3k2 at layer 4",
+            "head": "RAMPDetect(P2 guidance; ambiguity=True; channel=True)",
+            "purpose": "Test whether RAMP independently restores recall from the baseline backbone."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k1_seed1/weights/best.pt",
+          "P": 81.82175133554206,
+          "R": 71.74293538659145,
+          "mAP50": 79.06374110503845,
+          "mAP75": 48.20475098966631,
+          "mAP50-95": 45.81714595631616,
+          "APS": 14.272531360513696,
+          "APM": 39.23520945079647,
+          "APL": 47.562399893423844,
+          "Params": 2474709,
+          "GFLOPs": 6.552883199999999
+        },
+        {
+          "stage": "k1",
+          "seed": 2,
+          "test_name": "ramp_20260721_163821_k1_seed2",
+          "structure": {
+            "backbone": "Original DSC3k2 at layer 4",
+            "head": "RAMPDetect(P2 guidance; ambiguity=True; channel=True)",
+            "purpose": "Test whether RAMP independently restores recall from the baseline backbone."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k1_seed2/weights/best.pt",
+          "P": 79.87972505007956,
+          "R": 74.04805537315502,
+          "mAP50": 78.89129821823387,
+          "mAP75": 47.669871404120634,
+          "mAP50-95": 45.60160503606293,
+          "APS": 12.467802446044578,
+          "APM": 38.78370004759349,
+          "APL": 47.70349759965226,
+          "Params": 2474709,
+          "GFLOPs": 6.552883199999999
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.68257398839359,
+          "std": 1.0137574277403105
+        },
+        "R": {
+          "mean": 72.8858996226113,
+          "std": 1.152679822754782
+        },
+        "mAP50": {
+          "mean": 78.81323757661929,
+          "std": 0.29732128695208815
+        },
+        "mAP75": {
+          "mean": 47.58973943316454,
+          "std": 0.658743072512574
+        },
+        "mAP50-95": {
+          "mean": 45.45042362504087,
+          "std": 0.46128373783399523
+        },
+        "APS": {
+          "mean": 13.37368347995804,
+          "std": 0.9023850135140965
+        },
+        "APM": {
+          "mean": 38.67838207186761,
+          "std": 0.6162731036750836
+        },
+        "APL": {
+          "mean": 47.35542591677661,
+          "std": 0.48583320573229616
+        }
+      },
+      "Params": 2474709,
+      "GFLOPs": 6.552883199999999
+    },
+    "k2": {
+      "structure": {
+        "backbone": "SCPG H3: SER + CPPG at layer 4",
+        "head": "RAMPDetect(P2 prior only; ambiguity=False; channel=False)",
+        "purpose": "Isolate spatial shallow-evidence reactivation."
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "k2",
+          "seed": 0,
+          "test_name": "ramp_20260721_163821_k2_seed0",
+          "structure": {
+            "backbone": "SCPG H3: SER + CPPG at layer 4",
+            "head": "RAMPDetect(P2 prior only; ambiguity=False; channel=False)",
+            "purpose": "Isolate spatial shallow-evidence reactivation."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k2_seed0/weights/best.pt",
+          "P": 81.34840427036404,
+          "R": 72.7294375432435,
+          "mAP50": 78.9164716999518,
+          "mAP75": 47.862387912816,
+          "mAP50-95": 45.48865564695195,
+          "APS": 13.561114529702618,
+          "APM": 38.750158383127896,
+          "APL": 47.682650677496525,
+          "Params": 2551967,
+          "GFLOPs": 7.4570752
+        },
+        {
+          "stage": "k2",
+          "seed": 1,
+          "test_name": "ramp_20260721_163821_k2_seed1",
+          "structure": {
+            "backbone": "SCPG H3: SER + CPPG at layer 4",
+            "head": "RAMPDetect(P2 prior only; ambiguity=False; channel=False)",
+            "purpose": "Isolate spatial shallow-evidence reactivation."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k2_seed1/weights/best.pt",
+          "P": 81.07931931788383,
+          "R": 72.63216948944923,
+          "mAP50": 79.38921996673184,
+          "mAP75": 47.40492519465093,
+          "mAP50-95": 45.301229392738186,
+          "APS": 12.051585853609078,
+          "APM": 38.51353412903147,
+          "APL": 47.397890889932285,
+          "Params": 2551967,
+          "GFLOPs": 7.4570752
+        },
+        {
+          "stage": "k2",
+          "seed": 2,
+          "test_name": "ramp_20260721_163821_k2_seed2",
+          "structure": {
+            "backbone": "SCPG H3: SER + CPPG at layer 4",
+            "head": "RAMPDetect(P2 prior only; ambiguity=False; channel=False)",
+            "purpose": "Isolate spatial shallow-evidence reactivation."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k2_seed2/weights/best.pt",
+          "P": 80.34573837420409,
+          "R": 72.81821316453237,
+          "mAP50": 78.97399156499412,
+          "mAP75": 47.35394118618816,
+          "mAP50-95": 45.20481989007745,
+          "APS": 12.650737283688676,
+          "APM": 37.09735713229748,
+          "APL": 47.73936842061852,
+          "Params": 2551967,
+          "GFLOPs": 7.4570752
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.92448732081732,
+          "std": 0.5189551380584485
+        },
+        "R": {
+          "mean": 72.72660673240837,
+          "std": 0.09305413680808933
+        },
+        "mAP50": {
+          "mean": 79.09322774389258,
+          "std": 0.25794511180600854
+        },
+        "mAP75": {
+          "mean": 47.54041809788503,
+          "std": 0.27999689922344617
+        },
+        "mAP50-95": {
+          "mean": 45.33156830992253,
+          "std": 0.14432955914180645
+        },
+        "APS": {
+          "mean": 12.754479222333456,
+          "std": 0.7600927564202358
+        },
+        "APM": {
+          "mean": 38.120349881485616,
+          "std": 0.8938027651978344
+        },
+        "APL": {
+          "mean": 47.60663666268244,
+          "std": 0.18298995553583977
+        }
+      },
+      "Params": 2551967,
+      "GFLOPs": 7.4570752
+    },
+    "k3": {
+      "structure": {
+        "backbone": "SCPG H3: SER + CPPG at layer 4",
+        "head": "RAMPDetect(P2 prior + ambiguity; channel=False)",
+        "purpose": "Measure ambiguity selection without channel multiplexing."
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "k3",
+          "seed": 0,
+          "test_name": "ramp_20260721_163821_k3_seed0",
+          "structure": {
+            "backbone": "SCPG H3: SER + CPPG at layer 4",
+            "head": "RAMPDetect(P2 prior + ambiguity; channel=False)",
+            "purpose": "Measure ambiguity selection without channel multiplexing."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k3_seed0/weights/best.pt",
+          "P": 81.64199375328887,
+          "R": 72.74092075886895,
+          "mAP50": 79.43586580523171,
+          "mAP75": 47.87883198574077,
+          "mAP50-95": 45.70516039726778,
+          "APS": 13.125764093041232,
+          "APM": 39.26358020675126,
+          "APL": 47.53742315132463,
+          "Params": 2551967,
+          "GFLOPs": 7.533670400000001
+        },
+        {
+          "stage": "k3",
+          "seed": 1,
+          "test_name": "ramp_20260721_163821_k3_seed1",
+          "structure": {
+            "backbone": "SCPG H3: SER + CPPG at layer 4",
+            "head": "RAMPDetect(P2 prior + ambiguity; channel=False)",
+            "purpose": "Measure ambiguity selection without channel multiplexing."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k3_seed1/weights/best.pt",
+          "P": 80.79230519152254,
+          "R": 73.30091990866454,
+          "mAP50": 78.69737576718617,
+          "mAP75": 47.44990572450828,
+          "mAP50-95": 45.258496400812774,
+          "APS": 12.62138107439993,
+          "APM": 38.240811183229006,
+          "APL": 47.066928506622716,
+          "Params": 2551967,
+          "GFLOPs": 7.533670400000001
+        },
+        {
+          "stage": "k3",
+          "seed": 2,
+          "test_name": "ramp_20260721_163821_k3_seed2",
+          "structure": {
+            "backbone": "SCPG H3: SER + CPPG at layer 4",
+            "head": "RAMPDetect(P2 prior + ambiguity; channel=False)",
+            "purpose": "Measure ambiguity selection without channel multiplexing."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k3_seed2/weights/best.pt",
+          "P": 81.17683783159502,
+          "R": 73.34491286720352,
+          "mAP50": 78.48725050393936,
+          "mAP75": 46.965967142420254,
+          "mAP50-95": 45.27301076326129,
+          "APS": 12.270563533467424,
+          "APM": 37.91981935125516,
+          "APL": 47.440732435309144,
+          "Params": 2551967,
+          "GFLOPs": 7.533670400000001
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 81.20371225880214,
+          "std": 0.4254813029116744
+        },
+        "R": {
+          "mean": 73.12891784491234,
+          "std": 0.3367345381511542
+        },
+        "mAP50": {
+          "mean": 78.87349735878576,
+          "std": 0.4982287213039509
+        },
+        "mAP75": {
+          "mean": 47.4315682842231,
+          "std": 0.45670860713348227
+        },
+        "mAP50-95": {
+          "mean": 45.41222252044728,
+          "std": 0.2537954224102528
+        },
+        "APS": {
+          "mean": 12.672569566969528,
+          "std": 0.4298920743657638
+        },
+        "APM": {
+          "mean": 38.47473691374514,
+          "std": 0.7017579673498784
+        },
+        "APL": {
+          "mean": 47.34836136441883,
+          "std": 0.248476585871512
+        }
+      },
+      "Params": 2551967,
+      "GFLOPs": 7.533670400000001
+    },
+    "k4": {
+      "structure": {
+        "backbone": "SCPG H3: SER + CPPG at layer 4",
+        "head": "RAMPDetect(P2 prior + ambiguity + channel multiplexing)",
+        "purpose": "Full RAMP-YOLOv13."
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "k4",
+          "seed": 0,
+          "test_name": "ramp_20260721_163821_k4_seed0",
+          "structure": {
+            "backbone": "SCPG H3: SER + CPPG at layer 4",
+            "head": "RAMPDetect(P2 prior + ambiguity + channel multiplexing)",
+            "purpose": "Full RAMP-YOLOv13."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k4_seed0/weights/best.pt",
+          "P": 80.77611151198111,
+          "R": 72.74494403827391,
+          "mAP50": 78.83232155334845,
+          "mAP75": 47.724264080164716,
+          "mAP50-95": 45.386917933952866,
+          "APS": 11.9834796474291,
+          "APM": 38.491670139498154,
+          "APL": 47.248263933320125,
+          "Params": 2551967,
+          "GFLOPs": 7.5467775999999995
+        },
+        {
+          "stage": "k4",
+          "seed": 1,
+          "test_name": "ramp_20260721_163821_k4_seed1",
+          "structure": {
+            "backbone": "SCPG H3: SER + CPPG at layer 4",
+            "head": "RAMPDetect(P2 prior + ambiguity + channel multiplexing)",
+            "purpose": "Full RAMP-YOLOv13."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k4_seed1/weights/best.pt",
+          "P": 78.66615367682944,
+          "R": 74.37713011257664,
+          "mAP50": 78.59555959641963,
+          "mAP75": 47.45772270984476,
+          "mAP50-95": 45.30868826465921,
+          "APS": 13.133206358740445,
+          "APM": 38.2347767548537,
+          "APL": 47.40111167707267,
+          "Params": 2551967,
+          "GFLOPs": 7.5467775999999995
+        },
+        {
+          "stage": "k4",
+          "seed": 2,
+          "test_name": "ramp_20260721_163821_k4_seed2",
+          "structure": {
+            "backbone": "SCPG H3: SER + CPPG at layer 4",
+            "head": "RAMPDetect(P2 prior + ambiguity + channel multiplexing)",
+            "purpose": "Full RAMP-YOLOv13."
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/ramp_20260721_163821_k4_seed2/weights/best.pt",
+          "P": 81.62704649033381,
+          "R": 72.8589412240873,
+          "mAP50": 78.86410657679725,
+          "mAP75": 46.99861715473423,
+          "mAP50-95": 45.162911278533166,
+          "APS": 14.817090583475089,
+          "APM": 38.905793301280305,
+          "APL": 46.814937782215026,
+          "Params": 2551967,
+          "GFLOPs": 7.5467775999999995
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.35643722638146,
+          "std": 1.5244069150855515
+        },
+        "R": {
+          "mean": 73.32700512497928,
+          "std": 0.9112193516248421
+        },
+        "mAP50": {
+          "mean": 78.76399590885511,
+          "std": 0.1467333140055696
+        },
+        "mAP75": {
+          "mean": 47.3935346482479,
+          "std": 0.36705714205740775
+        },
+        "mAP50-95": {
+          "mean": 45.286172492381745,
+          "std": 0.11368801792193398
+        },
+        "APS": {
+          "mean": 13.311258863214878,
+          "std": 1.425171833493095
+        },
+        "APM": {
+          "mean": 38.54408006521072,
+          "std": 0.33856447189489636
+        },
+        "APL": {
+          "mean": 47.15477113086927,
+          "std": 0.3040651851753677
+        }
+      },
+      "Params": 2551967,
+      "GFLOPs": 7.5467775999999995
+    }
+  },
+  "csv": "/home/room305/ZZF/yolov13yuan-6000/runs/test/ramp_20260721_163821_ablation.csv"
+}
