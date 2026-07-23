@@ -16,5 +16,7 @@
   "deterministic": true,
   "pin_memory": false,
   "diagnostics": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cpcr_20260722_051400_l1_seed1.cpcr_diagnostics.jsonl",
-  "started_at": "2026-07-22T13:41:05.629220+00:00"
+  "started_at": "2026-07-22T13:41:05.629220+00:00",
+  "completed_at": "2026-07-22T15:51:51.544062+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cpcr_20260722_051400_l1_seed1/weights/best.pt"
 }

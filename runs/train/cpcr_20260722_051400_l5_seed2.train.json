@@ -1,0 +1,22 @@
+{
+  "stage": "l5",
+  "structure": {
+    "backbone": "SCPG-H3 at layer 4",
+    "head": "full CPCRDetect",
+    "purpose": "direct H3 interaction experiment after L4"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-cpcr-l5-h3-full.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 2,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "diagnostics": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cpcr_20260722_051400_l5_seed2.cpcr_diagnostics.jsonl",
+  "started_at": "2026-07-22T23:05:43.637231+00:00",
+  "completed_at": "2026-07-23T00:52:49.915171+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cpcr_20260722_051400_l5_seed2/weights/best.pt"
+}

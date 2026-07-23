@@ -1,0 +1,125 @@
+{
+  "structure": {
+    "backbone": "SCPG-H3 at layer 4",
+    "head": "full CPCRDetect",
+    "purpose": "direct H3 interaction experiment after L4"
+  },
+  "n": 3,
+  "runs": [
+    {
+      "stage": "l5",
+      "seed": 0,
+      "test_name": "cpcr_20260722_051400_l5_seed0",
+      "structure": {
+        "backbone": "SCPG-H3 at layer 4",
+        "head": "full CPCRDetect",
+        "purpose": "direct H3 interaction experiment after L4"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cpcr_20260722_051400_l5_seed0/weights/best.pt",
+      "P": 80.79417798141112,
+      "R": 72.87596252376815,
+      "mAP50": 78.48944460783459,
+      "mAP75": 47.66628078820463,
+      "mAP50-95": 45.414190294120225,
+      "APS": 13.850213090665758,
+      "APM": 38.48959932674103,
+      "APL": 47.246131090449985,
+      "Params": 2611113,
+      "GFLOPs": 8.3086336
+    },
+    {
+      "stage": "l5",
+      "seed": 1,
+      "test_name": "cpcr_20260722_051400_l5_seed1",
+      "structure": {
+        "backbone": "SCPG-H3 at layer 4",
+        "head": "full CPCRDetect",
+        "purpose": "direct H3 interaction experiment after L4"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cpcr_20260722_051400_l5_seed1/weights/best.pt",
+      "P": 81.16402530803856,
+      "R": 72.3601488959103,
+      "mAP50": 79.18712249379915,
+      "mAP75": 47.739863113555266,
+      "mAP50-95": 45.44664267536234,
+      "APS": 12.99721665451425,
+      "APM": 38.816865228527064,
+      "APL": 46.48644896388774,
+      "Params": 2611113,
+      "GFLOPs": 8.3086336
+    },
+    {
+      "stage": "l5",
+      "seed": 2,
+      "test_name": "cpcr_20260722_051400_l5_seed2",
+      "structure": {
+        "backbone": "SCPG-H3 at layer 4",
+        "head": "full CPCRDetect",
+        "purpose": "direct H3 interaction experiment after L4"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cpcr_20260722_051400_l5_seed2/weights/best.pt",
+      "P": 80.27443359366569,
+      "R": 72.78071600619448,
+      "mAP50": 78.49536752482737,
+      "mAP75": 46.599930840434276,
+      "mAP50-95": 44.93887265134989,
+      "APS": 12.791902563468154,
+      "APM": 36.85461629734911,
+      "APL": 47.040184821611426,
+      "Params": 2611113,
+      "GFLOPs": 8.3086336
+    }
+  ],
+  "metrics_percent": {
+    "P": {
+      "mean": 80.74421229437179,
+      "std": 0.4468957171211195,
+      "min": 80.27443359366569,
+      "max": 81.16402530803856
+    },
+    "R": {
+      "mean": 72.6722758086243,
+      "std": 0.2744729167108532,
+      "min": 72.3601488959103,
+      "max": 72.87596252376815
+    },
+    "mAP50": {
+      "mean": 78.72397820882037,
+      "std": 0.4011056491347461,
+      "min": 78.48944460783459,
+      "max": 79.18712249379915
+    },
+    "mAP75": {
+      "mean": 47.335358247398055,
+      "std": 0.6379605731047224,
+      "min": 46.599930840434276,
+      "max": 47.739863113555266
+    },
+    "mAP50-95": {
+      "mean": 45.26656854027748,
+      "std": 0.28425646162771073,
+      "min": 44.93887265134989,
+      "max": 45.44664267536234
+    },
+    "APS": {
+      "mean": 13.213110769549388,
+      "std": 0.5612156400835787,
+      "min": 12.791902563468154,
+      "max": 13.850213090665758
+    },
+    "APM": {
+      "mean": 38.05369361753907,
+      "std": 1.0512447657246164,
+      "min": 36.85461629734911,
+      "max": 38.816865228527064
+    },
+    "APL": {
+      "mean": 46.92425495864972,
+      "std": 0.3928855217480976,
+      "min": 46.48644896388774,
+      "max": 47.246131090449985
+    }
+  },
+  "Params": 2611113,
+  "GFLOPs": 8.3086336
+}

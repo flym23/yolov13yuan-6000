@@ -1,0 +1,22 @@
+{
+  "stage": "l2",
+  "structure": {
+    "backbone": "original DSC3k2",
+    "head": "CPCRDetect: spatial prior + local support",
+    "purpose": "isolate shallow spatial evidence"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-cpcr-l2-spatial.yaml",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 0,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "diagnostics": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cpcr_20260722_051400_l2_seed0.cpcr_diagnostics.jsonl",
+  "started_at": "2026-07-22T16:27:35.720349+00:00",
+  "completed_at": "2026-07-22T18:31:34.119373+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cpcr_20260722_051400_l2_seed0/weights/best.pt"
+}
