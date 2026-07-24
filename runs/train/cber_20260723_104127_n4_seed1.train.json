@@ -1,0 +1,24 @@
+{
+  "stage": "n4",
+  "structure": {
+    "layer_3": "Conv",
+    "layer_4": "CBERSCPGDSC3k2(release_rho=0.20, local_self=0.75, co_weight=0.50; H3 geometry retained)",
+    "layer_32": "Detect",
+    "purpose": "full consensus-budgeted evidence routing"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-cber-n4-full.yaml",
+  "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "diagnostics": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cber_20260723_104127_n4_seed1.cber_diagnostics.jsonl",
+  "started_at": "2026-07-23T21:23:02.245871+00:00",
+  "completed_at": "2026-07-23T23:06:11.510231+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cber_20260723_104127_n4_seed1/weights/best.pt"
+}

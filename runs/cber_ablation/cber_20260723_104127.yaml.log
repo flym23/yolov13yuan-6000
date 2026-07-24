@@ -1,0 +1,4 @@
+ultralytics/cfg/models/v13/yolov13-cber-n3-no-local.yaml
+ultralytics/cfg/models/v13/yolov13-cber-n4-full.yaml
+ultralytics/cfg/models/v13/yolov13-cber-n5-rho010.yaml
+ultralytics/cfg/models/v13/yolov13-cber-n6-rho030.yaml

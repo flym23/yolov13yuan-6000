@@ -70,6 +70,8 @@ from .block import (
     ShallowEvidenceRouter,
     CenterPreservedPartialGeometry,
     SCPGDSC3k2,
+    ConsensusBudgetedEvidenceRouter,
+    CBERSCPGDSC3k2,
 )
 from .conv import (
     CBAM,
@@ -209,6 +211,8 @@ __all__ = (
     "ShallowEvidenceRouter",
     "CenterPreservedPartialGeometry",
     "SCPGDSC3k2",
+    "ConsensusBudgetedEvidenceRouter",
+    "CBERSCPGDSC3k2",
     "HRCTDetect",
     "NonUniformDFL",
     "SUDLDetect",

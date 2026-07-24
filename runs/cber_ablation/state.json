@@ -1,0 +1,29 @@
+{
+  "run_id": "cber_20260723_104127",
+  "status": "complete",
+  "stage": "complete",
+  "exit_code": 0,
+  "launcher_pid": 1107788,
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "workers": 2,
+  "plots": false,
+  "pin_memory": false,
+  "stage_order": [
+    "n3",
+    "n4",
+    "n5",
+    "n6"
+  ],
+  "completed_stages": [
+    "n3",
+    "n4",
+    "n5",
+    "n6"
+  ],
+  "resume": true,
+  "n5_n6_policy": "always start after N4; the documented N4 gate is recorded for analysis only",
+  "updated_at": "2026-07-24T03:47:30.694163+00:00"
+}

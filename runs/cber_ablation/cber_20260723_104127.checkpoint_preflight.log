@@ -1,0 +1,3 @@
+FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
+WARNING ⚠️ no model scale passed. Assuming scale='n'.
+CBER SCPG-H3 checkpoint migration verification passed: /home/room305/ZZF/yolov13yuan-6000/runs/cber_ablation/cber_20260723_104127.checkpoint_preflight.json

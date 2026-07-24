@@ -1,0 +1,8 @@
+{
+  "status": "samr_inactive_complete_starting_cber",
+  "launcher_pid": 1107788,
+  "cber_run_id": "cber_20260723_104127",
+  "samr_state": "/home/room305/ZZF/yolov13-6000/runs/samr_lcer_dcra_s1_s3/state.json",
+  "policy": "start CBER N4-N6 as soon as no SAMR-LCER-DCRA launcher, train, or test process remains; terminal state is recorded when available",
+  "updated_at": "2026-07-23T21:22:56.924774+00:00"
+}

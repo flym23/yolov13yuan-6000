@@ -1,0 +1,9 @@
+{
+  "source_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/scpg_20260720_055026_h3_seed0/weights/best.pt",
+  "target_config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-cber-n4-full.yaml",
+  "source_keys": 956,
+  "target_keys": 964,
+  "matched_keys": 956,
+  "missing_required_prefixes": [],
+  "unexpected_unmatched_target_keys": []
+}

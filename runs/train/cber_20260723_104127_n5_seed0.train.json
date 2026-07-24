@@ -1,0 +1,24 @@
+{
+  "stage": "n5",
+  "structure": {
+    "layer_3": "Conv",
+    "layer_4": "CBERSCPGDSC3k2(release_rho=0.10, local_self=0.75, co_weight=0.50; H3 geometry retained)",
+    "layer_32": "Detect",
+    "purpose": "test whether a tighter release budget suppresses useful detail"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-cber-n5-rho010.yaml",
+  "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 0,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "diagnostics": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cber_20260723_104127_n5_seed0.cber_diagnostics.jsonl",
+  "started_at": "2026-07-23T23:21:22.842445+00:00",
+  "completed_at": "2026-07-24T01:31:37.428690+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cber_20260723_104127_n5_seed0/weights/best.pt"
+}

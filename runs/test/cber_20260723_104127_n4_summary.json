@@ -1,0 +1,201 @@
+{
+  "structure": {
+    "layer_3": "Conv",
+    "layer_4": "CBERSCPGDSC3k2(release_rho=0.20, local_self=0.75, co_weight=0.50; H3 geometry retained)",
+    "layer_32": "Detect",
+    "purpose": "full consensus-budgeted evidence routing"
+  },
+  "n": 3,
+  "runs": [
+    {
+      "stage": "n4",
+      "seed": 0,
+      "test_name": "cber_20260723_104127_n4_seed0",
+      "structure": {
+        "layer_3": "Conv",
+        "layer_4": "CBERSCPGDSC3k2(release_rho=0.20, local_self=0.75, co_weight=0.50; H3 geometry retained)",
+        "layer_32": "Detect",
+        "purpose": "full consensus-budgeted evidence routing"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cber_20260723_104127_n4_seed0/weights/best.pt",
+      "P": 79.0051166789914,
+      "R": 72.32989160822927,
+      "mAP50": 78.18610396108122,
+      "mAP75": 47.24547703311455,
+      "mAP50-95": 44.775825179988175,
+      "APS": 12.881564470362017,
+      "APM": 38.299365876365385,
+      "APL": 46.61183233253246,
+      "Params": 2554798,
+      "GFLOPs": 7.3822208,
+      "diagnostics": {
+        "records": 194,
+        "channel_gate_mean": 0.19999951131872296,
+        "channel_gate_max": 0.24523238837718964,
+        "spatial_gate_mean": 0.10913308402619411,
+        "alpha_raw_last": -0.050496816635131836
+      }
+    },
+    {
+      "stage": "n4",
+      "seed": 1,
+      "test_name": "cber_20260723_104127_n4_seed1",
+      "structure": {
+        "layer_3": "Conv",
+        "layer_4": "CBERSCPGDSC3k2(release_rho=0.20, local_self=0.75, co_weight=0.50; H3 geometry retained)",
+        "layer_32": "Detect",
+        "purpose": "full consensus-budgeted evidence routing"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cber_20260723_104127_n4_seed1/weights/best.pt",
+      "P": 81.32150303937114,
+      "R": 72.25940384503264,
+      "mAP50": 78.65120980221148,
+      "mAP75": 47.121305884836964,
+      "mAP50-95": 44.786845113385,
+      "APS": 14.30326151785469,
+      "APM": 37.59679231745757,
+      "APL": 46.78743502527977,
+      "Params": 2554798,
+      "GFLOPs": 7.3822208,
+      "diagnostics": {
+        "records": 227,
+        "channel_gate_mean": 0.19999951170142002,
+        "channel_gate_max": 0.2488502711057663,
+        "spatial_gate_mean": 0.10903087511067873,
+        "alpha_raw_last": 0.003994448576122522
+      }
+    },
+    {
+      "stage": "n4",
+      "seed": 2,
+      "test_name": "cber_20260723_104127_n4_seed2",
+      "structure": {
+        "layer_3": "Conv",
+        "layer_4": "CBERSCPGDSC3k2(release_rho=0.20, local_self=0.75, co_weight=0.50; H3 geometry retained)",
+        "layer_32": "Detect",
+        "purpose": "full consensus-budgeted evidence routing"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cber_20260723_104127_n4_seed2/weights/best.pt",
+      "P": 81.7803052118645,
+      "R": 71.98853271019429,
+      "mAP50": 78.29516130223652,
+      "mAP75": 47.56508947250582,
+      "mAP50-95": 45.16175247178208,
+      "APS": 14.118244019701276,
+      "APM": 38.60420417442666,
+      "APL": 47.13937090843233,
+      "Params": 2554798,
+      "GFLOPs": 7.3822208,
+      "diagnostics": {
+        "records": 262,
+        "channel_gate_mean": 0.19999951158316082,
+        "channel_gate_max": 0.24766506254673004,
+        "spatial_gate_mean": 0.10948431824568573,
+        "alpha_raw_last": -0.00016068588593043387
+      }
+    }
+  ],
+  "metrics_percent": {
+    "P": {
+      "mean": 80.70230831007568,
+      "std": 1.4876052678173894,
+      "min": 79.0051166789914,
+      "max": 81.7803052118645
+    },
+    "R": {
+      "mean": 72.19260938781873,
+      "std": 0.18021542373722985,
+      "min": 71.98853271019429,
+      "max": 72.32989160822927
+    },
+    "mAP50": {
+      "mean": 78.37749168850974,
+      "std": 0.24323770316564056,
+      "min": 78.18610396108122,
+      "max": 78.65120980221148
+    },
+    "mAP75": {
+      "mean": 47.31062413015244,
+      "std": 0.2289521267872579,
+      "min": 47.121305884836964,
+      "max": 47.56508947250582
+    },
+    "mAP50-95": {
+      "mean": 44.90814092171842,
+      "std": 0.21970314853749287,
+      "min": 44.775825179988175,
+      "max": 45.16175247178208
+    },
+    "APS": {
+      "mean": 13.767690002639327,
+      "std": 0.7729629440478033,
+      "min": 12.881564470362017,
+      "max": 14.30326151785469
+    },
+    "APM": {
+      "mean": 38.166787456083206,
+      "std": 0.5166260161217855,
+      "min": 37.59679231745757,
+      "max": 38.60420417442666
+    },
+    "APL": {
+      "mean": 46.846212755414854,
+      "std": 0.26863609853385617,
+      "min": 46.61183233253246,
+      "max": 47.13937090843233
+    }
+  },
+  "Params": 2554798,
+  "GFLOPs": 7.3822208,
+  "n5_n6_launch_gate": {
+    "passed": false,
+    "checks": {
+      "mean_P_minimum": false,
+      "mean_R_minimum": false,
+      "mean_mAP50_minimum": false,
+      "mean_mAP75_minimum": false,
+      "mean_mAP50-95_minimum": false,
+      "mean_APS_minimum": true,
+      "mean_APM_minimum": false,
+      "mean_APL_minimum": false,
+      "mAP50-95_std_le_0.15": false,
+      "gflops_le_7.40": true,
+      "mAP50-95_beats_l0_3_of_3": false,
+      "mAP50-95_beats_h3_2_of_3": false,
+      "mean_mAP50-95_beats_h3": false,
+      "mean_APS_not_below_h3_minus_0.10": true
+    },
+    "means_percent": {
+      "P": 80.70230831007568,
+      "R": 72.19260938781873,
+      "mAP50": 78.37749168850974,
+      "mAP75": 47.31062413015244,
+      "mAP50-95": 44.90814092171842,
+      "APS": 13.767690002639327,
+      "APM": 38.166787456083206,
+      "APL": 46.846212755414854
+    },
+    "references": {
+      "l0_per_seed": {
+        "0": 45.38259,
+        "1": 45.395271,
+        "2": 45.333289
+      },
+      "h3_per_seed": {
+        "0": 45.509644,
+        "1": 45.519611,
+        "2": 45.365285
+      },
+      "h3_mean": {
+        "P": 81.935786,
+        "R": 72.734677,
+        "mAP50": 78.992631,
+        "mAP75": 47.760937,
+        "mAP50-95": 45.464847,
+        "APS": 13.582038,
+        "APM": 38.329134,
+        "APL": 47.27653
+      }
+    }
+  }
+}

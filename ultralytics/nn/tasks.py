@@ -77,6 +77,7 @@ from ultralytics.nn.modules import (
     DAPD,
     CAGDSC3k2,
     SCPGDSC3k2,
+    CBERSCPGDSC3k2,
     SBRHDetect,
     P3DecoupledDetect,
     RAMPDetect,
@@ -978,9 +979,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-        if m is SCPGDSC3k2:
+        if m in {SCPGDSC3k2, CBERSCPGDSC3k2}:
             if not isinstance(f, (list, tuple)) or len(f) != 2:
-                raise ValueError("SCPGDSC3k2 requires from=[P2_layer, P3_layer].")
+                raise ValueError(f"{m.__name__} requires from=[P2_layer, P3_layer].")
             c_shallow, c_p3 = ch[f[0]], ch[f[1]]
             c2 = args[0]
             if c2 != nc:

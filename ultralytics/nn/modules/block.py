@@ -62,6 +62,8 @@ __all__ = (
     "ShallowEvidenceRouter",
     "CenterPreservedPartialGeometry",
     "SCPGDSC3k2",
+    "ConsensusBudgetedEvidenceRouter",
+    "CBERSCPGDSC3k2",
 )
 
 
@@ -2180,6 +2182,217 @@ class SCPGDSC3k2(DSC3k2):
         base = super().forward(p3)
         routed, micro = self.detail_router(shallow, base)
         return self.geometry(routed, micro)
+
+
+class ConsensusBudgetedEvidenceRouter(ShallowEvidenceRouter):
+    """Release shallow evidence only in consensus-supported regions under a channel budget."""
+
+    def __init__(
+        self,
+        c_shallow,
+        c_out,
+        max_gain=0.08,
+        reduction=4,
+        release_rho=0.20,
+        local_self=0.75,
+        co_weight=0.50,
+        eps=1e-6,
+    ):
+        super().__init__(c_shallow=c_shallow, c_out=c_out, max_gain=max_gain, reduction=reduction, eps=eps)
+        self.release_rho, self.local_self, self.co_weight = float(release_rho), float(local_self), float(co_weight)
+        if not 0.0 <= self.release_rho <= 1.0:
+            raise ValueError(f"release_rho must be in [0, 1], got {release_rho}.")
+        if not 0.0 <= self.local_self <= 1.0:
+            raise ValueError(f"local_self must be in [0, 1], got {local_self}.")
+        if not 0.0 <= self.co_weight <= 1.0:
+            raise ValueError(f"co_weight must be in [0, 1], got {co_weight}.")
+
+        hidden = max(self.c_out // int(reduction), 16)
+        self.spatial_compatibility = nn.Sequential(
+            nn.Conv2d(4, 8, 3, 1, 1, bias=True),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(8, 1, 1, 1, 0, bias=True),
+        )
+        self.channel_compatibility = nn.Sequential(
+            nn.Conv2d(3 * self.c_out, hidden, 1, 1, 0, bias=True),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(hidden, self.c_out, 1, 1, 0, bias=True),
+        )
+        # alpha_raw remains zero, preserving the exact H2/H3 initialization. Small nonzero heads avoid dead gates.
+        nn.init.normal_(self.spatial_compatibility[-1].weight, mean=0.0, std=1e-3)
+        nn.init.zeros_(self.spatial_compatibility[-1].bias)
+        nn.init.normal_(self.channel_compatibility[-1].weight, mean=0.0, std=1e-3)
+        nn.init.zeros_(self.channel_compatibility[-1].bias)
+        self.latest_diagnostics = {}
+
+    @staticmethod
+    def _local_mean(x):
+        """Return a 3x3 local mean without zero-padding boundary bias."""
+        return F.avg_pool2d(F.pad(x, (1, 1, 1, 1), mode="replicate"), kernel_size=3, stride=1, padding=0)
+
+    @staticmethod
+    def _spatial_zscore(x, eps):
+        value = x.float()
+        mean = value.mean(dim=(2, 3), keepdim=True)
+        std = value.var(dim=(2, 3), keepdim=True, unbiased=False).add(eps).sqrt()
+        return (value - mean) / std
+
+    def _relative_support(self, detail_energy, low_energy):
+        """Combine relative saliency with absolute SNR so a flat map has zero support, not 0.5."""
+        ratio = (detail_energy.float() / (low_energy.float() + self.eps)).clamp(0.0, 8.0)
+        absolute_support = 1.0 - torch.exp(-ratio)
+        relative_support = torch.sigmoid(self._spatial_zscore(detail_energy, self.eps))
+        return (absolute_support * relative_support).clamp(0.0, 1.0)
+
+    @staticmethod
+    def _normalize_channel_token(token, eps):
+        return token / (token.mean(dim=1, keepdim=True) + eps)
+
+    def _budgeted_channel_gate(self, low, contrast, semantic_detail):
+        """Return a [B,C,1,1] gate whose per-sample mean cannot exceed release_rho."""
+        low_token = low.float().abs().mean(dim=(2, 3), keepdim=True)
+        contrast_token = contrast.float().abs().mean(dim=(2, 3), keepdim=True)
+        semantic_token = semantic_detail.float().abs().mean(dim=(2, 3), keepdim=True)
+        detail_share = contrast_token / (contrast_token + semantic_token + self.eps)
+        shallow_unique = (2.0 * detail_share - 1.0).clamp_min(0.0)
+        coactivated = (1.0 - (2.0 * detail_share - 1.0).abs()).clamp(0.0, 1.0)
+        channel_prior = (shallow_unique + self.co_weight * coactivated).clamp(0.0, 1.0)
+        channel_tokens = torch.cat(
+            (
+                self._normalize_channel_token(low_token, self.eps),
+                self._normalize_channel_token(contrast_token, self.eps),
+                self._normalize_channel_token(semantic_token, self.eps),
+            ),
+            dim=1,
+        ).detach().to(dtype=low.dtype)
+        learned_gate = torch.sigmoid(self.channel_compatibility(channel_tokens)).float()
+        raw_gate = learned_gate * channel_prior.detach()
+        raw_mean = raw_gate.mean(dim=1, keepdim=True)
+        budget_scale = torch.where(
+            raw_mean > self.eps,
+            torch.full_like(raw_mean, self.release_rho) / (raw_mean.detach() + self.eps),
+            torch.zeros_like(raw_mean),
+        )
+        return (raw_gate * budget_scale).clamp(0.0, 1.0).to(dtype=low.dtype)
+
+    def forward(self, shallow, semantic):
+        if shallow.ndim != 4 or semantic.ndim != 4:
+            raise ValueError("ConsensusBudgetedEvidenceRouter expects two NCHW tensors.")
+        if shallow.shape[0] != semantic.shape[0]:
+            raise ValueError("shallow and semantic must have the same batch size.")
+        if shallow.shape[1] != self.c_shallow:
+            raise ValueError(f"expected {self.c_shallow} shallow channels, got {shallow.shape[1]}.")
+        if semantic.shape[1] != self.c_out:
+            raise ValueError(f"expected {self.c_out} semantic channels, got {semantic.shape[1]}.")
+
+        target_size = semantic.shape[-2:]
+        low_raw = self._align(self._blur_downsample(shallow), target_size)
+        average_raw = F.adaptive_avg_pool2d(shallow, target_size)
+        contrast_raw = (F.adaptive_max_pool2d(shallow, target_size) - average_raw).clamp_min(0.0)
+        low, contrast = self.low_proj(low_raw), self.contrast_proj(contrast_raw)
+        route = self.route_gate(torch.cat((low, contrast, semantic), dim=1))
+        micro = self.micro_gate(
+            torch.cat(
+                (
+                    low.abs().mean(dim=1, keepdim=True),
+                    contrast.abs().mean(dim=1, keepdim=True),
+                    semantic.abs().mean(dim=1, keepdim=True),
+                ),
+                dim=1,
+            )
+        )
+
+        shallow_detail_energy = contrast_raw.float().abs().mean(dim=1, keepdim=True)
+        shallow_low_energy = low_raw.float().abs().mean(dim=1, keepdim=True)
+        shallow_support = self._relative_support(shallow_detail_energy, shallow_low_energy)
+        semantic_float = semantic.float()
+        semantic_low = self._local_mean(semantic_float)
+        semantic_detail = (semantic_float - semantic_low).abs()
+        semantic_detail_energy = semantic_detail.mean(dim=1, keepdim=True)
+        semantic_low_energy = semantic_low.abs().mean(dim=1, keepdim=True)
+        semantic_support = self._relative_support(semantic_detail_energy, semantic_low_energy)
+        coactivated = shallow_support * semantic_support
+        shallow_unique = shallow_support * (1.0 - semantic_support)
+        raw_prior = (shallow_unique + self.co_weight * coactivated).clamp(0.0, 1.0)
+        local_prior = (
+            self.local_self * raw_prior + (1.0 - self.local_self) * self._local_mean(raw_prior)
+        ).clamp(0.0, 1.0)
+        spatial_cues = torch.cat((shallow_support, semantic_support, shallow_unique, coactivated), dim=1).detach().to(
+            dtype=semantic.dtype
+        )
+        learned_spatial = torch.sigmoid(self.spatial_compatibility(spatial_cues))
+        spatial_gate = local_prior.detach().to(dtype=semantic.dtype) * learned_spatial
+        channel_gate = self._budgeted_channel_gate(low, contrast, semantic_detail.to(dtype=semantic.dtype))
+        delta = self.out_proj(route * (low + contrast))
+        gain = (self.max_gain * torch.tanh(self.alpha_raw)).to(dtype=semantic.dtype)
+        routed = semantic + gain * spatial_gate * channel_gate * delta
+        self.latest_diagnostics = {
+            "spatial_gate": spatial_gate.detach(),
+            "channel_gate": channel_gate.detach(),
+            "gain": gain.detach(),
+            "local_prior": local_prior.detach(),
+        }
+        return routed, micro
+
+
+class CBERSCPGDSC3k2(SCPGDSC3k2):
+    """SCPG-H3 whose SER residual is routed by local consensus and a channel budget."""
+
+    def __init__(
+        self,
+        c_shallow,
+        c_p3,
+        c2,
+        n=1,
+        dsc3k=False,
+        e=0.25,
+        geom_ratio=0.50,
+        samples=5,
+        min_radius=0.25,
+        max_radius=1.50,
+        center_floor=0.50,
+        detail_gain=0.08,
+        geom_gain=0.08,
+        reduction=4,
+        release_rho=0.20,
+        local_self=0.75,
+        co_weight=0.50,
+        g=1,
+        shortcut=True,
+        k1=3,
+        k2=7,
+        d2=1,
+    ):
+        super().__init__(
+            c_shallow=c_shallow,
+            c_p3=c_p3,
+            c2=c2,
+            n=n,
+            dsc3k=dsc3k,
+            e=e,
+            geom_ratio=geom_ratio,
+            samples=samples,
+            min_radius=min_radius,
+            max_radius=max_radius,
+            center_floor=center_floor,
+            detail_gain=detail_gain,
+            geom_gain=geom_gain,
+            reduction=reduction,
+            g=g,
+            shortcut=shortcut,
+            k1=k1,
+            k2=k2,
+            d2=d2,
+        )
+        self.detail_router = ConsensusBudgetedEvidenceRouter(
+            c_shallow=self.c_shallow,
+            c_out=self.c2,
+            max_gain=detail_gain,
+            reduction=reduction,
+            release_rho=release_rho,
+            local_self=local_self,
+            co_weight=co_weight,
+        )
 
 
 class AdaHyperedgeGen(nn.Module):
