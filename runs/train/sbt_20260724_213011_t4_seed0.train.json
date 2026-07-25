@@ -1,0 +1,28 @@
+{
+  "stage": "t4",
+  "structure": {
+    "innovations": {
+      "SCGP": true,
+      "BCRA": true,
+      "CSTD": false
+    },
+    "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+    "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+    "layer_32": "original Detect",
+    "purpose": "SCGP + BCRA complementarity"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-sbt-t4-scgp-bcra.yaml",
+  "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 0,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "started_at": "2026-07-25T04:50:02.292954+00:00",
+  "completed_at": "2026-07-25T07:21:58.211985+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t4_seed0/weights/best.pt"
+}

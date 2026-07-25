@@ -1,0 +1,28 @@
+{
+  "stage": "t6",
+  "structure": {
+    "innovations": {
+      "SCGP": false,
+      "BCRA": true,
+      "CSTD": true
+    },
+    "layer_4": "original DSC3k2",
+    "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+    "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+    "purpose": "BCRA + CSTD complementarity"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-sbt-t6-bcra-cstd.yaml",
+  "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 0,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "started_at": "2026-07-25T10:03:47.029018+00:00",
+  "completed_at": "2026-07-25T12:32:02.633057+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t6_seed0/weights/best.pt"
+}

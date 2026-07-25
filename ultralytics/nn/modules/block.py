@@ -64,6 +64,7 @@ __all__ = (
     "SCPGDSC3k2",
     "ConsensusBudgetedEvidenceRouter",
     "CBERSCPGDSC3k2",
+    "BCRAUp",
 )
 
 
@@ -2763,3 +2764,165 @@ class FullPAD_Tunnel(nn.Module):
     def forward(self, x):
         out = x[0] + self.gate * x[1]
         return out
+
+
+class BCRAUp(nn.Module):
+    """Boundary-conditioned, bounded discrete P5-to-P4 reassembly with an exact nearest main path."""
+
+    def __init__(
+        self,
+        c_deep,
+        c_lateral,
+        scale=2,
+        kernel_size=3,
+        align_ratio=0.50,
+        reduction=4,
+        temperature=0.20,
+        residual_groups=4,
+        max_residual_ratio=0.20,
+        confidence_floor=0.25,
+        use_boundary_query=True,
+        use_entropy=True,
+        use_energy_budget=True,
+        detach_confidence=True,
+        detach_budget=True,
+        strict_scale=True,
+        eps=1e-6,
+    ):
+        super().__init__()
+        self.c_deep, self.c_lateral = int(c_deep), int(c_lateral)
+        self.scale, self.kernel_size = int(scale), int(kernel_size)
+        self.temperature, self.max_residual_ratio = float(temperature), float(max_residual_ratio)
+        self.confidence_floor, self.eps = float(confidence_floor), float(eps)
+        self.use_boundary_query, self.use_entropy = bool(use_boundary_query), bool(use_entropy)
+        self.use_energy_budget = bool(use_energy_budget)
+        self.detach_confidence, self.detach_budget, self.strict_scale = (
+            bool(detach_confidence),
+            bool(detach_budget),
+            bool(strict_scale),
+        )
+        if self.c_deep <= 0 or self.c_lateral <= 0:
+            raise ValueError("BCRAUp channel counts must be positive.")
+        if self.scale <= 1 or self.kernel_size < 3 or self.kernel_size % 2 == 0:
+            raise ValueError("BCRAUp requires scale > 1 and an odd kernel_size >= 3.")
+        if not 0.0 < float(align_ratio) <= 1.0 or int(reduction) < 1:
+            raise ValueError("align_ratio must be in (0, 1] and reduction must be >= 1.")
+        if self.temperature <= 0.0 or not 0.0 < self.max_residual_ratio <= 1.0:
+            raise ValueError("temperature and max_residual_ratio must be positive.")
+        if not 0.0 <= self.confidence_floor <= 1.0 or self.eps <= 0.0:
+            raise ValueError("confidence_floor must be in [0, 1] and eps must be positive.")
+
+        raw_channels = int(round(self.c_deep * float(align_ratio) / 8.0)) * 8
+        self.align_channels = min(self.c_deep, max(16, raw_channels))
+        self.embed_dim = max(16, min(64, min(self.align_channels, self.c_lateral) // int(reduction)))
+        radius = self.kernel_size // 2
+        self.offsets = [(dy, dx) for dy in range(-radius, radius + 1) for dx in range(-radius, radius + 1)]
+        self.num_candidates = len(self.offsets)
+
+        with torch.random.fork_rng(devices=[], enabled=True):
+            self.semantic_proj = nn.Conv2d(self.c_lateral, self.embed_dim, 1, bias=False)
+            if self.use_boundary_query:
+                sobel_x = torch.tensor(((-1.0, 0.0, 1.0), (-2.0, 0.0, 2.0), (-1.0, 0.0, 1.0)), dtype=torch.float32)
+                self.register_buffer("sobel_x", sobel_x[None, None], persistent=False)
+                self.register_buffer("sobel_y", sobel_x.t().contiguous()[None, None], persistent=False)
+                self.edge_proj = nn.Sequential(
+                    nn.Conv2d(3, 8, 3, 1, 1, bias=True), nn.SiLU(inplace=True), nn.Conv2d(8, self.embed_dim, 1, bias=False)
+                )
+                self.edge_gate = nn.Sequential(
+                    nn.Conv2d(2, 8, 3, 1, 1, bias=True), nn.SiLU(inplace=True), nn.Conv2d(8, 1, 1, bias=True), nn.Sigmoid()
+                )
+                self.query_mix = nn.Conv2d(2 * self.embed_dim, self.embed_dim, 1, bias=False)
+            else:
+                self.register_buffer("sobel_x", torch.empty(0), persistent=False)
+                self.register_buffer("sobel_y", torch.empty(0), persistent=False)
+                self.edge_proj = self.edge_gate = self.query_mix = None
+            self.key_proj = nn.Conv2d(self.c_deep, self.embed_dim, 1, bias=False)
+            self.value_proj = nn.Identity() if self.align_channels == self.c_deep else nn.Conv2d(self.c_deep, self.align_channels, 1, bias=False)
+            groups = max(1, math.gcd(math.gcd(self.align_channels, self.c_deep), int(residual_groups)))
+            self.residual_out = nn.Conv2d(self.align_channels, self.c_deep, 1, groups=groups, bias=False)
+        nn.init.zeros_(self.residual_out.weight)
+
+    def _validate_inputs(self, deep, lateral):
+        if deep.ndim != 4 or lateral.ndim != 4 or deep.shape[0] != lateral.shape[0]:
+            raise ValueError("BCRAUp expects compatible NCHW deep and lateral tensors.")
+        if deep.shape[1] != self.c_deep or lateral.shape[1] != self.c_lateral:
+            raise ValueError(f"BCRAUp expected channels {self.c_deep}/{self.c_lateral}, got {deep.shape[1]}/{lateral.shape[1]}.")
+        if deep.device != lateral.device or deep.dtype != lateral.dtype:
+            raise ValueError("BCRAUp inputs must share device and dtype.")
+        expected = (deep.shape[-2] * self.scale, deep.shape[-1] * self.scale)
+        if self.strict_scale and tuple(lateral.shape[-2:]) != expected:
+            raise ValueError(f"BCRAUp expected lateral size {expected}, got {tuple(lateral.shape[-2:])}.")
+
+    def _edge_cues(self, lateral):
+        summary = F.pad(lateral.float().mean(dim=1, keepdim=True), (1, 1, 1, 1), mode="replicate")
+        grad_x = F.conv2d(summary, self.sobel_x.to(device=lateral.device, dtype=summary.dtype))
+        grad_y = F.conv2d(summary, self.sobel_y.to(device=lateral.device, dtype=summary.dtype))
+        rms = (grad_x.square() + grad_y.square()).mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        grad_x, grad_y = grad_x / rms, grad_y / rms
+        magnitude = (grad_x.square() + grad_y.square() + self.eps).sqrt()
+        return grad_x.to(lateral.dtype), grad_y.to(lateral.dtype), magnitude.to(lateral.dtype)
+
+    def _build_query(self, lateral):
+        semantic = self.semantic_proj(lateral)
+        if not self.use_boundary_query:
+            return semantic
+        grad_x, grad_y, magnitude = self._edge_cues(lateral)
+        edge = self.edge_proj(torch.cat((grad_x, grad_y, magnitude), dim=1))
+        semantic_energy = semantic.float().abs().mean(dim=1, keepdim=True).to(magnitude.dtype)
+        gate = self.edge_gate(torch.cat((magnitude, semantic_energy), dim=1))
+        return self.query_mix(torch.cat((semantic, gate * edge), dim=1))
+
+    def _shift_replicate(self, feature, delta_y, delta_x):
+        radius = self.kernel_size // 2
+        padded = F.pad(feature, (radius, radius, radius, radius), mode="replicate")
+        height, width = feature.shape[-2:]
+        y_start, x_start = radius + int(delta_y), radius + int(delta_x)
+        return padded[..., y_start : y_start + height, x_start : x_start + width]
+
+    def _reassemble(self, deep, query):
+        target_size = query.shape[-2:]
+        query_fp32 = F.normalize(query.float(), dim=1, eps=self.eps)
+        key = self.key_proj(deep)
+        logits = []
+        for delta_y, delta_x in self.offsets:
+            shifted = F.interpolate(self._shift_replicate(key, delta_y, delta_x), size=target_size, mode="nearest")
+            logits.append((query_fp32 * F.normalize(shifted.float(), dim=1, eps=self.eps)).sum(dim=1))
+        weights = (torch.stack(logits, dim=1) / self.temperature).softmax(dim=1)
+        entropy = -(weights.clamp_min(self.eps).log() * weights).sum(dim=1, keepdim=True) / math.log(self.num_candidates)
+        confidence = (1.0 - entropy).clamp(0.0, 1.0)
+        value = self.value_proj(deep)
+        reassembled = torch.zeros((deep.shape[0], self.align_channels, *target_size), device=deep.device, dtype=torch.float32)
+        for index, (delta_y, delta_x) in enumerate(self.offsets):
+            shifted = F.interpolate(self._shift_replicate(value, delta_y, delta_x), size=target_size, mode="nearest").float()
+            reassembled = reassembled + shifted * weights[:, index : index + 1]
+        base = F.interpolate(value, size=target_size, mode="nearest").float()
+        return (reassembled - base).to(deep.dtype), weights, confidence
+
+    def _energy_budget(self, base, correction):
+        if not self.use_energy_budget:
+            return correction, torch.ones((base.shape[0], base.shape[1], 1, 1), device=base.device, dtype=torch.float32)
+        base_energy = base.float().square().mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        correction_energy = correction.float().square().mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        scale = torch.minimum(torch.ones_like(correction_energy), self.max_residual_ratio * base_energy / correction_energy.clamp_min(self.eps))
+        if self.detach_budget:
+            scale = scale.detach()
+        return (correction.float() * scale).to(base.dtype), scale
+
+    def compute_components(self, deep, lateral):
+        self._validate_inputs(deep, lateral)
+        base = F.interpolate(deep, size=lateral.shape[-2:], mode="nearest")
+        residual, weights, confidence = self._reassemble(deep, self._build_query(lateral))
+        if self.use_entropy:
+            confidence_used = confidence.detach() if self.detach_confidence else confidence
+            confidence_used = self.confidence_floor + (1.0 - self.confidence_floor) * confidence_used.float()
+        else:
+            confidence_used = torch.ones_like(confidence, dtype=torch.float32)
+        correction = self.residual_out((residual.float() * confidence_used).to(residual.dtype))
+        correction, budget_scale = self._energy_budget(base, correction)
+        return base, correction, weights, confidence, budget_scale
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 2:
+            raise TypeError("BCRAUp expects [P5_deep, P4_lateral].")
+        base, correction, _, _, _ = self.compute_components(x[0], x[1])
+        return base + correction

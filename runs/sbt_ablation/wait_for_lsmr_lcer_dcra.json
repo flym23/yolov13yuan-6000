@@ -1,0 +1,7 @@
+{
+  "status": "lsmr_inactive_complete_starting_sbt",
+  "launcher_pid": 1608571,
+  "lsmr_state": "/home/room305/ZZF/yolov13-6000/runs/lsmr_lcer_dcra_r1_r3/state.json",
+  "policy": "start SBT T1-T7 after no active LSMR launcher/train/test process remains; T4-T7 have no result gate",
+  "updated_at": "2026-07-24T21:30:11.513249+00:00"
+}

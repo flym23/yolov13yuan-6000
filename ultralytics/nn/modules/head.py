@@ -31,6 +31,9 @@ __all__ = (
     "GradientIsolatedShallowEncoder",
     "ClassPrototypeComplementaryRecovery",
     "CPCRDetect",
+    "SemanticContextBridge",
+    "BoundaryContextBridge",
+    "CSTDDetect",
     "Segment",
     "Pose",
     "Classify",
@@ -192,6 +195,140 @@ class Detect(nn.Module):
         scores, index = scores.flatten(1).topk(min(max_det, anchors))
         i = torch.arange(batch_size)[..., None]  # batch indices
         return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
+
+
+class _BudgetedContextBridge(nn.Module):
+    """Per-channel residual-energy budget shared by CSTD cross-scale adapters."""
+
+    def __init__(self, max_ratio, eps=1e-6, detach_budget=True):
+        super().__init__()
+        self.max_ratio, self.eps, self.detach_budget = float(max_ratio), float(eps), bool(detach_budget)
+        if not 0.0 < self.max_ratio <= 1.0 or self.eps <= 0.0:
+            raise ValueError("max_ratio must be in (0, 1] and eps must be positive.")
+
+    def _budget(self, base, correction):
+        if base.shape != correction.shape:
+            raise ValueError("base and correction shapes differ.")
+        base_energy = base.float().square().mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        correction_energy = correction.float().square().mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        scale = torch.minimum(torch.ones_like(correction_energy), self.max_ratio * base_energy / correction_energy.clamp_min(self.eps))
+        if self.detach_budget:
+            scale = scale.detach()
+        return (correction.float() * scale).to(dtype=base.dtype)
+
+
+class SemanticContextBridge(_BudgetedContextBridge):
+    """Inject deeper semantic context into a shallower classification feature with a zero-start residual."""
+
+    def __init__(self, c_target, c_context, max_ratio=0.08, reduction=4, eps=1e-6):
+        super().__init__(max_ratio=max_ratio, eps=eps, detach_budget=True)
+        self.c_target, self.c_context = int(c_target), int(c_context)
+        if self.c_target <= 0 or self.c_context <= 0 or int(reduction) < 1:
+            raise ValueError("SemanticContextBridge requires positive channels and reduction >= 1.")
+        hidden = max(8, self.c_target // max(8, int(reduction) * 4))
+        self.context_proj = Conv(self.c_context, self.c_target, 1, 1)
+        self.gate = nn.Sequential(
+            nn.Conv2d(2, hidden, 3, 1, 1, bias=True), nn.SiLU(inplace=True), nn.Conv2d(hidden, 1, 1, bias=True), nn.Sigmoid()
+        )
+        self.out_proj = nn.Conv2d(self.c_target, self.c_target, 1, bias=False)
+        nn.init.zeros_(self.out_proj.weight)
+
+    def forward(self, target, context):
+        if target.ndim != 4 or context.ndim != 4 or target.shape[0] != context.shape[0]:
+            raise ValueError("SemanticContextBridge expects compatible NCHW tensors.")
+        if target.shape[1] != self.c_target or context.shape[1] != self.c_context:
+            raise ValueError(f"expected target/context channels {self.c_target}/{self.c_context}.")
+        context_feature = F.interpolate(self.context_proj(context), size=target.shape[-2:], mode="bilinear", align_corners=False)
+        gate = self.gate(
+            torch.cat((target.float().abs().mean(dim=1, keepdim=True), context_feature.float().abs().mean(dim=1, keepdim=True)), dim=1).to(target.dtype)
+        )
+        return target + self._budget(target, self.out_proj(context_feature * gate))
+
+
+class BoundaryContextBridge(_BudgetedContextBridge):
+    """Inject shallower boundary context into a deeper regression feature with a zero-start residual."""
+
+    def __init__(self, c_target, c_source, max_ratio=0.08, reduction=4, eps=1e-6):
+        super().__init__(max_ratio=max_ratio, eps=eps, detach_budget=True)
+        self.c_target, self.c_source = int(c_target), int(c_source)
+        if self.c_target <= 0 or self.c_source <= 0 or int(reduction) < 1:
+            raise ValueError("BoundaryContextBridge requires positive channels and reduction >= 1.")
+        hidden = max(self.c_target // int(reduction), 16)
+        self.source_proj = Conv(self.c_source, self.c_target, 1, 1)
+        sobel_x = torch.tensor(((-1.0, 0.0, 1.0), (-2.0, 0.0, 2.0), (-1.0, 0.0, 1.0)), dtype=torch.float32)
+        self.register_buffer("sobel_x", sobel_x[None, None], persistent=False)
+        self.register_buffer("sobel_y", sobel_x.t().contiguous()[None, None], persistent=False)
+        self.edge_proj = nn.Sequential(
+            nn.Conv2d(3, 8, 3, 1, 1, bias=True), nn.SiLU(inplace=True), nn.Conv2d(8, self.c_target, 1, bias=False)
+        )
+        self.mix = Conv(3 * self.c_target, hidden, 1, 1)
+        self.out_proj = nn.Conv2d(hidden, self.c_target, 1, bias=False)
+        nn.init.zeros_(self.out_proj.weight)
+
+    def _edge_cues(self, source):
+        summary = F.pad(source.float().mean(dim=1, keepdim=True), (1, 1, 1, 1), mode="replicate")
+        grad_x = F.conv2d(summary, self.sobel_x.to(device=source.device, dtype=summary.dtype))
+        grad_y = F.conv2d(summary, self.sobel_y.to(device=source.device, dtype=summary.dtype))
+        rms = (grad_x.square() + grad_y.square()).mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        grad_x, grad_y = grad_x / rms, grad_y / rms
+        magnitude = (grad_x.square() + grad_y.square() + self.eps).sqrt()
+        return torch.cat((grad_x, grad_y, magnitude), dim=1).to(source.dtype)
+
+    @staticmethod
+    def _resize_down(feature, target_size):
+        if feature.shape[-2:] == target_size:
+            return feature
+        if feature.shape[-2] == target_size[0] * 2 and feature.shape[-1] == target_size[1] * 2:
+            return F.avg_pool2d(feature, kernel_size=2, stride=2)
+        return F.interpolate(feature, size=target_size, mode="bilinear", align_corners=False)
+
+    @staticmethod
+    def _local_detail(target):
+        low = F.avg_pool2d(F.pad(target, (1, 1, 1, 1), mode="replicate"), kernel_size=3, stride=1)
+        return target - low
+
+    def forward(self, target, source):
+        if target.ndim != 4 or source.ndim != 4 or target.shape[0] != source.shape[0]:
+            raise ValueError("BoundaryContextBridge expects compatible NCHW tensors.")
+        if target.shape[1] != self.c_target or source.shape[1] != self.c_source:
+            raise ValueError(f"expected target/source channels {self.c_target}/{self.c_source}.")
+        target_size = target.shape[-2:]
+        source_feature = self._resize_down(self.source_proj(source), target_size)
+        edge_feature = self._resize_down(self.edge_proj(self._edge_cues(source)), target_size)
+        correction = self.out_proj(self.mix(torch.cat((self._local_detail(target), source_feature, edge_feature), dim=1)))
+        return target + self._budget(target, correction)
+
+
+class CSTDDetect(Detect):
+    """Cross-scale task-decoupled three-level Detect head preserving cv2/cv3/dfl checkpoint keys."""
+
+    def __init__(self, nc=80, cls_residual_ratio=0.08, reg_residual_ratio=0.08, reduction=4, ch=()):
+        if not isinstance(ch, (list, tuple)) or len(ch) != 3:
+            raise ValueError(f"CSTDDetect requires P3/P4/P5 channels, got {ch}.")
+        super().__init__(nc=nc, ch=ch)
+        if self.end2end:
+            raise NotImplementedError("CSTDDetect supports only the standard one-to-many path.")
+        if self.nl != 3:
+            raise ValueError(f"CSTDDetect requires exactly three levels, got {self.nl}.")
+        with torch.random.fork_rng(devices=[], enabled=True):
+            self.cls_p3_from_p4 = SemanticContextBridge(ch[0], ch[1], max_ratio=cls_residual_ratio, reduction=reduction)
+            self.cls_p4_from_p5 = SemanticContextBridge(ch[1], ch[2], max_ratio=cls_residual_ratio, reduction=reduction)
+            self.reg_p4_from_p3 = BoundaryContextBridge(ch[1], ch[0], max_ratio=reg_residual_ratio, reduction=reduction)
+            self.reg_p5_from_p4 = BoundaryContextBridge(ch[2], ch[1], max_ratio=reg_residual_ratio, reduction=reduction)
+        for bridge in (self.cls_p3_from_p4, self.cls_p4_from_p5, self.reg_p4_from_p3, self.reg_p5_from_p4):
+            nn.init.zeros_(bridge.out_proj.weight)
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != self.nl:
+            raise ValueError("CSTDDetect expects [P3, P4, P5].")
+        p3, p4, p5 = x
+        cls_features = (self.cls_p3_from_p4(p3, p4), self.cls_p4_from_p5(p4, p5), p5)
+        reg_features = (p3, self.reg_p4_from_p3(p4, p3), self.reg_p5_from_p4(p5, p4))
+        outputs = [torch.cat((self.cv2[index](reg_features[index]), self.cv3[index](cls_features[index])), dim=1) for index in range(self.nl)]
+        if self.training:
+            return outputs
+        prediction = self._inference(outputs)
+        return prediction if self.export else (prediction, outputs)
 
 
 class _HRCTNode(nn.Module):

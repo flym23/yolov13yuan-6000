@@ -260,6 +260,7 @@ def main():
         conf=0.001,
         iou=0.5,
         device=args.device,
+        amp=False,
         plots=True,
         save_json=True,
         project=str(ROOT_DIR / "runs/test"),

@@ -1,0 +1,28 @@
+{
+  "stage": "t1",
+  "structure": {
+    "innovations": {
+      "SCGP": true,
+      "BCRA": false,
+      "CSTD": false
+    },
+    "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+    "layer_15": "nearest-neighbor P5→P4 upsample",
+    "layer_32": "original Detect",
+    "purpose": "Innovation 1: shallow geometry preservation only"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-sbt-t1-scgp.yaml",
+  "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 2,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "started_at": "2026-07-24T21:30:19.203866+00:00",
+  "completed_at": "2026-07-25T00:17:09.471597+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t1_seed2/weights/best.pt"
+}

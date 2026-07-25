@@ -1,0 +1,1113 @@
+{
+  "run_id": "sbt_20260724_213011",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "amp": false,
+    "workers": 2,
+    "plots": false,
+    "pin_memory": false
+  },
+  "t0_reused_baselines": {
+    "l0": {
+      "path": "/home/room305/ZZF/yolov13-6000/runs/test/lcer_dcra_20260722_045426_l0_baseline_summary.json",
+      "available": true,
+      "summary": {
+        "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+        "n": 3,
+        "runs": [
+          {
+            "stage": "l0_baseline",
+            "seed": 0,
+            "test_name": "lcer_dcra_20260722_045426_l0_baseline_seed0",
+            "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l0_baseline_seed0/weights/best.pt",
+            "P": 80.19723913475751,
+            "R": 73.63859943803376,
+            "mAP50": 79.00748159619879,
+            "mAP75": 47.81868472622747,
+            "mAP50-95": 45.38258985685806,
+            "APS": 11.165228301622792,
+            "APM": 38.25104493934652,
+            "APL": 47.56439589130545,
+            "Params": 0,
+            "GFLOPs": 0.0
+          },
+          {
+            "stage": "l0_baseline",
+            "seed": 1,
+            "test_name": "lcer_dcra_20260722_045426_l0_baseline_seed1",
+            "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l0_baseline_seed1/weights/best.pt",
+            "P": 80.96752441890942,
+            "R": 72.4709437016305,
+            "mAP50": 78.63966396201948,
+            "mAP75": 47.27955134019404,
+            "mAP50-95": 45.395270590279814,
+            "APS": 14.345808923897001,
+            "APM": 38.31854284001455,
+            "APL": 47.62432863018223,
+            "Params": 0,
+            "GFLOPs": 0.0
+          },
+          {
+            "stage": "l0_baseline",
+            "seed": 2,
+            "test_name": "lcer_dcra_20260722_045426_l0_baseline_seed2",
+            "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l0_baseline_seed2/weights/best.pt",
+            "P": 80.62902019908515,
+            "R": 72.20001543794632,
+            "mAP50": 78.3683471757761,
+            "mAP75": 48.241532843838534,
+            "mAP50-95": 45.33328935713019,
+            "APS": 13.47974699536992,
+            "APM": 38.85269323605882,
+            "APL": 46.844446907751596,
+            "Params": 0,
+            "GFLOPs": 0.0
+          }
+        ],
+        "metrics_percent": {
+          "P": {
+            "mean": 80.59792791758403,
+            "std": 0.38608276602557134
+          },
+          "R": {
+            "mean": 72.76985285920352,
+            "std": 0.7644547041438496
+          },
+          "mAP50": {
+            "mean": 78.67183091133145,
+            "std": 0.32077910828682715
+          },
+          "mAP75": {
+            "mean": 47.77992297008668,
+            "std": 0.48216071868503463
+          },
+          "mAP50-95": {
+            "mean": 45.370383268089356,
+            "std": 0.03274399063512593
+          },
+          "APS": {
+            "mean": 12.996928073629904,
+            "std": 1.6443414660857987
+          },
+          "APM": {
+            "mean": 38.47409367180663,
+            "std": 0.32960918401587086
+          },
+          "APL": {
+            "mean": 47.34439047641309,
+            "std": 0.433999610808364
+          }
+        },
+        "Params": 0,
+        "GFLOPs": 0.0
+      }
+    },
+    "p0": {
+      "path": "/home/room305/ZZF/yolov13-6000/runs/test/spc_lcer_dcra_20260722_162019_p0_baseline_summary.json",
+      "available": true,
+      "summary": {
+        "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+        "n": 3,
+        "runs": [
+          {
+            "stage": "p0_baseline",
+            "seed": 0,
+            "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed0",
+            "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed0/weights/best.pt",
+            "FPS": null,
+            "PeakMemoryGB": null,
+            "P": 81.6214427539224,
+            "R": 72.02800673828213,
+            "mAP50": 78.77299896883191,
+            "mAP75": 46.740634272889835,
+            "mAP50-95": 44.8278823895086,
+            "APS": 13.75111969881456,
+            "APM": 38.7780148144229,
+            "APL": 46.74435857313849,
+            "Params": 0,
+            "GFLOPs": 0.0
+          },
+          {
+            "stage": "p0_baseline",
+            "seed": 1,
+            "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed1",
+            "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed1/weights/best.pt",
+            "FPS": null,
+            "PeakMemoryGB": null,
+            "P": 80.10168832941253,
+            "R": 73.4902981327541,
+            "mAP50": 78.74978813764938,
+            "mAP75": 47.1347007516688,
+            "mAP50-95": 45.13404517835179,
+            "APS": 14.027465823793845,
+            "APM": 39.658721328801,
+            "APL": 46.25522300765999,
+            "Params": 0,
+            "GFLOPs": 0.0
+          },
+          {
+            "stage": "p0_baseline",
+            "seed": 2,
+            "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed2",
+            "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed2/weights/best.pt",
+            "FPS": null,
+            "PeakMemoryGB": null,
+            "P": 79.53475593828125,
+            "R": 74.52099697882171,
+            "mAP50": 79.06643341563422,
+            "mAP75": 47.22858483405584,
+            "mAP50-95": 45.39244443763602,
+            "APS": 12.465551905068057,
+            "APM": 38.75256492136971,
+            "APL": 46.915445175084834,
+            "Params": 0,
+            "GFLOPs": 0.0
+          }
+        ],
+        "metrics_percent": {
+          "P": {
+            "mean": 80.41929567387206,
+            "std": 1.078990864457907
+          },
+          "R": {
+            "mean": 73.34643394995265,
+            "std": 1.2527061755161306
+          },
+          "mAP50": {
+            "mean": 78.86307350737184,
+            "std": 0.17649681268343162
+          },
+          "mAP75": {
+            "mean": 47.034639952871494,
+            "std": 0.25890743544271
+          },
+          "mAP50-95": {
+            "mean": 45.118124001832136,
+            "std": 0.2826175674702202
+          },
+          "APS": {
+            "mean": 13.414712475892154,
+            "std": 0.8335293258806856
+          },
+          "APM": {
+            "mean": 39.06310035486454,
+            "std": 0.5159798278119696
+          },
+          "APL": {
+            "mean": 46.638342251961106,
+            "std": 0.342641099193863
+          }
+        },
+        "Params": 0,
+        "GFLOPs": 0.0,
+        "FPS": null,
+        "PeakMemoryGB": null
+      }
+    }
+  },
+  "stages": {
+    "t1": {
+      "structure": {
+        "innovations": {
+          "SCGP": true,
+          "BCRA": false,
+          "CSTD": false
+        },
+        "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+        "layer_15": "nearest-neighbor P5→P4 upsample",
+        "layer_32": "original Detect",
+        "purpose": "Innovation 1: shallow geometry preservation only"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "t1",
+          "seed": 0,
+          "test_name": "sbt_20260724_213011_t1_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "BCRA": false,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4 upsample",
+            "layer_32": "original Detect",
+            "purpose": "Innovation 1: shallow geometry preservation only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t1_seed0/weights/best.pt",
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001,
+          "P": 80.77623948780553,
+          "R": 72.6629015279517,
+          "mAP50": 79.33774667048061,
+          "mAP75": 46.936444385634694,
+          "mAP50-95": 45.12384861265121,
+          "APS": 12.402881204432395,
+          "APM": 37.905175911886275,
+          "APL": 47.09839223991595
+        },
+        {
+          "stage": "t1",
+          "seed": 1,
+          "test_name": "sbt_20260724_213011_t1_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "BCRA": false,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4 upsample",
+            "layer_32": "original Detect",
+            "purpose": "Innovation 1: shallow geometry preservation only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t1_seed1/weights/best.pt",
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001,
+          "P": 79.28173804761083,
+          "R": 74.14676220782604,
+          "mAP50": 78.78908927443936,
+          "mAP75": 46.860469410239816,
+          "mAP50-95": 45.2047401406614,
+          "APS": 12.058616750170515,
+          "APM": 38.263131501735195,
+          "APL": 47.540286637617235
+        },
+        {
+          "stage": "t1",
+          "seed": 2,
+          "test_name": "sbt_20260724_213011_t1_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "BCRA": false,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4 upsample",
+            "layer_32": "original Detect",
+            "purpose": "Innovation 1: shallow geometry preservation only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t1_seed2/weights/best.pt",
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001,
+          "P": 80.81794063482191,
+          "R": 73.90130407216039,
+          "mAP50": 79.20421349863402,
+          "mAP75": 48.70893730632718,
+          "mAP50-95": 45.71707325266673,
+          "APS": 13.116551837020468,
+          "APM": 39.0724628285694,
+          "APL": 47.35240207106662
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.29197272341275,
+          "std": 0.8751373158311135,
+          "min": 79.28173804761083,
+          "max": 80.81794063482191
+        },
+        "R": {
+          "mean": 73.57032260264604,
+          "std": 0.7953754957192793,
+          "min": 72.6629015279517,
+          "max": 74.14676220782604
+        },
+        "mAP50": {
+          "mean": 79.110349814518,
+          "std": 0.2861189052729046,
+          "min": 78.78908927443936,
+          "max": 79.33774667048061
+        },
+        "mAP75": {
+          "mean": 47.50195036740056,
+          "std": 1.0459713917101872,
+          "min": 46.860469410239816,
+          "max": 48.70893730632718
+        },
+        "mAP50-95": {
+          "mean": 45.348554001993115,
+          "std": 0.3216996866857953,
+          "min": 45.12384861265121,
+          "max": 45.71707325266673
+        },
+        "APS": {
+          "mean": 12.526016597207793,
+          "std": 0.5396094937197808,
+          "min": 12.058616750170515,
+          "max": 13.116551837020468
+        },
+        "APM": {
+          "mean": 38.41359008073029,
+          "std": 0.598011726022004,
+          "min": 37.905175911886275,
+          "max": 39.0724628285694
+        },
+        "APL": {
+          "mean": 47.330360316199936,
+          "std": 0.22177025025495908,
+          "min": 47.09839223991595,
+          "max": 47.540286637617235
+        }
+      },
+      "Params": 2537949,
+      "GFLOPs": 7.365324800000001
+    },
+    "t2": {
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "BCRA": true,
+          "CSTD": false
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+        "layer_32": "original Detect",
+        "purpose": "Innovation 2: boundary-conditioned P5→P4 reassembly only"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "t2",
+          "seed": 0,
+          "test_name": "sbt_20260724_213011_t2_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "BCRA": true,
+              "CSTD": false
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+            "layer_32": "original Detect",
+            "purpose": "Innovation 2: boundary-conditioned P5→P4 reassembly only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t2_seed0/weights/best.pt",
+          "Params": 2516628,
+          "GFLOPs": 6.451251199999999,
+          "P": 78.71538972302092,
+          "R": 72.83070690080568,
+          "mAP50": 78.80352016636111,
+          "mAP75": 46.813991256366364,
+          "mAP50-95": 44.99462055968942,
+          "APS": 12.108802165311827,
+          "APM": 38.183107290448085,
+          "APL": 46.744574171597755
+        },
+        {
+          "stage": "t2",
+          "seed": 1,
+          "test_name": "sbt_20260724_213011_t2_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "BCRA": true,
+              "CSTD": false
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+            "layer_32": "original Detect",
+            "purpose": "Innovation 2: boundary-conditioned P5→P4 reassembly only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t2_seed1/weights/best.pt",
+          "Params": 2516628,
+          "GFLOPs": 6.451251199999999,
+          "P": 81.44802249096335,
+          "R": 71.76911868481062,
+          "mAP50": 78.53169791633175,
+          "mAP75": 47.82120257622788,
+          "mAP50-95": 45.214581839831,
+          "APS": 11.425339880701166,
+          "APM": 38.101101476913065,
+          "APL": 47.60848325202797
+        },
+        {
+          "stage": "t2",
+          "seed": 2,
+          "test_name": "sbt_20260724_213011_t2_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "BCRA": true,
+              "CSTD": false
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+            "layer_32": "original Detect",
+            "purpose": "Innovation 2: boundary-conditioned P5→P4 reassembly only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t2_seed2/weights/best.pt",
+          "Params": 2516628,
+          "GFLOPs": 6.451251199999999,
+          "P": 79.72500871602469,
+          "R": 73.75334431576994,
+          "mAP50": 78.72642312144315,
+          "mAP75": 46.479922218908484,
+          "mAP50-95": 44.86951207806422,
+          "APS": 12.797671454605522,
+          "APM": 37.862228192142474,
+          "APL": 47.117859708708565
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 79.96280697666965,
+          "std": 1.3817494239848662,
+          "min": 78.71538972302092,
+          "max": 81.44802249096335
+        },
+        "R": {
+          "mean": 72.78438996712875,
+          "std": 0.9929233517235349,
+          "min": 71.76911868481062,
+          "max": 73.75334431576994
+        },
+        "mAP50": {
+          "mean": 78.687213734712,
+          "std": 0.14008877866777983,
+          "min": 78.53169791633175,
+          "max": 78.80352016636111
+        },
+        "mAP75": {
+          "mean": 47.038372017167575,
+          "std": 0.6982251023817545,
+          "min": 46.479922218908484,
+          "max": 47.82120257622788
+        },
+        "mAP50-95": {
+          "mean": 45.02623815919488,
+          "std": 0.17469413147072563,
+          "min": 44.86951207806422,
+          "max": 45.214581839831
+        },
+        "APS": {
+          "mean": 12.110604500206172,
+          "std": 0.6861675622557549,
+          "min": 11.425339880701166,
+          "max": 12.797671454605522
+        },
+        "APM": {
+          "mean": 38.04881231983454,
+          "std": 0.1667077259557646,
+          "min": 37.862228192142474,
+          "max": 38.183107290448085
+        },
+        "APL": {
+          "mean": 47.15697237744477,
+          "std": 0.4332805966740228,
+          "min": 46.744574171597755,
+          "max": 47.60848325202797
+        }
+      },
+      "Params": 2516628,
+      "GFLOPs": 6.451251199999999
+    },
+    "t3": {
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "BCRA": false,
+          "CSTD": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "nearest-neighbor P5→P4 upsample",
+        "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+        "purpose": "Innovation 3: cross-scale task-decoupled head only"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "t3",
+          "seed": 0,
+          "test_name": "sbt_20260724_213011_t3_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "BCRA": false,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "nearest-neighbor P5→P4 upsample",
+            "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+            "purpose": "Innovation 3: cross-scale task-decoupled head only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t3_seed0/weights/best.pt",
+          "Params": 2650197,
+          "GFLOPs": 6.8805119999999995,
+          "P": 80.26231192844695,
+          "R": 72.94690683766305,
+          "mAP50": 78.78045012238087,
+          "mAP75": 47.614872796249465,
+          "mAP50-95": 45.431502523183994,
+          "APS": 11.828798403100365,
+          "APM": 38.542824078212156,
+          "APL": 47.55274799667916
+        },
+        {
+          "stage": "t3",
+          "seed": 1,
+          "test_name": "sbt_20260724_213011_t3_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "BCRA": false,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "nearest-neighbor P5→P4 upsample",
+            "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+            "purpose": "Innovation 3: cross-scale task-decoupled head only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t3_seed1/weights/best.pt",
+          "Params": 2650197,
+          "GFLOPs": 6.8805119999999995,
+          "P": 78.81578479058832,
+          "R": 73.654551784252,
+          "mAP50": 78.70875068547349,
+          "mAP75": 47.00632741526945,
+          "mAP50-95": 45.0612480560898,
+          "APS": 13.658712152179401,
+          "APM": 38.26602197783385,
+          "APL": 47.011681065726144
+        },
+        {
+          "stage": "t3",
+          "seed": 2,
+          "test_name": "sbt_20260724_213011_t3_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "BCRA": false,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "nearest-neighbor P5→P4 upsample",
+            "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+            "purpose": "Innovation 3: cross-scale task-decoupled head only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t3_seed2/weights/best.pt",
+          "Params": 2650197,
+          "GFLOPs": 6.8805119999999995,
+          "P": 79.3163153531597,
+          "R": 73.70809953807547,
+          "mAP50": 79.27724774826403,
+          "mAP75": 46.903895236540414,
+          "mAP50-95": 45.072141826303906,
+          "APS": 11.907779281180337,
+          "APM": 39.006538800049015,
+          "APL": 46.05482175888066
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 79.46480402406499,
+          "std": 0.7346065982420666,
+          "min": 78.81578479058832,
+          "max": 80.26231192844695
+        },
+        "R": {
+          "mean": 73.4365193866635,
+          "std": 0.4248613616097966,
+          "min": 72.94690683766305,
+          "max": 73.70809953807547
+        },
+        "mAP50": {
+          "mean": 78.92214951870614,
+          "std": 0.30960663234106534,
+          "min": 78.70875068547349,
+          "max": 79.27724774826403
+        },
+        "mAP75": {
+          "mean": 47.175031816019775,
+          "std": 0.3843411944182585,
+          "min": 46.903895236540414,
+          "max": 47.614872796249465
+        },
+        "mAP50-95": {
+          "mean": 45.1882974685259,
+          "std": 0.21069217478540603,
+          "min": 45.0612480560898,
+          "max": 45.431502523183994
+        },
+        "APS": {
+          "mean": 12.465096612153367,
+          "std": 1.0344554305620424,
+          "min": 11.828798403100365,
+          "max": 13.658712152179401
+        },
+        "APM": {
+          "mean": 38.605128285365005,
+          "std": 0.3741692821005218,
+          "min": 38.26602197783385,
+          "max": 39.006538800049015
+        },
+        "APL": {
+          "mean": 46.87308360709532,
+          "std": 0.7585200690327751,
+          "min": 46.05482175888066,
+          "max": 47.55274799667916
+        }
+      },
+      "Params": 2650197,
+      "GFLOPs": 6.8805119999999995
+    },
+    "t4": {
+      "structure": {
+        "innovations": {
+          "SCGP": true,
+          "BCRA": true,
+          "CSTD": false
+        },
+        "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+        "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+        "layer_32": "original Detect",
+        "purpose": "SCGP + BCRA complementarity"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "t4",
+          "seed": 0,
+          "test_name": "sbt_20260724_213011_t4_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "BCRA": true,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+            "layer_32": "original Detect",
+            "purpose": "SCGP + BCRA complementarity"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t4_seed0/weights/best.pt",
+          "Params": 2593886,
+          "GFLOPs": 7.4451456,
+          "P": 80.77709286119968,
+          "R": 72.78515185949676,
+          "mAP50": 78.7331782181086,
+          "mAP75": 47.31693491571483,
+          "mAP50-95": 45.23166210111942,
+          "APS": 14.203182099218056,
+          "APM": 38.33616171229772,
+          "APL": 47.39912401157678
+        },
+        {
+          "stage": "t4",
+          "seed": 1,
+          "test_name": "sbt_20260724_213011_t4_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "BCRA": true,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+            "layer_32": "original Detect",
+            "purpose": "SCGP + BCRA complementarity"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t4_seed1/weights/best.pt",
+          "Params": 2593886,
+          "GFLOPs": 7.4451456,
+          "P": 80.99743237855996,
+          "R": 73.88705414089142,
+          "mAP50": 78.84913030940638,
+          "mAP75": 47.41208831008908,
+          "mAP50-95": 45.26254982684488,
+          "APS": 11.760338301617937,
+          "APM": 37.77000395438021,
+          "APL": 47.40987247857359
+        },
+        {
+          "stage": "t4",
+          "seed": 2,
+          "test_name": "sbt_20260724_213011_t4_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "BCRA": true,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+            "layer_32": "original Detect",
+            "purpose": "SCGP + BCRA complementarity"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t4_seed2/weights/best.pt",
+          "Params": 2593886,
+          "GFLOPs": 7.4451456,
+          "P": 80.68259741065098,
+          "R": 73.65395312276239,
+          "mAP50": 78.91167253111624,
+          "mAP75": 48.30685578236823,
+          "mAP50-95": 45.398254433998574,
+          "APS": 13.15006731854414,
+          "APM": 37.75205788404904,
+          "APL": 47.83065332770858
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.81904088347021,
+          "std": 0.16155491847625295,
+          "min": 80.68259741065098,
+          "max": 80.99743237855996
+        },
+        "R": {
+          "mean": 73.44205304105019,
+          "std": 0.580709387652649,
+          "min": 72.78515185949676,
+          "max": 73.88705414089142
+        },
+        "mAP50": {
+          "mean": 78.83132701954374,
+          "std": 0.09056916026698324,
+          "min": 78.7331782181086,
+          "max": 78.91167253111624
+        },
+        "mAP75": {
+          "mean": 47.678626336057384,
+          "std": 0.5461389200782735,
+          "min": 47.31693491571483,
+          "max": 48.30685578236823
+        },
+        "mAP50-95": {
+          "mean": 45.29748878732096,
+          "std": 0.08862166531323698,
+          "min": 45.23166210111942,
+          "max": 45.398254433998574
+        },
+        "APS": {
+          "mean": 13.037862573126711,
+          "std": 1.2252811446925091,
+          "min": 11.760338301617937,
+          "max": 14.203182099218056
+        },
+        "APM": {
+          "mean": 37.952741183575654,
+          "std": 0.3321731351933994,
+          "min": 37.75205788404904,
+          "max": 38.33616171229772
+        },
+        "APL": {
+          "mean": 47.546549939286315,
+          "std": 0.24609943898849995,
+          "min": 47.39912401157678,
+          "max": 47.83065332770858
+        }
+      },
+      "Params": 2593886,
+      "GFLOPs": 7.4451456
+    },
+    "t5": {
+      "structure": {
+        "innovations": {
+          "SCGP": true,
+          "BCRA": false,
+          "CSTD": true
+        },
+        "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+        "layer_15": "nearest-neighbor P5→P4 upsample",
+        "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+        "purpose": "SCGP + CSTD complementarity"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "t5",
+          "seed": 0,
+          "test_name": "sbt_20260724_213011_t5_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "BCRA": false,
+              "CSTD": true
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4 upsample",
+            "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+            "purpose": "SCGP + CSTD complementarity"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t5_seed0/weights/best.pt",
+          "Params": 2727455,
+          "GFLOPs": 7.8744064,
+          "P": 81.4212058302538,
+          "R": 72.78524853370408,
+          "mAP50": 79.2646524452992,
+          "mAP75": 48.57038529364357,
+          "mAP50-95": 45.71416486215109,
+          "APS": 14.875686867184356,
+          "APM": 38.75558073213888,
+          "APL": 47.38887685571617
+        },
+        {
+          "stage": "t5",
+          "seed": 1,
+          "test_name": "sbt_20260724_213011_t5_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "BCRA": false,
+              "CSTD": true
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4 upsample",
+            "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+            "purpose": "SCGP + CSTD complementarity"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t5_seed1/weights/best.pt",
+          "Params": 2727455,
+          "GFLOPs": 7.8744064,
+          "P": 78.98054151168704,
+          "R": 74.05247719456915,
+          "mAP50": 78.70223036789321,
+          "mAP75": 47.59661927909507,
+          "mAP50-95": 45.51951348123492,
+          "APS": 12.546379728631122,
+          "APM": 38.8856504046369,
+          "APL": 47.668224964788166
+        },
+        {
+          "stage": "t5",
+          "seed": 2,
+          "test_name": "sbt_20260724_213011_t5_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "BCRA": false,
+              "CSTD": true
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4 upsample",
+            "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+            "purpose": "SCGP + CSTD complementarity"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t5_seed2/weights/best.pt",
+          "Params": 2727455,
+          "GFLOPs": 7.8744064,
+          "P": 82.52855684735113,
+          "R": 71.74554507074198,
+          "mAP50": 78.57322317529378,
+          "mAP75": 47.62719849317494,
+          "mAP50-95": 45.4537952839174,
+          "APS": 13.588483185100847,
+          "APM": 38.37684030576371,
+          "APL": 47.22966034120807
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.97676806309732,
+          "std": 1.81528149392406,
+          "min": 78.98054151168704,
+          "max": 82.52855684735113
+        },
+        "R": {
+          "mean": 72.86109026633841,
+          "std": 1.1553345542712565,
+          "min": 71.74554507074198,
+          "max": 74.05247719456915
+        },
+        "mAP50": {
+          "mean": 78.84670199616207,
+          "std": 0.36765832968403,
+          "min": 78.57322317529378,
+          "max": 79.2646524452992
+        },
+        "mAP75": {
+          "mean": 47.93140102197119,
+          "std": 0.5535877949042433,
+          "min": 47.59661927909507,
+          "max": 48.57038529364357
+        },
+        "mAP50-95": {
+          "mean": 45.56249120910113,
+          "std": 0.13540086091603654,
+          "min": 45.4537952839174,
+          "max": 45.71416486215109
+        },
+        "APS": {
+          "mean": 13.670183260305441,
+          "std": 1.1668008026844565,
+          "min": 12.546379728631122,
+          "max": 14.875686867184356
+        },
+        "APM": {
+          "mean": 38.6726904808465,
+          "std": 0.26433884409659264,
+          "min": 38.37684030576371,
+          "max": 38.8856504046369
+        },
+        "APL": {
+          "mean": 47.4289207205708,
+          "std": 0.22200758004707966,
+          "min": 47.22966034120807,
+          "max": 47.668224964788166
+        }
+      },
+      "Params": 2727455,
+      "GFLOPs": 7.8744064
+    },
+    "t6": {
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "BCRA": true,
+          "CSTD": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+        "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+        "purpose": "BCRA + CSTD complementarity"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "t6",
+          "seed": 0,
+          "test_name": "sbt_20260724_213011_t6_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "BCRA": true,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+            "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+            "purpose": "BCRA + CSTD complementarity"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t6_seed0/weights/best.pt",
+          "Params": 2706134,
+          "GFLOPs": 6.960332800000001,
+          "P": 80.00262793212546,
+          "R": 73.65071888121048,
+          "mAP50": 79.00051577019656,
+          "mAP75": 47.012367846367475,
+          "mAP50-95": 45.126655205553945,
+          "APS": 13.239494740395658,
+          "APM": 38.221870973092344,
+          "APL": 47.04418977057022
+        },
+        {
+          "stage": "t6",
+          "seed": 1,
+          "test_name": "sbt_20260724_213011_t6_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "BCRA": true,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+            "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+            "purpose": "BCRA + CSTD complementarity"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t6_seed1/weights/best.pt",
+          "Params": 2706134,
+          "GFLOPs": 6.960332800000001,
+          "P": 79.93357024595834,
+          "R": 72.38880379594104,
+          "mAP50": 78.10351971525613,
+          "mAP75": 47.87999603693753,
+          "mAP50-95": 45.14358565944856,
+          "APS": 13.235626193077083,
+          "APM": 37.30144940538404,
+          "APL": 47.27767027119689
+        },
+        {
+          "stage": "t6",
+          "seed": 2,
+          "test_name": "sbt_20260724_213011_t6_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "BCRA": true,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+            "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+            "purpose": "BCRA + CSTD complementarity"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t6_seed2/weights/best.pt",
+          "Params": 2706134,
+          "GFLOPs": 6.960332800000001,
+          "P": 80.45696354266975,
+          "R": 73.43569318395787,
+          "mAP50": 78.7596940343906,
+          "mAP75": 47.682361127889386,
+          "mAP50-95": 45.54400778269564,
+          "APS": 12.57219341524429,
+          "APM": 38.55006105100108,
+          "APL": 47.910313127947376
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.13105390691786,
+          "std": 0.28435024004147247,
+          "min": 79.93357024595834,
+          "max": 80.45696354266975
+        },
+        "R": {
+          "mean": 73.15840528703646,
+          "std": 0.6751102531749632,
+          "min": 72.38880379594104,
+          "max": 73.65071888121048
+        },
+        "mAP50": {
+          "mean": 78.6212431732811,
+          "std": 0.4642488140546483,
+          "min": 78.10351971525613,
+          "max": 79.00051577019656
+        },
+        "mAP75": {
+          "mean": 47.524908337064794,
+          "std": 0.45473971156234505,
+          "min": 47.012367846367475,
+          "max": 47.87999603693753
+        },
+        "mAP50-95": {
+          "mean": 45.27141621589938,
+          "std": 0.23622294931610185,
+          "min": 45.126655205553945,
+          "max": 45.54400778269564
+        },
+        "APS": {
+          "mean": 13.015771449572343,
+          "std": 0.3841547159912845,
+          "min": 12.57219341524429,
+          "max": 13.239494740395658
+        },
+        "APM": {
+          "mean": 38.024460476492486,
+          "std": 0.6472912316094463,
+          "min": 37.30144940538404,
+          "max": 38.55006105100108
+        },
+        "APL": {
+          "mean": 47.41072438990483,
+          "std": 0.44812940812607766,
+          "min": 47.04418977057022,
+          "max": 47.910313127947376
+        }
+      },
+      "Params": 2706134,
+      "GFLOPs": 6.960332800000001
+    }
+  },
+  "csv": "/home/room305/ZZF/yolov13yuan-6000/runs/test/sbt_20260724_213011_ablation.csv"
+}

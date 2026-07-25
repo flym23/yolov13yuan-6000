@@ -1,0 +1,149 @@
+{
+  "structure": {
+    "innovations": {
+      "SCGP": false,
+      "BCRA": false,
+      "CSTD": true
+    },
+    "layer_4": "original DSC3k2",
+    "layer_15": "nearest-neighbor P5→P4 upsample",
+    "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+    "purpose": "Innovation 3: cross-scale task-decoupled head only"
+  },
+  "n": 3,
+  "runs": [
+    {
+      "stage": "t3",
+      "seed": 0,
+      "test_name": "sbt_20260724_213011_t3_seed0",
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "BCRA": false,
+          "CSTD": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "nearest-neighbor P5→P4 upsample",
+        "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+        "purpose": "Innovation 3: cross-scale task-decoupled head only"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t3_seed0/weights/best.pt",
+      "Params": 2650197,
+      "GFLOPs": 6.8805119999999995,
+      "P": 80.26231192844695,
+      "R": 72.94690683766305,
+      "mAP50": 78.78045012238087,
+      "mAP75": 47.614872796249465,
+      "mAP50-95": 45.431502523183994,
+      "APS": 11.828798403100365,
+      "APM": 38.542824078212156,
+      "APL": 47.55274799667916
+    },
+    {
+      "stage": "t3",
+      "seed": 1,
+      "test_name": "sbt_20260724_213011_t3_seed1",
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "BCRA": false,
+          "CSTD": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "nearest-neighbor P5→P4 upsample",
+        "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+        "purpose": "Innovation 3: cross-scale task-decoupled head only"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t3_seed1/weights/best.pt",
+      "Params": 2650197,
+      "GFLOPs": 6.8805119999999995,
+      "P": 78.81578479058832,
+      "R": 73.654551784252,
+      "mAP50": 78.70875068547349,
+      "mAP75": 47.00632741526945,
+      "mAP50-95": 45.0612480560898,
+      "APS": 13.658712152179401,
+      "APM": 38.26602197783385,
+      "APL": 47.011681065726144
+    },
+    {
+      "stage": "t3",
+      "seed": 2,
+      "test_name": "sbt_20260724_213011_t3_seed2",
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "BCRA": false,
+          "CSTD": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "nearest-neighbor P5→P4 upsample",
+        "layer_32": "CSTDDetect (deep semantic classification / shallow boundary regression context)",
+        "purpose": "Innovation 3: cross-scale task-decoupled head only"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t3_seed2/weights/best.pt",
+      "Params": 2650197,
+      "GFLOPs": 6.8805119999999995,
+      "P": 79.3163153531597,
+      "R": 73.70809953807547,
+      "mAP50": 79.27724774826403,
+      "mAP75": 46.903895236540414,
+      "mAP50-95": 45.072141826303906,
+      "APS": 11.907779281180337,
+      "APM": 39.006538800049015,
+      "APL": 46.05482175888066
+    }
+  ],
+  "metrics_percent": {
+    "P": {
+      "mean": 79.46480402406499,
+      "std": 0.7346065982420666,
+      "min": 78.81578479058832,
+      "max": 80.26231192844695
+    },
+    "R": {
+      "mean": 73.4365193866635,
+      "std": 0.4248613616097966,
+      "min": 72.94690683766305,
+      "max": 73.70809953807547
+    },
+    "mAP50": {
+      "mean": 78.92214951870614,
+      "std": 0.30960663234106534,
+      "min": 78.70875068547349,
+      "max": 79.27724774826403
+    },
+    "mAP75": {
+      "mean": 47.175031816019775,
+      "std": 0.3843411944182585,
+      "min": 46.903895236540414,
+      "max": 47.614872796249465
+    },
+    "mAP50-95": {
+      "mean": 45.1882974685259,
+      "std": 0.21069217478540603,
+      "min": 45.0612480560898,
+      "max": 45.431502523183994
+    },
+    "APS": {
+      "mean": 12.465096612153367,
+      "std": 1.0344554305620424,
+      "min": 11.828798403100365,
+      "max": 13.658712152179401
+    },
+    "APM": {
+      "mean": 38.605128285365005,
+      "std": 0.3741692821005218,
+      "min": 38.26602197783385,
+      "max": 39.006538800049015
+    },
+    "APL": {
+      "mean": 46.87308360709532,
+      "std": 0.7585200690327751,
+      "min": 46.05482175888066,
+      "max": 47.55274799667916
+    }
+  },
+  "Params": 2650197,
+  "GFLOPs": 6.8805119999999995
+}

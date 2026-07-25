@@ -72,6 +72,7 @@ from .block import (
     SCPGDSC3k2,
     ConsensusBudgetedEvidenceRouter,
     CBERSCPGDSC3k2,
+    BCRAUp,
 )
 from .conv import (
     CBAM,
@@ -109,6 +110,9 @@ from .head import (
     GradientIsolatedShallowEncoder,
     ClassPrototypeComplementaryRecovery,
     CPCRDetect,
+    SemanticContextBridge,
+    BoundaryContextBridge,
+    CSTDDetect,
     Segment,
     WorldDetect,
     v10Detect,
@@ -213,6 +217,7 @@ __all__ = (
     "SCPGDSC3k2",
     "ConsensusBudgetedEvidenceRouter",
     "CBERSCPGDSC3k2",
+    "BCRAUp",
     "HRCTDetect",
     "NonUniformDFL",
     "SUDLDetect",
@@ -226,5 +231,8 @@ __all__ = (
     "GradientIsolatedShallowEncoder",
     "ClassPrototypeComplementaryRecovery",
     "CPCRDetect",
+    "SemanticContextBridge",
+    "BoundaryContextBridge",
+    "CSTDDetect",
     "DSConv",
 )

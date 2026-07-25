@@ -1,0 +1,28 @@
+{
+  "stage": "t2",
+  "structure": {
+    "innovations": {
+      "SCGP": false,
+      "BCRA": true,
+      "CSTD": false
+    },
+    "layer_4": "original DSC3k2",
+    "layer_15": "BCRAUp (3×3 candidates, boundary query, entropy confidence, 0.20 energy budget)",
+    "layer_32": "original Detect",
+    "purpose": "Innovation 2: boundary-conditioned P5→P4 reassembly only"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-sbt-t2-bcra.yaml",
+  "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 2,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "started_at": "2026-07-25T00:17:33.594056+00:00",
+  "completed_at": "2026-07-25T02:00:49.734231+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/sbt_20260724_213011_t2_seed2/weights/best.pt"
+}

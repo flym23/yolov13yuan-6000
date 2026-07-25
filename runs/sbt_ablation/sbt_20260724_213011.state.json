@@ -1,0 +1,28 @@
+{
+  "run_id": "sbt_20260724_213011",
+  "status": "failed",
+  "stage": "t7",
+  "detail": "exit_code=75",
+  "launcher_pid": 1608571,
+  "completed_stages": [
+    "t1",
+    "t2",
+    "t3",
+    "t4",
+    "t5",
+    "t6"
+  ],
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "workers": 2,
+    "amp": false,
+    "plots": false,
+    "pin_memory": false,
+    "deterministic": true
+  },
+  "t0_policy": "reuse designated L0 and P0 original-YOLOv13 summaries; do not retrain T0",
+  "t4_t7_policy": "unconditional sequential execution; no result gate or launch threshold",
+  "updated_at": "2026-07-25T13:22:01.743721+00:00"
+}

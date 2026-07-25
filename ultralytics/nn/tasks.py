@@ -78,10 +78,12 @@ from ultralytics.nn.modules import (
     CAGDSC3k2,
     SCPGDSC3k2,
     CBERSCPGDSC3k2,
+    BCRAUp,
     SBRHDetect,
     P3DecoupledDetect,
     RAMPDetect,
     CPCRDetect,
+    CSTDDetect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -992,6 +994,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             legacy = False
             if scale in "lx":
                 args[4] = True
+        elif m is BCRAUp:
+            if not isinstance(f, (list, tuple)) or len(f) != 2:
+                raise ValueError("BCRAUp requires from=[P5_deep, P4_lateral].")
+            c_deep, c_lateral = ch[f[0]], ch[f[1]]
+            args = [c_deep, c_lateral, *args]
+            # BCRA returns only the P5 tensor aligned to P4. The following Concat owns lateral fusion.
+            c2 = c_deep
         elif m in {
             Classify,
             Conv,
@@ -1113,6 +1122,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             SUDLDetect,
             SBRHDetect,
             P3DecoupledDetect,
+            CSTDDetect,
             WorldDetect,
             Segment,
             Pose,
@@ -1123,7 +1133,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, HRCTDetect, SUDLDetect, SBRHDetect, P3DecoupledDetect, Segment, Pose, OBB}:
+            if m in {Detect, HRCTDetect, SUDLDetect, SBRHDetect, P3DecoupledDetect, CSTDDetect, Segment, Pose, OBB}:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
