@@ -73,6 +73,7 @@ from .block import (
     ConsensusBudgetedEvidenceRouter,
     CBERSCPGDSC3k2,
     BCRAUp,
+    MCASUp,
 )
 from .conv import (
     CBAM,
@@ -218,6 +219,7 @@ __all__ = (
     "ConsensusBudgetedEvidenceRouter",
     "CBERSCPGDSC3k2",
     "BCRAUp",
+    "MCASUp",
     "HRCTDetect",
     "NonUniformDFL",
     "SUDLDetect",

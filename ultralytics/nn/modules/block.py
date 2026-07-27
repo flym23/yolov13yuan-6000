@@ -65,6 +65,7 @@ __all__ = (
     "ConsensusBudgetedEvidenceRouter",
     "CBERSCPGDSC3k2",
     "BCRAUp",
+    "MCASUp",
 )
 
 
@@ -1966,8 +1967,9 @@ class ShallowEvidenceRouter(nn.Module):
         self.alpha_raw = nn.Parameter(torch.zeros(1, dtype=torch.float32))
 
     def _blur_downsample(self, x):
-        kernel = self.blur_kernel.to(device=x.device, dtype=x.dtype).repeat(x.shape[1], 1, 1, 1)
-        return F.conv2d(F.pad(x, (1, 1, 1, 1), mode="replicate"), kernel, stride=2, groups=x.shape[1])
+        # Use the declared channel count so the depthwise kernel has a static ONNX shape.
+        kernel = self.blur_kernel.to(device=x.device, dtype=x.dtype).repeat(self.c_shallow, 1, 1, 1)
+        return F.conv2d(F.pad(x, (1, 1, 1, 1), mode="replicate"), kernel, stride=2, groups=self.c_shallow)
 
     @staticmethod
     def _align(x, size):
@@ -2926,3 +2928,121 @@ class BCRAUp(nn.Module):
             raise TypeError("BCRAUp expects [P5_deep, P4_lateral].")
         base, correction, _, _, _ = self.compute_components(x[0], x[1])
         return base + correction
+
+
+class MCASUp(nn.Module):
+    """Multi-Basis Context-Adaptive Semantic Upsampling with an immutable nearest main path."""
+
+    def __init__(
+        self,
+        c_deep,
+        c_lateral,
+        scale=2,
+        reduction=4,
+        temperature=1.0,
+        residual_groups=4,
+        max_residual_ratio=0.10,
+        strict_scale=True,
+        detach_budget=True,
+        eps=1e-6,
+    ):
+        super().__init__()
+        self.c_deep, self.c_lateral = int(c_deep), int(c_lateral)
+        self.scale, self.temperature = int(scale), float(temperature)
+        self.residual_groups_requested = int(residual_groups)
+        self.max_residual_ratio = float(max_residual_ratio)
+        self.strict_scale, self.detach_budget, self.eps = bool(strict_scale), bool(detach_budget), float(eps)
+        if self.c_deep <= 0 or self.c_lateral <= 0:
+            raise ValueError("MCASUp channel counts must be positive.")
+        if self.scale <= 1 or int(reduction) < 1:
+            raise ValueError("MCASUp requires scale > 1 and reduction >= 1.")
+        if self.temperature <= 0.0 or not 0.0 < self.max_residual_ratio <= 1.0 or self.eps <= 0.0:
+            raise ValueError("MCASUp requires positive temperature/eps and max_residual_ratio in (0, 1].")
+        if self.residual_groups_requested <= 0:
+            raise ValueError("MCASUp residual_groups must be positive.")
+
+        self.hidden = max(16, min(64, min(self.c_deep, self.c_lateral) // int(reduction)))
+        self.residual_groups = max(1, math.gcd(self.c_deep, self.residual_groups_requested))
+        blur = torch.tensor(((1.0, 2.0, 1.0), (2.0, 4.0, 2.0), (1.0, 2.0, 1.0)), dtype=torch.float32)
+        self.register_buffer("blur_kernel", (blur / blur.sum())[None, None], persistent=False)
+
+        # New-layer construction must not perturb the RNG sequence used by downstream YOLO layers.
+        with torch.random.fork_rng(devices=[], enabled=True):
+            self.deep_proj = nn.Conv2d(self.c_deep, self.hidden, 1, bias=False)
+            self.lateral_proj = nn.Conv2d(self.c_lateral, self.hidden, 1, bias=False)
+            self.weight_predictor = nn.Sequential(
+                nn.Conv2d(3 * self.hidden, self.hidden, 3, 1, 1, bias=True),
+                nn.SiLU(inplace=True),
+                nn.Conv2d(self.hidden, 3, 1, bias=True),
+            )
+            self.residual_out = nn.Conv2d(
+                self.c_deep, self.c_deep, 1, groups=self.residual_groups, bias=False
+            )
+            nn.init.normal_(self.weight_predictor[-1].weight, mean=0.0, std=1e-3)
+            with torch.no_grad():
+                self.weight_predictor[-1].bias.copy_(self.weight_predictor[-1].bias.new_tensor((2.0, 0.0, -1.0)))
+            nn.init.zeros_(self.residual_out.weight)
+
+    def _validate_inputs(self, deep, lateral):
+        if deep.ndim != 4 or lateral.ndim != 4:
+            raise ValueError("MCASUp expects NCHW deep and lateral tensors.")
+        if deep.shape[0] != lateral.shape[0]:
+            raise ValueError("MCASUp deep and lateral batch sizes differ.")
+        if deep.shape[1] != self.c_deep or lateral.shape[1] != self.c_lateral:
+            raise ValueError(
+                f"MCASUp expected deep/lateral channels {self.c_deep}/{self.c_lateral}, "
+                f"got {deep.shape[1]}/{lateral.shape[1]}."
+            )
+        if deep.device != lateral.device or deep.dtype != lateral.dtype:
+            raise ValueError("MCASUp deep and lateral tensors must share device and dtype.")
+        expected = (deep.shape[-2] * self.scale, deep.shape[-1] * self.scale)
+        if self.strict_scale and tuple(lateral.shape[-2:]) != expected:
+            raise ValueError(f"MCASUp expected lateral size {expected}, got {tuple(lateral.shape[-2:])}.")
+
+    def _blur(self, deep):
+        # The validated fixed channel count keeps the grouped convolution exportable to ONNX.
+        kernel = self.blur_kernel.to(device=deep.device, dtype=deep.dtype).repeat(self.c_deep, 1, 1, 1)
+        return F.conv2d(F.pad(deep, (1, 1, 1, 1), mode="replicate"), kernel, groups=self.c_deep)
+
+    def _energy_budget(self, base, correction):
+        if base.shape != correction.shape:
+            raise ValueError("MCASUp base and correction shapes differ.")
+        # Do not inflate base energy with eps: a zero base must force an exactly zero correction.
+        base_energy = base.float().square().mean(dim=(2, 3), keepdim=True).sqrt()
+        correction_energy = correction.float().square().mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        scale = torch.minimum(
+            torch.ones_like(correction_energy),
+            self.max_residual_ratio * base_energy / correction_energy.clamp_min(self.eps),
+        )
+        if self.detach_budget:
+            scale = scale.detach()
+        return (correction.float() * scale).to(dtype=base.dtype), scale
+
+    def compute_components(self, deep, lateral):
+        """Return nearest base, bounded correction, convex basis weights, budget scale and raw basis residual."""
+        self._validate_inputs(deep, lateral)
+        target_size = lateral.shape[-2:]
+        nearest_base = F.interpolate(deep, size=target_size, mode="nearest")
+        bilinear_base = F.interpolate(deep, size=target_size, mode="bilinear", align_corners=False)
+        smooth_base = F.interpolate(self._blur(deep), size=target_size, mode="bilinear", align_corners=False)
+
+        deep_query = F.interpolate(self.deep_proj(deep), size=target_size, mode="bilinear", align_corners=False)
+        lateral_query = self.lateral_proj(lateral)
+        logits = self.weight_predictor(
+            torch.cat((deep_query, lateral_query, (deep_query - lateral_query).abs()), dim=1)
+        ).float() / self.temperature
+        weights = logits.softmax(dim=1).to(dtype=nearest_base.dtype)
+        mixed = (
+            weights[:, 0:1] * nearest_base
+            + weights[:, 1:2] * bilinear_base
+            + weights[:, 2:3] * smooth_base
+        )
+        basis_residual = mixed - nearest_base
+        correction, budget_scale = self._energy_budget(nearest_base, self.residual_out(basis_residual))
+        return nearest_base, correction, weights, budget_scale, basis_residual
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 2:
+            raise TypeError("MCASUp expects [P5_deep, P4_lateral].")
+        nearest_base, correction, _, _, _ = self.compute_components(x[0], x[1])
+        return nearest_base + correction

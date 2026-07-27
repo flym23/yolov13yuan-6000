@@ -1,0 +1,28 @@
+{
+  "stage": "g5",
+  "structure": {
+    "innovations": {
+      "SCGP": true,
+      "MCAS": false,
+      "CSTD": true
+    },
+    "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+    "layer_15": "nearest-neighbor P5→P4",
+    "layer_32": "CSTDDetect",
+    "purpose": "SCGP + CSTD; SBT-T5 structural counterpart, re-trained in GSD protocol"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-gsd-t5-scgp-cstd.yaml",
+  "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 2,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "started_at": "2026-07-26T13:27:19.519556+00:00",
+  "completed_at": "2026-07-26T16:04:19.421092+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g5_seed2/weights/best.pt"
+}

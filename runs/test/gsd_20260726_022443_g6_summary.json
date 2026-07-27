@@ -1,0 +1,149 @@
+{
+  "structure": {
+    "innovations": {
+      "SCGP": false,
+      "MCAS": true,
+      "CSTD": true
+    },
+    "layer_4": "original DSC3k2",
+    "layer_15": "MCASUp",
+    "layer_32": "CSTDDetect",
+    "purpose": "MCAS + CSTD"
+  },
+  "n": 3,
+  "runs": [
+    {
+      "stage": "g6",
+      "seed": 0,
+      "test_name": "gsd_20260726_022443_g6_seed0",
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "MCAS": true,
+          "CSTD": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "MCASUp",
+        "layer_32": "CSTDDetect",
+        "purpose": "MCAS + CSTD"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g6_seed0/weights/best.pt",
+      "Params": 2706648,
+      "GFLOPs": 7.040563199999999,
+      "P": 80.4795247612803,
+      "R": 72.8153942577528,
+      "mAP50": 79.35108650141144,
+      "mAP75": 47.63291437530178,
+      "mAP50-95": 45.29814740969781,
+      "APS": 13.840233115540077,
+      "APM": 38.1268344280593,
+      "APL": 47.27824525853242
+    },
+    {
+      "stage": "g6",
+      "seed": 1,
+      "test_name": "gsd_20260726_022443_g6_seed1",
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "MCAS": true,
+          "CSTD": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "MCASUp",
+        "layer_32": "CSTDDetect",
+        "purpose": "MCAS + CSTD"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g6_seed1/weights/best.pt",
+      "Params": 2706648,
+      "GFLOPs": 7.040563199999999,
+      "P": 81.30581144733189,
+      "R": 72.11586905342672,
+      "mAP50": 78.61057432020102,
+      "mAP75": 47.65556738234858,
+      "mAP50-95": 45.38091632016575,
+      "APS": 12.998021075609817,
+      "APM": 37.93673851485482,
+      "APL": 47.19593124897178
+    },
+    {
+      "stage": "g6",
+      "seed": 2,
+      "test_name": "gsd_20260726_022443_g6_seed2",
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "MCAS": true,
+          "CSTD": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "MCASUp",
+        "layer_32": "CSTDDetect",
+        "purpose": "MCAS + CSTD"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g6_seed2/weights/best.pt",
+      "Params": 2706648,
+      "GFLOPs": 7.040563199999999,
+      "P": 80.39656623704371,
+      "R": 72.42333920986425,
+      "mAP50": 78.48668498467677,
+      "mAP75": 48.00324851092525,
+      "mAP50-95": 45.34138037982641,
+      "APS": 14.14865441842385,
+      "APM": 37.85332197072043,
+      "APL": 47.27194180507152
+    }
+  ],
+  "metrics_percent": {
+    "P": {
+      "mean": 80.72730081521864,
+      "std": 0.5027190495564462,
+      "min": 80.39656623704371,
+      "max": 81.30581144733189
+    },
+    "R": {
+      "mean": 72.45153417368125,
+      "std": 0.3506138828688082,
+      "min": 72.11586905342672,
+      "max": 72.8153942577528
+    },
+    "mAP50": {
+      "mean": 78.81611526876308,
+      "std": 0.46742144440017214,
+      "min": 78.48668498467677,
+      "max": 79.35108650141144
+    },
+    "mAP75": {
+      "mean": 47.763910089525204,
+      "std": 0.20758239243916185,
+      "min": 47.63291437530178,
+      "max": 48.00324851092525
+    },
+    "mAP50-95": {
+      "mean": 45.34014803656333,
+      "std": 0.041398214181907096,
+      "min": 45.29814740969781,
+      "max": 45.38091632016575
+    },
+    "APS": {
+      "mean": 13.662302869857914,
+      "std": 0.5955952078763189,
+      "min": 12.998021075609817,
+      "max": 14.14865441842385
+    },
+    "APM": {
+      "mean": 37.97229830454485,
+      "std": 0.14018074069566716,
+      "min": 37.85332197072043,
+      "max": 38.1268344280593
+    },
+    "APL": {
+      "mean": 47.24870610419191,
+      "std": 0.045812906358497045,
+      "min": 47.19593124897178,
+      "max": 47.27824525853242
+    }
+  },
+  "Params": 2706648,
+  "GFLOPs": 7.040563199999999
+}

@@ -209,7 +209,8 @@ class _BudgetedContextBridge(nn.Module):
     def _budget(self, base, correction):
         if base.shape != correction.shape:
             raise ValueError("base and correction shapes differ.")
-        base_energy = base.float().square().mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        # A zero target feature must not receive non-zero residual context through an epsilon-inflated budget.
+        base_energy = base.float().square().mean(dim=(2, 3), keepdim=True).sqrt()
         correction_energy = correction.float().square().mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
         scale = torch.minimum(torch.ones_like(correction_energy), self.max_ratio * base_energy / correction_energy.clamp_min(self.eps))
         if self.detach_budget:

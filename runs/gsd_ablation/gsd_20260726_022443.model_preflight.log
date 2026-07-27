@@ -1,0 +1,10 @@
+FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
+WARNING ⚠️ no model scale passed. Assuming scale='n'.
+WARNING ⚠️ no model scale passed. Assuming scale='n'.
+WARNING ⚠️ no model scale passed. Assuming scale='n'.
+WARNING ⚠️ no model scale passed. Assuming scale='n'.
+WARNING ⚠️ no model scale passed. Assuming scale='n'.
+WARNING ⚠️ no model scale passed. Assuming scale='n'.
+WARNING ⚠️ no model scale passed. Assuming scale='n'.
+WARNING ⚠️ no model scale passed. Assuming scale='n'.
+GSD parser, layer topology, dynamic shape, and fuse verification passed.

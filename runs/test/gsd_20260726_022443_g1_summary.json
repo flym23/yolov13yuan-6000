@@ -1,0 +1,149 @@
+{
+  "structure": {
+    "innovations": {
+      "SCGP": true,
+      "MCAS": false,
+      "CSTD": false
+    },
+    "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+    "layer_15": "nearest-neighbor P5→P4",
+    "layer_32": "original Detect",
+    "purpose": "SCGP backbone only"
+  },
+  "n": 3,
+  "runs": [
+    {
+      "stage": "g1",
+      "seed": 0,
+      "test_name": "gsd_20260726_022443_g1_seed0",
+      "structure": {
+        "innovations": {
+          "SCGP": true,
+          "MCAS": false,
+          "CSTD": false
+        },
+        "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+        "layer_15": "nearest-neighbor P5→P4",
+        "layer_32": "original Detect",
+        "purpose": "SCGP backbone only"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g1_seed0/weights/best.pt",
+      "Params": 2537949,
+      "GFLOPs": 7.365324800000001,
+      "P": 80.27803907068254,
+      "R": 73.3255783509702,
+      "mAP50": 79.17173879969572,
+      "mAP75": 47.86802481992436,
+      "mAP50-95": 45.5666015644022,
+      "APS": 12.208724167826205,
+      "APM": 39.02213280969516,
+      "APL": 47.454122047199206
+    },
+    {
+      "stage": "g1",
+      "seed": 1,
+      "test_name": "gsd_20260726_022443_g1_seed1",
+      "structure": {
+        "innovations": {
+          "SCGP": true,
+          "MCAS": false,
+          "CSTD": false
+        },
+        "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+        "layer_15": "nearest-neighbor P5→P4",
+        "layer_32": "original Detect",
+        "purpose": "SCGP backbone only"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g1_seed1/weights/best.pt",
+      "Params": 2537949,
+      "GFLOPs": 7.365324800000001,
+      "P": 81.45766269971045,
+      "R": 72.56033241518622,
+      "mAP50": 78.05633137131743,
+      "mAP75": 48.39294412523368,
+      "mAP50-95": 45.196246117985,
+      "APS": 14.188228483019499,
+      "APM": 37.921507154172176,
+      "APL": 47.62275241768282
+    },
+    {
+      "stage": "g1",
+      "seed": 2,
+      "test_name": "gsd_20260726_022443_g1_seed2",
+      "structure": {
+        "innovations": {
+          "SCGP": true,
+          "MCAS": false,
+          "CSTD": false
+        },
+        "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+        "layer_15": "nearest-neighbor P5→P4",
+        "layer_32": "original Detect",
+        "purpose": "SCGP backbone only"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g1_seed2/weights/best.pt",
+      "Params": 2537949,
+      "GFLOPs": 7.365324800000001,
+      "P": 81.53166688765307,
+      "R": 72.67640817386669,
+      "mAP50": 78.69261471525519,
+      "mAP75": 47.53224420367159,
+      "mAP50-95": 45.360013563321765,
+      "APS": 13.686413962087196,
+      "APM": 38.47386119939765,
+      "APL": 47.06674235270968
+    }
+  ],
+  "metrics_percent": {
+    "P": {
+      "mean": 81.08912288601536,
+      "std": 0.7033931131162652,
+      "min": 80.27803907068254,
+      "max": 81.53166688765307
+    },
+    "R": {
+      "mean": 72.85410631334103,
+      "std": 0.41241096874108335,
+      "min": 72.56033241518622,
+      "max": 73.3255783509702
+    },
+    "mAP50": {
+      "mean": 78.64022829542277,
+      "std": 0.5595459637576801,
+      "min": 78.05633137131743,
+      "max": 79.17173879969572
+    },
+    "mAP75": {
+      "mean": 47.931071049609876,
+      "std": 0.433799733808607,
+      "min": 47.53224420367159,
+      "max": 48.39294412523368
+    },
+    "mAP50-95": {
+      "mean": 45.374287081902985,
+      "std": 0.1855898412420175,
+      "min": 45.196246117985,
+      "max": 45.5666015644022
+    },
+    "APS": {
+      "mean": 13.361122204310966,
+      "std": 1.0290628645642013,
+      "min": 12.208724167826205,
+      "max": 14.188228483019499
+    },
+    "APM": {
+      "mean": 38.472500387755,
+      "std": 0.5503140896389024,
+      "min": 37.921507154172176,
+      "max": 39.02213280969516
+    },
+    "APL": {
+      "mean": 47.381205605863904,
+      "std": 0.28508665989591936,
+      "min": 47.06674235270968,
+      "max": 47.62275241768282
+    }
+  },
+  "Params": 2537949,
+  "GFLOPs": 7.365324800000001
+}

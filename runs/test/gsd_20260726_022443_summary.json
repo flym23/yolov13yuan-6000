@@ -1,0 +1,1262 @@
+{
+  "run_id": "gsd_20260726_022443",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "amp": false,
+    "workers": 2,
+    "plots": false,
+    "pin_memory": false
+  },
+  "g0_reused_baselines": {
+    "l0": {
+      "path": "/home/room305/ZZF/yolov13-6000/runs/test/lcer_dcra_20260722_045426_l0_baseline_summary.json",
+      "available": true,
+      "summary": {
+        "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+        "n": 3,
+        "runs": [
+          {
+            "stage": "l0_baseline",
+            "seed": 0,
+            "test_name": "lcer_dcra_20260722_045426_l0_baseline_seed0",
+            "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l0_baseline_seed0/weights/best.pt",
+            "P": 80.19723913475751,
+            "R": 73.63859943803376,
+            "mAP50": 79.00748159619879,
+            "mAP75": 47.81868472622747,
+            "mAP50-95": 45.38258985685806,
+            "APS": 11.165228301622792,
+            "APM": 38.25104493934652,
+            "APL": 47.56439589130545,
+            "Params": 0,
+            "GFLOPs": 0.0
+          },
+          {
+            "stage": "l0_baseline",
+            "seed": 1,
+            "test_name": "lcer_dcra_20260722_045426_l0_baseline_seed1",
+            "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l0_baseline_seed1/weights/best.pt",
+            "P": 80.96752441890942,
+            "R": 72.4709437016305,
+            "mAP50": 78.63966396201948,
+            "mAP75": 47.27955134019404,
+            "mAP50-95": 45.395270590279814,
+            "APS": 14.345808923897001,
+            "APM": 38.31854284001455,
+            "APL": 47.62432863018223,
+            "Params": 0,
+            "GFLOPs": 0.0
+          },
+          {
+            "stage": "l0_baseline",
+            "seed": 2,
+            "test_name": "lcer_dcra_20260722_045426_l0_baseline_seed2",
+            "structure": "L0 / 原始 YOLOv13：P5→P4 为最近邻上采样（重跑 3 个 seed）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/lcer_dcra_20260722_045426_l0_baseline_seed2/weights/best.pt",
+            "P": 80.62902019908515,
+            "R": 72.20001543794632,
+            "mAP50": 78.3683471757761,
+            "mAP75": 48.241532843838534,
+            "mAP50-95": 45.33328935713019,
+            "APS": 13.47974699536992,
+            "APM": 38.85269323605882,
+            "APL": 46.844446907751596,
+            "Params": 0,
+            "GFLOPs": 0.0
+          }
+        ],
+        "metrics_percent": {
+          "P": {
+            "mean": 80.59792791758403,
+            "std": 0.38608276602557134
+          },
+          "R": {
+            "mean": 72.76985285920352,
+            "std": 0.7644547041438496
+          },
+          "mAP50": {
+            "mean": 78.67183091133145,
+            "std": 0.32077910828682715
+          },
+          "mAP75": {
+            "mean": 47.77992297008668,
+            "std": 0.48216071868503463
+          },
+          "mAP50-95": {
+            "mean": 45.370383268089356,
+            "std": 0.03274399063512593
+          },
+          "APS": {
+            "mean": 12.996928073629904,
+            "std": 1.6443414660857987
+          },
+          "APM": {
+            "mean": 38.47409367180663,
+            "std": 0.32960918401587086
+          },
+          "APL": {
+            "mean": 47.34439047641309,
+            "std": 0.433999610808364
+          }
+        },
+        "Params": 0,
+        "GFLOPs": 0.0
+      }
+    },
+    "p0": {
+      "path": "/home/room305/ZZF/yolov13-6000/runs/test/spc_lcer_dcra_20260722_162019_p0_baseline_summary.json",
+      "available": true,
+      "summary": {
+        "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+        "n": 3,
+        "runs": [
+          {
+            "stage": "p0_baseline",
+            "seed": 0,
+            "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed0",
+            "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed0/weights/best.pt",
+            "FPS": null,
+            "PeakMemoryGB": null,
+            "P": 81.6214427539224,
+            "R": 72.02800673828213,
+            "mAP50": 78.77299896883191,
+            "mAP75": 46.740634272889835,
+            "mAP50-95": 44.8278823895086,
+            "APS": 13.75111969881456,
+            "APM": 38.7780148144229,
+            "APL": 46.74435857313849,
+            "Params": 0,
+            "GFLOPs": 0.0
+          },
+          {
+            "stage": "p0_baseline",
+            "seed": 1,
+            "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed1",
+            "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed1/weights/best.pt",
+            "FPS": null,
+            "PeakMemoryGB": null,
+            "P": 80.10168832941253,
+            "R": 73.4902981327541,
+            "mAP50": 78.74978813764938,
+            "mAP75": 47.1347007516688,
+            "mAP50-95": 45.13404517835179,
+            "APS": 14.027465823793845,
+            "APM": 39.658721328801,
+            "APL": 46.25522300765999,
+            "Params": 0,
+            "GFLOPs": 0.0
+          },
+          {
+            "stage": "p0_baseline",
+            "seed": 2,
+            "test_name": "spc_lcer_dcra_20260722_162019_p0_baseline_seed2",
+            "structure": "P0 / 原始 YOLOv13：P5→P4 最近邻上采样（同批次 3-seed 基线）",
+            "weights": "/home/room305/ZZF/yolov13-6000/runs/train/spc_lcer_dcra_20260722_162019_p0_baseline_seed2/weights/best.pt",
+            "FPS": null,
+            "PeakMemoryGB": null,
+            "P": 79.53475593828125,
+            "R": 74.52099697882171,
+            "mAP50": 79.06643341563422,
+            "mAP75": 47.22858483405584,
+            "mAP50-95": 45.39244443763602,
+            "APS": 12.465551905068057,
+            "APM": 38.75256492136971,
+            "APL": 46.915445175084834,
+            "Params": 0,
+            "GFLOPs": 0.0
+          }
+        ],
+        "metrics_percent": {
+          "P": {
+            "mean": 80.41929567387206,
+            "std": 1.078990864457907
+          },
+          "R": {
+            "mean": 73.34643394995265,
+            "std": 1.2527061755161306
+          },
+          "mAP50": {
+            "mean": 78.86307350737184,
+            "std": 0.17649681268343162
+          },
+          "mAP75": {
+            "mean": 47.034639952871494,
+            "std": 0.25890743544271
+          },
+          "mAP50-95": {
+            "mean": 45.118124001832136,
+            "std": 0.2826175674702202
+          },
+          "APS": {
+            "mean": 13.414712475892154,
+            "std": 0.8335293258806856
+          },
+          "APM": {
+            "mean": 39.06310035486454,
+            "std": 0.5159798278119696
+          },
+          "APL": {
+            "mean": 46.638342251961106,
+            "std": 0.342641099193863
+          }
+        },
+        "Params": 0,
+        "GFLOPs": 0.0,
+        "FPS": null,
+        "PeakMemoryGB": null
+      }
+    }
+  },
+  "stages": {
+    "g1": {
+      "structure": {
+        "innovations": {
+          "SCGP": true,
+          "MCAS": false,
+          "CSTD": false
+        },
+        "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+        "layer_15": "nearest-neighbor P5→P4",
+        "layer_32": "original Detect",
+        "purpose": "SCGP backbone only"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "g1",
+          "seed": 0,
+          "test_name": "gsd_20260726_022443_g1_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": false,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4",
+            "layer_32": "original Detect",
+            "purpose": "SCGP backbone only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g1_seed0/weights/best.pt",
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001,
+          "P": 80.27803907068254,
+          "R": 73.3255783509702,
+          "mAP50": 79.17173879969572,
+          "mAP75": 47.86802481992436,
+          "mAP50-95": 45.5666015644022,
+          "APS": 12.208724167826205,
+          "APM": 39.02213280969516,
+          "APL": 47.454122047199206
+        },
+        {
+          "stage": "g1",
+          "seed": 1,
+          "test_name": "gsd_20260726_022443_g1_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": false,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4",
+            "layer_32": "original Detect",
+            "purpose": "SCGP backbone only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g1_seed1/weights/best.pt",
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001,
+          "P": 81.45766269971045,
+          "R": 72.56033241518622,
+          "mAP50": 78.05633137131743,
+          "mAP75": 48.39294412523368,
+          "mAP50-95": 45.196246117985,
+          "APS": 14.188228483019499,
+          "APM": 37.921507154172176,
+          "APL": 47.62275241768282
+        },
+        {
+          "stage": "g1",
+          "seed": 2,
+          "test_name": "gsd_20260726_022443_g1_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": false,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4",
+            "layer_32": "original Detect",
+            "purpose": "SCGP backbone only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g1_seed2/weights/best.pt",
+          "Params": 2537949,
+          "GFLOPs": 7.365324800000001,
+          "P": 81.53166688765307,
+          "R": 72.67640817386669,
+          "mAP50": 78.69261471525519,
+          "mAP75": 47.53224420367159,
+          "mAP50-95": 45.360013563321765,
+          "APS": 13.686413962087196,
+          "APM": 38.47386119939765,
+          "APL": 47.06674235270968
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 81.08912288601536,
+          "std": 0.7033931131162652,
+          "min": 80.27803907068254,
+          "max": 81.53166688765307
+        },
+        "R": {
+          "mean": 72.85410631334103,
+          "std": 0.41241096874108335,
+          "min": 72.56033241518622,
+          "max": 73.3255783509702
+        },
+        "mAP50": {
+          "mean": 78.64022829542277,
+          "std": 0.5595459637576801,
+          "min": 78.05633137131743,
+          "max": 79.17173879969572
+        },
+        "mAP75": {
+          "mean": 47.931071049609876,
+          "std": 0.433799733808607,
+          "min": 47.53224420367159,
+          "max": 48.39294412523368
+        },
+        "mAP50-95": {
+          "mean": 45.374287081902985,
+          "std": 0.1855898412420175,
+          "min": 45.196246117985,
+          "max": 45.5666015644022
+        },
+        "APS": {
+          "mean": 13.361122204310966,
+          "std": 1.0290628645642013,
+          "min": 12.208724167826205,
+          "max": 14.188228483019499
+        },
+        "APM": {
+          "mean": 38.472500387755,
+          "std": 0.5503140896389024,
+          "min": 37.921507154172176,
+          "max": 39.02213280969516
+        },
+        "APL": {
+          "mean": 47.381205605863904,
+          "std": 0.28508665989591936,
+          "min": 47.06674235270968,
+          "max": 47.62275241768282
+        }
+      },
+      "Params": 2537949,
+      "GFLOPs": 7.365324800000001
+    },
+    "g2": {
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "MCAS": true,
+          "CSTD": false
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "MCASUp (nearest/bilinear/low-pass bilinear convex semantic bases; 0.10 energy budget)",
+        "layer_32": "original Detect",
+        "purpose": "MCAS semantic-continuation neck only"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "g2",
+          "seed": 0,
+          "test_name": "gsd_20260726_022443_g2_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "MCAS": true,
+              "CSTD": false
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "MCASUp (nearest/bilinear/low-pass bilinear convex semantic bases; 0.10 energy budget)",
+            "layer_32": "original Detect",
+            "purpose": "MCAS semantic-continuation neck only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g2_seed0/weights/best.pt",
+          "Params": 2517142,
+          "GFLOPs": 6.531481599999999,
+          "P": 82.03378830817336,
+          "R": 71.66161983112008,
+          "mAP50": 78.70614204955616,
+          "mAP75": 48.32635329667785,
+          "mAP50-95": 45.21761415663892,
+          "APS": 12.898971894552272,
+          "APM": 39.00863351798405,
+          "APL": 47.165690929941974
+        },
+        {
+          "stage": "g2",
+          "seed": 1,
+          "test_name": "gsd_20260726_022443_g2_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "MCAS": true,
+              "CSTD": false
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "MCASUp (nearest/bilinear/low-pass bilinear convex semantic bases; 0.10 energy budget)",
+            "layer_32": "original Detect",
+            "purpose": "MCAS semantic-continuation neck only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g2_seed1/weights/best.pt",
+          "Params": 2517142,
+          "GFLOPs": 6.531481599999999,
+          "P": 79.62367763507065,
+          "R": 73.46024675095218,
+          "mAP50": 78.86993511341127,
+          "mAP75": 46.995193578000304,
+          "mAP50-95": 45.13505863060605,
+          "APS": 12.4488399625779,
+          "APM": 38.518028709876255,
+          "APL": 47.170349102204334
+        },
+        {
+          "stage": "g2",
+          "seed": 2,
+          "test_name": "gsd_20260726_022443_g2_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "MCAS": true,
+              "CSTD": false
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "MCASUp (nearest/bilinear/low-pass bilinear convex semantic bases; 0.10 energy budget)",
+            "layer_32": "original Detect",
+            "purpose": "MCAS semantic-continuation neck only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g2_seed2/weights/best.pt",
+          "Params": 2517142,
+          "GFLOPs": 6.531481599999999,
+          "P": 79.0692188669813,
+          "R": 74.22218307975372,
+          "mAP50": 78.7558773258816,
+          "mAP75": 47.07049897237338,
+          "mAP50-95": 45.426972650640266,
+          "APS": 13.778962881329818,
+          "APM": 38.80040529421005,
+          "APL": 47.49682535001766
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.2422282700751,
+          "std": 1.5761096595607653,
+          "min": 79.0692188669813,
+          "max": 82.03378830817336
+        },
+        "R": {
+          "mean": 73.11468322060865,
+          "std": 1.3147933878335887,
+          "min": 71.66161983112008,
+          "max": 74.22218307975372
+        },
+        "mAP50": {
+          "mean": 78.77731816294968,
+          "std": 0.08397513954972605,
+          "min": 78.70614204955616,
+          "max": 78.86993511341127
+        },
+        "mAP75": {
+          "mean": 47.46401528235051,
+          "std": 0.7477552165120185,
+          "min": 46.995193578000304,
+          "max": 48.32635329667785
+        },
+        "mAP50-95": {
+          "mean": 45.259881812628414,
+          "std": 0.1504771239433694,
+          "min": 45.13505863060605,
+          "max": 45.426972650640266
+        },
+        "APS": {
+          "mean": 13.04225824615333,
+          "std": 0.6765389705431883,
+          "min": 12.4488399625779,
+          "max": 13.778962881329818
+        },
+        "APM": {
+          "mean": 38.775689174023455,
+          "std": 0.24623451094927953,
+          "min": 38.518028709876255,
+          "max": 39.00863351798405
+        },
+        "APL": {
+          "mean": 47.27762179405465,
+          "std": 0.1898501352444227,
+          "min": 47.165690929941974,
+          "max": 47.49682535001766
+        }
+      },
+      "Params": 2517142,
+      "GFLOPs": 6.531481599999999
+    },
+    "g3": {
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "MCAS": false,
+          "CSTD": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "nearest-neighbor P5→P4",
+        "layer_32": "CSTDDetect",
+        "purpose": "cross-scale task-decoupled head only"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "g3",
+          "seed": 0,
+          "test_name": "gsd_20260726_022443_g3_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "MCAS": false,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "nearest-neighbor P5→P4",
+            "layer_32": "CSTDDetect",
+            "purpose": "cross-scale task-decoupled head only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g3_seed0/weights/best.pt",
+          "Params": 2650197,
+          "GFLOPs": 6.8805119999999995,
+          "P": 80.61623638547876,
+          "R": 72.37226059783308,
+          "mAP50": 78.62302377581771,
+          "mAP75": 47.537711343413996,
+          "mAP50-95": 45.08873275496607,
+          "APS": 14.495897988255848,
+          "APM": 38.51662952228747,
+          "APL": 47.400462943394025
+        },
+        {
+          "stage": "g3",
+          "seed": 1,
+          "test_name": "gsd_20260726_022443_g3_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "MCAS": false,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "nearest-neighbor P5→P4",
+            "layer_32": "CSTDDetect",
+            "purpose": "cross-scale task-decoupled head only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g3_seed1/weights/best.pt",
+          "Params": 2650197,
+          "GFLOPs": 6.8805119999999995,
+          "P": 79.5542332052124,
+          "R": 74.25800476966106,
+          "mAP50": 79.15559176520523,
+          "mAP75": 47.665540448770734,
+          "mAP50-95": 45.47934821642111,
+          "APS": 12.257011844795418,
+          "APM": 38.07369568902105,
+          "APL": 47.62324435512769
+        },
+        {
+          "stage": "g3",
+          "seed": 2,
+          "test_name": "gsd_20260726_022443_g3_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "MCAS": false,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "nearest-neighbor P5→P4",
+            "layer_32": "CSTDDetect",
+            "purpose": "cross-scale task-decoupled head only"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g3_seed2/weights/best.pt",
+          "Params": 2650197,
+          "GFLOPs": 6.8805119999999995,
+          "P": 79.82867244960953,
+          "R": 73.17983766283236,
+          "mAP50": 79.01113606370377,
+          "mAP75": 46.626448418193675,
+          "mAP50-95": 45.01382033603091,
+          "APS": 14.00221359472899,
+          "APM": 37.954927090688095,
+          "APL": 46.49944041929482
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 79.99971401343356,
+          "std": 0.5512749777928374,
+          "min": 79.5542332052124,
+          "max": 80.61623638547876
+        },
+        "R": {
+          "mean": 73.27003434344216,
+          "std": 0.9461021886089099,
+          "min": 72.37226059783308,
+          "max": 74.25800476966106
+        },
+        "mAP50": {
+          "mean": 78.92991720157558,
+          "std": 0.275417035609846,
+          "min": 78.62302377581771,
+          "max": 79.15559176520523
+        },
+        "mAP75": {
+          "mean": 47.2765667367928,
+          "std": 0.5666351923219142,
+          "min": 46.626448418193675,
+          "max": 47.665540448770734
+        },
+        "mAP50-95": {
+          "mean": 45.1939671024727,
+          "std": 0.24996950369296447,
+          "min": 45.01382033603091,
+          "max": 45.47934821642111
+        },
+        "APS": {
+          "mean": 13.585041142593418,
+          "std": 1.176298190069331,
+          "min": 12.257011844795418,
+          "max": 14.495897988255848
+        },
+        "APM": {
+          "mean": 38.181750767332204,
+          "std": 0.29603096185666766,
+          "min": 37.954927090688095,
+          "max": 38.51662952228747
+        },
+        "APL": {
+          "mean": 47.17438257260551,
+          "std": 0.5950361939329951,
+          "min": 46.49944041929482,
+          "max": 47.62324435512769
+        }
+      },
+      "Params": 2650197,
+      "GFLOPs": 6.8805119999999995
+    },
+    "g4": {
+      "structure": {
+        "innovations": {
+          "SCGP": true,
+          "MCAS": true,
+          "CSTD": false
+        },
+        "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+        "layer_15": "MCASUp",
+        "layer_32": "original Detect",
+        "purpose": "SCGP + MCAS"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "g4",
+          "seed": 0,
+          "test_name": "gsd_20260726_022443_g4_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": true,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "MCASUp",
+            "layer_32": "original Detect",
+            "purpose": "SCGP + MCAS"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g4_seed0/weights/best.pt",
+          "Params": 2594400,
+          "GFLOPs": 7.5253760000000005,
+          "P": 80.62109010439484,
+          "R": 73.85157976000504,
+          "mAP50": 78.97105342746443,
+          "mAP75": 48.01114446150998,
+          "mAP50-95": 45.53846692723152,
+          "APS": 13.783544438171683,
+          "APM": 38.92581778779355,
+          "APL": 47.77648506532319
+        },
+        {
+          "stage": "g4",
+          "seed": 1,
+          "test_name": "gsd_20260726_022443_g4_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": true,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "MCASUp",
+            "layer_32": "original Detect",
+            "purpose": "SCGP + MCAS"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g4_seed1/weights/best.pt",
+          "Params": 2594400,
+          "GFLOPs": 7.5253760000000005,
+          "P": 81.14778383545315,
+          "R": 72.92490494501389,
+          "mAP50": 78.98601626608078,
+          "mAP75": 47.56746984138849,
+          "mAP50-95": 45.49826261878883,
+          "APS": 13.608041788861607,
+          "APM": 38.628771020514776,
+          "APL": 46.81741551890597
+        },
+        {
+          "stage": "g4",
+          "seed": 2,
+          "test_name": "gsd_20260726_022443_g4_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": true,
+              "CSTD": false
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "MCASUp",
+            "layer_32": "original Detect",
+            "purpose": "SCGP + MCAS"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g4_seed2/weights/best.pt",
+          "Params": 2594400,
+          "GFLOPs": 7.5253760000000005,
+          "P": 78.80184714340628,
+          "R": 74.03774430821251,
+          "mAP50": 78.94963994204458,
+          "mAP75": 47.04413943501758,
+          "mAP50-95": 45.43109807937217,
+          "APS": 12.200785740196347,
+          "APM": 38.0779588696312,
+          "APL": 47.12770803246419
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.19024036108476,
+          "std": 1.2308851964158694,
+          "min": 78.80184714340628,
+          "max": 81.14778383545315
+        },
+        "R": {
+          "mean": 73.60474300441048,
+          "std": 0.5960697526342127,
+          "min": 72.92490494501389,
+          "max": 74.03774430821251
+        },
+        "mAP50": {
+          "mean": 78.96890321186326,
+          "std": 0.018283238442497622,
+          "min": 78.94963994204458,
+          "max": 78.98601626608078
+        },
+        "mAP75": {
+          "mean": 47.54091791263868,
+          "std": 0.4840489995916153,
+          "min": 47.04413943501758,
+          "max": 48.01114446150998
+        },
+        "mAP50-95": {
+          "mean": 45.489275875130836,
+          "std": 0.05424563156459496,
+          "min": 45.43109807937217,
+          "max": 45.53846692723152
+        },
+        "APS": {
+          "mean": 13.197457322409878,
+          "std": 0.867592056828976,
+          "min": 12.200785740196347,
+          "max": 13.783544438171683
+        },
+        "APM": {
+          "mean": 38.54418255931318,
+          "std": 0.43021226400835716,
+          "min": 38.0779588696312,
+          "max": 38.92581778779355
+        },
+        "APL": {
+          "mean": 47.24053620556445,
+          "std": 0.4893886453526402,
+          "min": 46.81741551890597,
+          "max": 47.77648506532319
+        }
+      },
+      "Params": 2594400,
+      "GFLOPs": 7.5253760000000005
+    },
+    "g5": {
+      "structure": {
+        "innovations": {
+          "SCGP": true,
+          "MCAS": false,
+          "CSTD": true
+        },
+        "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+        "layer_15": "nearest-neighbor P5→P4",
+        "layer_32": "CSTDDetect",
+        "purpose": "SCGP + CSTD; SBT-T5 structural counterpart, re-trained in GSD protocol"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "g5",
+          "seed": 0,
+          "test_name": "gsd_20260726_022443_g5_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": false,
+              "CSTD": true
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4",
+            "layer_32": "CSTDDetect",
+            "purpose": "SCGP + CSTD; SBT-T5 structural counterpart, re-trained in GSD protocol"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g5_seed0/weights/best.pt",
+          "Params": 2727455,
+          "GFLOPs": 7.8744064,
+          "P": 80.28982016910913,
+          "R": 73.3926938438268,
+          "mAP50": 78.426510298212,
+          "mAP75": 47.38239419393484,
+          "mAP50-95": 45.23451548106558,
+          "APS": 12.585661793133793,
+          "APM": 38.072485016109425,
+          "APL": 47.36707280474578
+        },
+        {
+          "stage": "g5",
+          "seed": 1,
+          "test_name": "gsd_20260726_022443_g5_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": false,
+              "CSTD": true
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4",
+            "layer_32": "CSTDDetect",
+            "purpose": "SCGP + CSTD; SBT-T5 structural counterpart, re-trained in GSD protocol"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g5_seed1/weights/best.pt",
+          "Params": 2727455,
+          "GFLOPs": 7.8744064,
+          "P": 81.06317562113676,
+          "R": 71.69095109956103,
+          "mAP50": 78.35711000514402,
+          "mAP75": 46.23474527249832,
+          "mAP50-95": 44.82655420706909,
+          "APS": 11.974668526925738,
+          "APM": 38.26138323133806,
+          "APL": 46.516257888529346
+        },
+        {
+          "stage": "g5",
+          "seed": 2,
+          "test_name": "gsd_20260726_022443_g5_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": false,
+              "CSTD": true
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "nearest-neighbor P5→P4",
+            "layer_32": "CSTDDetect",
+            "purpose": "SCGP + CSTD; SBT-T5 structural counterpart, re-trained in GSD protocol"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g5_seed2/weights/best.pt",
+          "Params": 2727455,
+          "GFLOPs": 7.8744064,
+          "P": 79.03792323605494,
+          "R": 73.97632991809722,
+          "mAP50": 78.78067687961286,
+          "mAP75": 47.43460588285383,
+          "mAP50-95": 45.309824852043526,
+          "APS": 12.234387215844093,
+          "APM": 38.089434945588856,
+          "APL": 47.87670880484439
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.13030634210028,
+          "std": 1.0220055291314065,
+          "min": 79.03792323605494,
+          "max": 81.06317562113676
+        },
+        "R": {
+          "mean": 73.01999162049502,
+          "std": 1.1874002259182905,
+          "min": 71.69095109956103,
+          "max": 73.97632991809722
+        },
+        "mAP50": {
+          "mean": 78.52143239432296,
+          "std": 0.22717807450191607,
+          "min": 78.35711000514402,
+          "max": 78.78067687961286
+        },
+        "mAP75": {
+          "mean": 47.017248449762334,
+          "std": 0.6781702824041653,
+          "min": 46.23474527249832,
+          "max": 47.43460588285383
+        },
+        "mAP50-95": {
+          "mean": 45.12363151339273,
+          "std": 0.2600174413162654,
+          "min": 44.82655420706909,
+          "max": 45.309824852043526
+        },
+        "APS": {
+          "mean": 12.264905845301207,
+          "std": 0.30663778778202205,
+          "min": 11.974668526925738,
+          "max": 12.585661793133793
+        },
+        "APM": {
+          "mean": 38.14110106434545,
+          "std": 0.1045116012683202,
+          "min": 38.072485016109425,
+          "max": 38.26138323133806
+        },
+        "APL": {
+          "mean": 47.25334649937317,
+          "std": 0.6873186512280091,
+          "min": 46.516257888529346,
+          "max": 47.87670880484439
+        }
+      },
+      "Params": 2727455,
+      "GFLOPs": 7.8744064
+    },
+    "g6": {
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "MCAS": true,
+          "CSTD": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "MCASUp",
+        "layer_32": "CSTDDetect",
+        "purpose": "MCAS + CSTD"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "g6",
+          "seed": 0,
+          "test_name": "gsd_20260726_022443_g6_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "MCAS": true,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "MCASUp",
+            "layer_32": "CSTDDetect",
+            "purpose": "MCAS + CSTD"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g6_seed0/weights/best.pt",
+          "Params": 2706648,
+          "GFLOPs": 7.040563199999999,
+          "P": 80.4795247612803,
+          "R": 72.8153942577528,
+          "mAP50": 79.35108650141144,
+          "mAP75": 47.63291437530178,
+          "mAP50-95": 45.29814740969781,
+          "APS": 13.840233115540077,
+          "APM": 38.1268344280593,
+          "APL": 47.27824525853242
+        },
+        {
+          "stage": "g6",
+          "seed": 1,
+          "test_name": "gsd_20260726_022443_g6_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "MCAS": true,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "MCASUp",
+            "layer_32": "CSTDDetect",
+            "purpose": "MCAS + CSTD"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g6_seed1/weights/best.pt",
+          "Params": 2706648,
+          "GFLOPs": 7.040563199999999,
+          "P": 81.30581144733189,
+          "R": 72.11586905342672,
+          "mAP50": 78.61057432020102,
+          "mAP75": 47.65556738234858,
+          "mAP50-95": 45.38091632016575,
+          "APS": 12.998021075609817,
+          "APM": 37.93673851485482,
+          "APL": 47.19593124897178
+        },
+        {
+          "stage": "g6",
+          "seed": 2,
+          "test_name": "gsd_20260726_022443_g6_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": false,
+              "MCAS": true,
+              "CSTD": true
+            },
+            "layer_4": "original DSC3k2",
+            "layer_15": "MCASUp",
+            "layer_32": "CSTDDetect",
+            "purpose": "MCAS + CSTD"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g6_seed2/weights/best.pt",
+          "Params": 2706648,
+          "GFLOPs": 7.040563199999999,
+          "P": 80.39656623704371,
+          "R": 72.42333920986425,
+          "mAP50": 78.48668498467677,
+          "mAP75": 48.00324851092525,
+          "mAP50-95": 45.34138037982641,
+          "APS": 14.14865441842385,
+          "APM": 37.85332197072043,
+          "APL": 47.27194180507152
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.72730081521864,
+          "std": 0.5027190495564462,
+          "min": 80.39656623704371,
+          "max": 81.30581144733189
+        },
+        "R": {
+          "mean": 72.45153417368125,
+          "std": 0.3506138828688082,
+          "min": 72.11586905342672,
+          "max": 72.8153942577528
+        },
+        "mAP50": {
+          "mean": 78.81611526876308,
+          "std": 0.46742144440017214,
+          "min": 78.48668498467677,
+          "max": 79.35108650141144
+        },
+        "mAP75": {
+          "mean": 47.763910089525204,
+          "std": 0.20758239243916185,
+          "min": 47.63291437530178,
+          "max": 48.00324851092525
+        },
+        "mAP50-95": {
+          "mean": 45.34014803656333,
+          "std": 0.041398214181907096,
+          "min": 45.29814740969781,
+          "max": 45.38091632016575
+        },
+        "APS": {
+          "mean": 13.662302869857914,
+          "std": 0.5955952078763189,
+          "min": 12.998021075609817,
+          "max": 14.14865441842385
+        },
+        "APM": {
+          "mean": 37.97229830454485,
+          "std": 0.14018074069566716,
+          "min": 37.85332197072043,
+          "max": 38.1268344280593
+        },
+        "APL": {
+          "mean": 47.24870610419191,
+          "std": 0.045812906358497045,
+          "min": 47.19593124897178,
+          "max": 47.27824525853242
+        }
+      },
+      "Params": 2706648,
+      "GFLOPs": 7.040563199999999
+    },
+    "g7": {
+      "structure": {
+        "innovations": {
+          "SCGP": true,
+          "MCAS": true,
+          "CSTD": true
+        },
+        "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+        "layer_15": "MCASUp",
+        "layer_32": "CSTDDetect",
+        "purpose": "full GSD-YOLOv13"
+      },
+      "n": 3,
+      "runs": [
+        {
+          "stage": "g7",
+          "seed": 0,
+          "test_name": "gsd_20260726_022443_g7_seed0",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": true,
+              "CSTD": true
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "MCASUp",
+            "layer_32": "CSTDDetect",
+            "purpose": "full GSD-YOLOv13"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g7_seed0/weights/best.pt",
+          "Params": 2783906,
+          "GFLOPs": 8.0344576,
+          "P": 79.75999419858036,
+          "R": 73.02895603041688,
+          "mAP50": 78.77828897930542,
+          "mAP75": 47.55209993965707,
+          "mAP50-95": 45.21005087925401,
+          "APS": 11.964200495223524,
+          "APM": 38.496732822705745,
+          "APL": 47.03128852150479
+        },
+        {
+          "stage": "g7",
+          "seed": 1,
+          "test_name": "gsd_20260726_022443_g7_seed1",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": true,
+              "CSTD": true
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "MCASUp",
+            "layer_32": "CSTDDetect",
+            "purpose": "full GSD-YOLOv13"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g7_seed1/weights/best.pt",
+          "Params": 2783906,
+          "GFLOPs": 8.0344576,
+          "P": 81.87850509974193,
+          "R": 71.90584322668889,
+          "mAP50": 78.37382261280426,
+          "mAP75": 47.25405561830635,
+          "mAP50-95": 45.3206564121177,
+          "APS": 12.496771532236025,
+          "APM": 38.15971000209083,
+          "APL": 47.48762409683202
+        },
+        {
+          "stage": "g7",
+          "seed": 2,
+          "test_name": "gsd_20260726_022443_g7_seed2",
+          "structure": {
+            "innovations": {
+              "SCGP": true,
+              "MCAS": true,
+              "CSTD": true
+            },
+            "layer_4": "SCPGDSC3k2 (SER + CPPG; H3 geometry)",
+            "layer_15": "MCASUp",
+            "layer_32": "CSTDDetect",
+            "purpose": "full GSD-YOLOv13"
+          },
+          "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g7_seed2/weights/best.pt",
+          "Params": 2783906,
+          "GFLOPs": 8.0344576,
+          "P": 80.71903204823533,
+          "R": 73.98305981532451,
+          "mAP50": 79.0746556644902,
+          "mAP75": 47.13708672249686,
+          "mAP50-95": 45.44135969925936,
+          "APS": 11.526576645894867,
+          "APM": 37.565312866835335,
+          "APL": 48.02304818827909
+        }
+      ],
+      "metrics_percent": {
+        "P": {
+          "mean": 80.78584378218588,
+          "std": 1.060834560820023,
+          "min": 79.75999419858036,
+          "max": 81.87850509974193
+        },
+        "R": {
+          "mean": 72.97261969081009,
+          "std": 1.0397535892681358,
+          "min": 71.90584322668889,
+          "max": 73.98305981532451
+        },
+        "mAP50": {
+          "mean": 78.74225575219995,
+          "std": 0.3518032641627698,
+          "min": 78.37382261280426,
+          "max": 79.0746556644902
+        },
+        "mAP75": {
+          "mean": 47.31441409348676,
+          "std": 0.21398913932486024,
+          "min": 47.13708672249686,
+          "max": 47.55209993965707
+        },
+        "mAP50-95": {
+          "mean": 45.324022330210354,
+          "std": 0.11569113884183703,
+          "min": 45.21005087925401,
+          "max": 45.44135969925936
+        },
+        "APS": {
+          "mean": 11.995849557784805,
+          "std": 0.4858711524070852,
+          "min": 11.526576645894867,
+          "max": 12.496771532236025
+        },
+        "APM": {
+          "mean": 38.07391856387731,
+          "std": 0.4715993126600892,
+          "min": 37.565312866835335,
+          "max": 38.496732822705745
+        },
+        "APL": {
+          "mean": 47.51398693553863,
+          "std": 0.4964051355582159,
+          "min": 47.03128852150479,
+          "max": 48.02304818827909
+        }
+      },
+      "Params": 2783906,
+      "GFLOPs": 8.0344576
+    }
+  },
+  "csv": "/home/room305/ZZF/yolov13yuan-6000/runs/test/gsd_20260726_022443_ablation.csv"
+}

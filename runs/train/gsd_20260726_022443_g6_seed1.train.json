@@ -1,0 +1,28 @@
+{
+  "stage": "g6",
+  "structure": {
+    "innovations": {
+      "SCGP": false,
+      "MCAS": true,
+      "CSTD": true
+    },
+    "layer_4": "original DSC3k2",
+    "layer_15": "MCASUp",
+    "layer_32": "CSTDDetect",
+    "purpose": "MCAS + CSTD"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-gsd-t6-mcas-cstd.yaml",
+  "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 1,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "started_at": "2026-07-26T16:18:59.518005+00:00",
+  "completed_at": "2026-07-26T18:49:16.897730+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g6_seed1/weights/best.pt"
+}

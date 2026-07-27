@@ -79,6 +79,7 @@ from ultralytics.nn.modules import (
     SCPGDSC3k2,
     CBERSCPGDSC3k2,
     BCRAUp,
+    MCASUp,
     SBRHDetect,
     P3DecoupledDetect,
     RAMPDetect,
@@ -1000,6 +1001,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c_deep, c_lateral = ch[f[0]], ch[f[1]]
             args = [c_deep, c_lateral, *args]
             # BCRA returns only the P5 tensor aligned to P4. The following Concat owns lateral fusion.
+            c2 = c_deep
+        elif m is MCASUp:
+            if not isinstance(f, (list, tuple)) or len(f) != 2:
+                raise ValueError("MCASUp requires from=[P5_deep, P4_lateral].")
+            c_deep, c_lateral = ch[f[0]], ch[f[1]]
+            # MCAS returns aligned deep semantics only; the following Concat owns lateral fusion.
+            args = [c_deep, c_lateral, *args]
             c2 = c_deep
         elif m in {
             Classify,
