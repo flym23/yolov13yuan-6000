@@ -1,2 +1,0 @@
-FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
-RAMP configuration verification passed for K1--K4 and n/s/l/x.

@@ -74,10 +74,6 @@ from .block import (
     CBERSCPGDSC3k2,
     BCRAUp,
     MCASUp,
-    ConsensusReliabilityRouter,
-    SymmetricMomentPreservedGeometry,
-    CMRFDSC3k2,
-    ReliabilityFrequencyAlignUp,
 )
 from .conv import (
     CBAM,
@@ -226,10 +222,6 @@ __all__ = (
     "CBERSCPGDSC3k2",
     "BCRAUp",
     "MCASUp",
-    "ConsensusReliabilityRouter",
-    "SymmetricMomentPreservedGeometry",
-    "CMRFDSC3k2",
-    "ReliabilityFrequencyAlignUp",
     "HRCTDetect",
     "NonUniformDFL",
     "SUDLDetect",

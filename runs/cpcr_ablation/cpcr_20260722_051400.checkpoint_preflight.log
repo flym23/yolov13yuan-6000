@@ -1,2 +1,0 @@
-FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
-CPCR checkpoint migration verification passed: /home/room305/ZZF/yolov13yuan-6000/runs/cpcr_ablation/cpcr_20260722_051400.checkpoint_preflight.json

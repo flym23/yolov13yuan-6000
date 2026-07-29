@@ -1,2 +1,0 @@
-FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
-RAMP checkpoint migration verification passed: /home/room305/ZZF/yolov13yuan-6000/runs/ramp_ablation/ramp_20260721_104447.checkpoint_preflight.json

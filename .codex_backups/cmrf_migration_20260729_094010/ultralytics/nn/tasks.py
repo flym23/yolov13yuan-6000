@@ -80,8 +80,6 @@ from ultralytics.nn.modules import (
     CBERSCPGDSC3k2,
     BCRAUp,
     MCASUp,
-    CMRFDSC3k2,
-    ReliabilityFrequencyAlignUp,
     SBRHDetect,
     P3DecoupledDetect,
     RAMPDetect,
@@ -985,7 +983,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-        if m in {SCPGDSC3k2, CBERSCPGDSC3k2, CMRFDSC3k2}:
+        if m in {SCPGDSC3k2, CBERSCPGDSC3k2}:
             if not isinstance(f, (list, tuple)) or len(f) != 2:
                 raise ValueError(f"{m.__name__} requires from=[P2_layer, P3_layer].")
             c_shallow, c_p3 = ch[f[0]], ch[f[1]]
@@ -1010,13 +1008,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 raise ValueError("MCASUp requires from=[P5_deep, P4_lateral].")
             c_deep, c_lateral = ch[f[0]], ch[f[1]]
             # MCAS returns aligned deep semantics only; the following Concat owns lateral fusion.
-            args = [c_deep, c_lateral, *args]
-            c2 = c_deep
-        elif m is ReliabilityFrequencyAlignUp:
-            if not isinstance(f, (list, tuple)) or len(f) != 2:
-                raise ValueError("ReliabilityFrequencyAlignUp requires from=[deep_layer, lateral_layer].")
-            c_deep, c_lateral = ch[f[0]], ch[f[1]]
-            # The following original Concat, rather than this module, owns lateral feature fusion.
             args = [c_deep, c_lateral, *args]
             c2 = c_deep
         elif m in {

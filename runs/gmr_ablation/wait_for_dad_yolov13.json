@@ -1,7 +1,0 @@
-{
-  "status": "dad_inactive_starting_gmr",
-  "launcher_pid": 2221063,
-  "dad_root": "/home/room305/ZZF/yolov13-6000",
-  "policy": "start GMR after no active DAD launcher/train/test process remains; no score gate",
-  "updated_at": "2026-07-27T23:39:07.506352+00:00"
-}

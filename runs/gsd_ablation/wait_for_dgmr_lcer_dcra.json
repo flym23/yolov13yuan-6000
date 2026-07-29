@@ -1,7 +1,0 @@
-{
-  "status": "dgmr_inactive_starting_gsd",
-  "launcher_pid": 1901830,
-  "dgmr_root": "/home/room305/ZZF/yolov13-6000",
-  "policy": "start GSD G1-G7 after no active DGMR launcher/train/test process remains; no score gate",
-  "updated_at": "2026-07-26T02:24:43.017559+00:00"
-}

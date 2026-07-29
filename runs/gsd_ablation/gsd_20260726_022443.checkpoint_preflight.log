@@ -1,3 +1,0 @@
-FlashAttention is not available on this device. Using scaled_dot_product_attention instead.
-WARNING ⚠️ no model scale passed. Assuming scale='n'.
-GSD checkpoint migration verification passed: /home/room305/ZZF/yolov13yuan-6000/runs/gsd_ablation/gsd_20260726_022443.checkpoint_preflight.json
