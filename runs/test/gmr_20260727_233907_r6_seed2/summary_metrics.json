@@ -1,0 +1,86 @@
+{
+  "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gmr_20260727_233907_r6_seed2/weights/best.pt",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "amp": false,
+  "model": {
+    "layers": 679,
+    "parameters": 2529111,
+    "gradients": 0,
+    "gflops": 6.6663424000000004
+  },
+  "metrics": {
+    "metrics/precision(B)": 0.7846721445262402,
+    "metrics/recall(B)": 0.7269208931767766,
+    "metrics/mAP50(B)": 0.7820679189825002,
+    "metrics/mAP75(B)": 0.4676542410720679,
+    "metrics/mAP50-95(B)": 0.44510978242061716,
+    "fitness": 0.44510978242061716
+  },
+  "scale_metrics_percent": {
+    "APS": 13.010465393504516,
+    "APM": 37.326315085578514,
+    "APL": 46.00005991191411
+  },
+  "per_class_diagnostics": {
+    "0": {
+      "targets": 874,
+      "TP_iou50": 762,
+      "TP_iou75": 438,
+      "FP_iou50": 9986,
+      "FN_iou50": 112,
+      "recall_iou50": 0.8718535469107551,
+      "recall_iou75": 0.5011441647597255,
+      "APS_targets": 8,
+      "APS_recall_iou50": 0.0,
+      "APM_targets": 522,
+      "APM_recall_iou50": 0.8582375478927203,
+      "APL_targets": 344,
+      "APL_recall_iou50": 0.8517441860465116
+    },
+    "1": {
+      "targets": 3444,
+      "TP_iou50": 3288,
+      "TP_iou75": 2132,
+      "FP_iou50": 18330,
+      "FN_iou50": 156,
+      "recall_iou50": 0.9547038327526133,
+      "recall_iou75": 0.6190476190476191,
+      "APS_targets": 378,
+      "APS_recall_iou50": 0.6904761904761905,
+      "APM_targets": 1966,
+      "APM_recall_iou50": 0.8972533062054934,
+      "APL_targets": 1100,
+      "APL_recall_iou50": 0.9236363636363636
+    },
+    "2": {
+      "targets": 1143,
+      "TP_iou50": 1061,
+      "TP_iou75": 722,
+      "FP_iou50": 14875,
+      "FN_iou50": 82,
+      "recall_iou50": 0.9282589676290464,
+      "recall_iou75": 0.63167104111986,
+      "APS_targets": 81,
+      "APS_recall_iou50": 0.8024691358024691,
+      "APM_targets": 183,
+      "APM_recall_iou50": 0.6939890710382514,
+      "APL_targets": 879,
+      "APL_recall_iou50": 0.9453924914675768
+    },
+    "3": {
+      "targets": 1367,
+      "TP_iou50": 1281,
+      "TP_iou75": 920,
+      "FP_iou50": 10079,
+      "FN_iou50": 86,
+      "recall_iou50": 0.9370885149963424,
+      "recall_iou75": 0.6730065837600585,
+      "APS_targets": 75,
+      "APS_recall_iou50": 0.56,
+      "APM_targets": 652,
+      "APM_recall_iou50": 0.9217791411042945,
+      "APL_targets": 640,
+      "APL_recall_iou50": 0.8953125
+    }
+  }
+}

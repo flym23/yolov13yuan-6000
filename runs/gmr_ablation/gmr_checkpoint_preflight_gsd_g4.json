@@ -1,0 +1,12 @@
+{
+  "source_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gsd_20260726_022443_g4_seed0/weights/best.pt",
+  "target_config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-gmr-r7-full.yaml",
+  "source_nc": 4,
+  "target_nc": 4,
+  "classification_tower_reinitialized": false,
+  "source_keys": 963,
+  "target_keys": 998,
+  "matched_keys": 963,
+  "missing_required_prefixes": [],
+  "unexpected_unmatched_target_keys": []
+}

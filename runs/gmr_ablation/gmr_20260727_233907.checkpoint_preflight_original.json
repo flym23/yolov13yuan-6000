@@ -1,0 +1,12 @@
+{
+  "source_weights": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+  "target_config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-gmr-r7-full.yaml",
+  "source_nc": 80,
+  "target_nc": 4,
+  "classification_tower_reinitialized": true,
+  "source_keys": 898,
+  "target_keys": 998,
+  "matched_keys": 847,
+  "missing_required_prefixes": [],
+  "unexpected_unmatched_target_keys": []
+}

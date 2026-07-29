@@ -34,6 +34,8 @@ __all__ = (
     "SemanticContextBridge",
     "BoundaryContextBridge",
     "CSTDDetect",
+    "GradientIsolatedMicroReconciler",
+    "GIMRDetect",
     "Segment",
     "Pose",
     "Classify",
@@ -195,6 +197,173 @@ class Detect(nn.Module):
         scores, index = scores.flatten(1).topk(min(max_det, anchors))
         i = torch.arange(batch_size)[..., None]  # batch indices
         return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
+
+
+class _StrictResidualBudget(nn.Module):
+    """Bound a residual per sample/channel without permitting correction on zero-energy features."""
+
+    def __init__(self, max_ratio=0.04, eps=1e-6, detach_scale=True):
+        super().__init__()
+        self.max_ratio, self.eps, self.detach_scale = float(max_ratio), float(eps), bool(detach_scale)
+        if not 0.0 < self.max_ratio <= 1.0:
+            raise ValueError(f"max_ratio must be in (0, 1], got {max_ratio}.")
+        if self.eps <= 0.0:
+            raise ValueError(f"eps must be positive, got {eps}.")
+
+    def forward(self, base, correction):
+        if base.shape != correction.shape:
+            raise ValueError(f"base and correction shapes differ: {tuple(base.shape)} vs {tuple(correction.shape)}.")
+        # No epsilon here: a zero-energy base channel must receive exactly zero correction.
+        base_energy = base.float().square().mean(dim=(2, 3), keepdim=True).sqrt()
+        correction_energy = correction.float().square().mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        scale = torch.minimum(
+            torch.ones_like(correction_energy), self.max_ratio * base_energy / correction_energy.clamp_min(self.eps)
+        )
+        if self.detach_scale:
+            scale = scale.detach()
+        return (correction.float() * scale).to(dtype=base.dtype), scale
+
+
+class GradientIsolatedMicroReconciler(nn.Module):
+    """Use detached P3/P4 evidence to refine only the P3 classification input."""
+
+    def __init__(
+        self,
+        c_p3,
+        c_p4,
+        max_ratio=0.04,
+        reduction=4,
+        agreement_floor=0.25,
+        local_self=0.75,
+        detach_context=True,
+        eps=1e-6,
+    ):
+        super().__init__()
+        self.c_p3, self.c_p4 = int(c_p3), int(c_p4)
+        self.agreement_floor, self.local_self = float(agreement_floor), float(local_self)
+        self.detach_context, self.eps = bool(detach_context), float(eps)
+        if self.c_p3 <= 0 or self.c_p4 <= 0:
+            raise ValueError(f"c_p3 and c_p4 must be positive, got {self.c_p3}, {self.c_p4}.")
+        if int(reduction) < 1:
+            raise ValueError(f"reduction must be >= 1, got {reduction}.")
+        if not 0.0 <= self.agreement_floor <= 1.0 or not 0.0 <= self.local_self <= 1.0:
+            raise ValueError("agreement_floor and local_self must be in [0, 1].")
+        if self.eps <= 0.0:
+            raise ValueError(f"eps must be positive, got {eps}.")
+
+        hidden = max(16, min(self.c_p3, self.c_p4) // int(reduction))
+        gate_hidden = max(8, hidden // 2)
+        self.p3_proj = Conv(self.c_p3, hidden, 1, 1)
+        self.p4_proj = Conv(self.c_p4, hidden, 1, 1)
+        self.fusion = nn.Sequential(Conv(3 * hidden, hidden, 3, 1), DWConv(hidden, hidden, 3, 1), Conv(hidden, hidden, 1, 1))
+        self.compatibility = nn.Sequential(
+            nn.Conv2d(3 * hidden, gate_hidden, 1, bias=True),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(gate_hidden, 1, 1, bias=True),
+            nn.Sigmoid(),
+        )
+        self.out_proj = nn.Conv2d(hidden, self.c_p3, 1, bias=False)
+        nn.init.zeros_(self.out_proj.weight)
+        self.budget = _StrictResidualBudget(max_ratio=max_ratio, eps=self.eps, detach_scale=True)
+
+    @staticmethod
+    def _local_mean(feature, kernel_size):
+        padding = int(kernel_size) // 2
+        return F.avg_pool2d(F.pad(feature, (padding, padding, padding, padding), mode="replicate"), int(kernel_size), 1)
+
+    @staticmethod
+    def _spatial_zscore(feature, eps):
+        feature = feature.float()
+        return (feature - feature.mean(dim=(2, 3), keepdim=True)) / feature.var(
+            dim=(2, 3), keepdim=True, unbiased=False
+        ).add(eps).sqrt()
+
+    def _detail_support(self, p3_source):
+        summary = p3_source.float().abs().mean(dim=1, keepdim=True)
+        compact_detail = (summary - self._local_mean(summary, 3)).abs()
+        low_frequency_energy = self._local_mean(summary, 5)
+        snr = (compact_detail / (low_frequency_energy + self.eps)).clamp(0.0, 8.0)
+        absolute_support = 1.0 - torch.exp(-snr)
+        relative_support = torch.sigmoid(self._spatial_zscore(compact_detail, self.eps))
+        support = (absolute_support * relative_support).clamp(0.0, 1.0)
+        return (self.local_self * support + (1.0 - self.local_self) * self._local_mean(support, 3)).clamp(0.0, 1.0)
+
+    def compute_components(self, p3, p4):
+        if p3.ndim != 4 or p4.ndim != 4:
+            raise ValueError("GradientIsolatedMicroReconciler expects NCHW tensors.")
+        if p3.shape[0] != p4.shape[0] or p3.shape[1] != self.c_p3 or p4.shape[1] != self.c_p4:
+            raise ValueError(f"expected compatible P3/P4 channels {self.c_p3}/{self.c_p4}.")
+        if p3.device != p4.device or p3.dtype != p4.dtype:
+            raise ValueError("P3 and P4 must share device and dtype.")
+
+        p3_source = p3.detach() if self.detach_context else p3
+        p4_source = p4.detach() if self.detach_context else p4
+        p3_embed = self.p3_proj(p3_source)
+        p4_embed = F.interpolate(self.p4_proj(p4_source), size=p3.shape[-2:], mode="nearest")
+        disagreement = (p3_embed - p4_embed).abs()
+        pair_feature = torch.cat((p3_embed, p4_embed, disagreement), dim=1)
+        agreement = ((F.normalize(p3_embed.float(), dim=1, eps=self.eps) * F.normalize(p4_embed.float(), dim=1, eps=self.eps)).sum(
+            dim=1, keepdim=True
+        ) + 1.0).mul(0.5).clamp(0.0, 1.0)
+        detail_support = self._detail_support(p3_source)
+        semantic_support = self.agreement_floor + (1.0 - self.agreement_floor) * agreement
+        deterministic_gate = (detail_support * semantic_support).detach().to(dtype=p3.dtype)
+        spatial_gate = deterministic_gate * self.compatibility(pair_feature)
+        correction = self.out_proj(self.fusion(pair_feature)) * spatial_gate
+        correction, budget_scale = self.budget(p3, correction)
+        return p3 + correction, correction, spatial_gate, agreement, detail_support, budget_scale
+
+    def forward(self, p3, p4):
+        return self.compute_components(p3, p4)[0]
+
+
+class GIMRDetect(Detect):
+    """Detect head that changes only the P3 classification feature through a bounded detached branch."""
+
+    def __init__(
+        self,
+        nc=80,
+        max_ratio=0.04,
+        reduction=4,
+        agreement_floor=0.25,
+        local_self=0.75,
+        detach_context=True,
+        ch=(),
+    ):
+        if not isinstance(ch, (list, tuple)) or len(ch) != 3:
+            raise ValueError(f"GIMRDetect requires P3/P4/P5 channels, got {ch}.")
+        super().__init__(nc=nc, ch=ch)
+        if self.end2end:
+            raise NotImplementedError("GIMRDetect supports only the standard one-to-many path.")
+        if self.nl != 3:
+            raise ValueError(f"GIMRDetect requires exactly 3 detection levels, got {self.nl}.")
+        # Preserve the post-Detect CPU RNG state for fair same-seed initialization.
+        with torch.random.fork_rng(devices=[], enabled=True):
+            self.p3_reconciler = GradientIsolatedMicroReconciler(
+                c_p3=int(ch[0]),
+                c_p4=int(ch[1]),
+                max_ratio=max_ratio,
+                reduction=reduction,
+                agreement_floor=agreement_floor,
+                local_self=local_self,
+                detach_context=detach_context,
+            )
+        nn.init.zeros_(self.p3_reconciler.out_proj.weight)
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != self.nl:
+            raise ValueError("GIMRDetect expects [P3, P4, P5].")
+        p3, p4, p5 = x
+        cls_features = (self.p3_reconciler(p3, p4), p4, p5)
+        detection_features = (p3, p4, p5)
+        outputs = [
+            torch.cat((self.cv2[index](detection_features[index]), self.cv3[index](cls_features[index])), dim=1)
+            for index in range(self.nl)
+        ]
+        if self.training:
+            return outputs
+        prediction = self._inference(outputs)
+        return prediction if self.export else (prediction, outputs)
 
 
 class _BudgetedContextBridge(nn.Module):

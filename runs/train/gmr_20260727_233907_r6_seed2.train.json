@@ -1,0 +1,28 @@
+{
+  "stage": "r6",
+  "structure": {
+    "innovations": {
+      "SCGP": false,
+      "MCAS": true,
+      "GIMR": true
+    },
+    "layer_4": "original DSC3k2",
+    "layer_15": "MCASUp (three semantic bases; 0.10 energy budget)",
+    "layer_32": "GIMRDetect (P3 classification only; detached P3/P4 evidence; 0.04 budget)",
+    "purpose": "MCAS + GIMR"
+  },
+  "config": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/yolov13-gmr-r6-mcas-gimr.yaml",
+  "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+  "data": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "seed": 2,
+  "epochs": 300,
+  "patience": 40,
+  "amp": false,
+  "dataloader_workers": 2,
+  "plots": false,
+  "deterministic": true,
+  "pin_memory": false,
+  "started_at": "2026-07-28T14:39:08.001789+00:00",
+  "completed_at": "2026-07-28T16:23:08.042515+00:00",
+  "best_weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gmr_20260727_233907_r6_seed2/weights/best.pt"
+}

@@ -1,0 +1,36 @@
+{
+  "run_id": "gmr_20260727_233907",
+  "status": "complete",
+  "stage": "complete",
+  "detail": "r1_r7_finished=true; three_seed_protocol=true; all_stages_started_without_result_gates=true",
+  "launcher_pid": 2371257,
+  "completed_stages": [
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r6",
+    "r7"
+  ],
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "workers": 2,
+    "amp": false,
+    "plots": false,
+    "pin_memory": false,
+    "deterministic": true
+  },
+  "seed_policy": [
+    0,
+    1,
+    2
+  ],
+  "max_concurrent_processes": 3,
+  "resume_from": "r3",
+  "r0_policy": "reuse designated L0 and P0 original-YOLOv13 summaries; do not retrain R0",
+  "chain_policy": "unconditional R1-R7 sequential execution after one-epoch R7 smoke test; no result threshold or performance gate",
+  "updated_at": "2026-07-28T19:23:00.606380+00:00"
+}

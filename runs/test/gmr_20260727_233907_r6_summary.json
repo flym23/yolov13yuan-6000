@@ -1,0 +1,157 @@
+{
+  "structure": {
+    "innovations": {
+      "SCGP": false,
+      "MCAS": true,
+      "GIMR": true
+    },
+    "layer_4": "original DSC3k2",
+    "layer_15": "MCASUp (three semantic bases; 0.10 energy budget)",
+    "layer_32": "GIMRDetect (P3 classification only; detached P3/P4 evidence; 0.04 budget)",
+    "purpose": "MCAS + GIMR"
+  },
+  "n": 3,
+  "runs": [
+    {
+      "stage": "r6",
+      "seed": 0,
+      "test_name": "gmr_20260727_233907_r6_seed0",
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "MCAS": true,
+          "GIMR": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "MCASUp (three semantic bases; 0.10 energy budget)",
+        "layer_32": "GIMRDetect (P3 classification only; detached P3/P4 evidence; 0.04 budget)",
+        "purpose": "MCAS + GIMR"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gmr_20260727_233907_r6_seed0/weights/best.pt",
+      "Params": 2529111,
+      "GFLOPs": 6.6663424000000004,
+      "P": 80.34303960662862,
+      "R": 72.97418792384424,
+      "mAP50": 78.8680917744068,
+      "mAP75": 47.99614961835373,
+      "mAP50-95": 45.42140360939514,
+      "APS": 13.486321644537247,
+      "APM": 38.327873847031285,
+      "APL": 46.95377281901013
+    },
+    {
+      "stage": "r6",
+      "seed": 1,
+      "test_name": "gmr_20260727_233907_r6_seed1",
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "MCAS": true,
+          "GIMR": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "MCASUp (three semantic bases; 0.10 energy budget)",
+        "layer_32": "GIMRDetect (P3 classification only; detached P3/P4 evidence; 0.04 budget)",
+        "purpose": "MCAS + GIMR"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gmr_20260727_233907_r6_seed1/weights/best.pt",
+      "Params": 2529111,
+      "GFLOPs": 6.6663424000000004,
+      "P": 81.18468487961567,
+      "R": 72.18218711514153,
+      "mAP50": 78.72083550381717,
+      "mAP75": 47.23802148976757,
+      "mAP50-95": 45.27879425653783,
+      "APS": 12.708214229442676,
+      "APM": 37.66024068822008,
+      "APL": 47.16495288570659
+    },
+    {
+      "stage": "r6",
+      "seed": 2,
+      "test_name": "gmr_20260727_233907_r6_seed2",
+      "structure": {
+        "innovations": {
+          "SCGP": false,
+          "MCAS": true,
+          "GIMR": true
+        },
+        "layer_4": "original DSC3k2",
+        "layer_15": "MCASUp (three semantic bases; 0.10 energy budget)",
+        "layer_32": "GIMRDetect (P3 classification only; detached P3/P4 evidence; 0.04 budget)",
+        "purpose": "MCAS + GIMR"
+      },
+      "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/gmr_20260727_233907_r6_seed2/weights/best.pt",
+      "Params": 2529111,
+      "GFLOPs": 6.6663424000000004,
+      "P": 78.46721445262402,
+      "R": 72.69208931767766,
+      "mAP50": 78.20679189825002,
+      "mAP75": 46.76542410720679,
+      "mAP50-95": 44.51097824206172,
+      "APS": 13.010465393504516,
+      "APM": 37.326315085578514,
+      "APL": 46.00005991191411
+    }
+  ],
+  "metrics_percent": {
+    "P": {
+      "mean": 79.99831297962277,
+      "std": 1.3911465472475113,
+      "median": 80.34303960662862,
+      "min": 78.46721445262402,
+      "max": 81.18468487961567
+    },
+    "R": {
+      "mean": 72.61615478555447,
+      "std": 0.4014235420637551,
+      "median": 72.69208931767766,
+      "min": 72.18218711514153,
+      "max": 72.97418792384424
+    },
+    "mAP50": {
+      "mean": 78.59857305882467,
+      "std": 0.3471893728830209,
+      "median": 78.72083550381717,
+      "min": 78.20679189825002,
+      "max": 78.8680917744068
+    },
+    "mAP75": {
+      "mean": 47.333198405109364,
+      "std": 0.6208585224167101,
+      "median": 47.23802148976757,
+      "min": 46.76542410720679,
+      "max": 47.99614961835373
+    },
+    "mAP50-95": {
+      "mean": 45.07039203599823,
+      "std": 0.48968581918963805,
+      "median": 45.27879425653783,
+      "min": 44.51097824206172,
+      "max": 45.42140360939514
+    },
+    "APS": {
+      "mean": 13.068333755828146,
+      "std": 0.39226820910545734,
+      "median": 13.010465393504516,
+      "min": 12.708214229442676,
+      "max": 13.486321644537247
+    },
+    "APM": {
+      "mean": 37.77147654027662,
+      "std": 0.5099608310917236,
+      "median": 37.66024068822008,
+      "min": 37.326315085578514,
+      "max": 38.327873847031285
+    },
+    "APL": {
+      "mean": 46.70626187221028,
+      "std": 0.6206369000366435,
+      "median": 46.95377281901013,
+      "min": 46.00005991191411,
+      "max": 47.16495288570659
+    }
+  },
+  "Params": 2529111,
+  "GFLOPs": 6.6663424000000004
+}

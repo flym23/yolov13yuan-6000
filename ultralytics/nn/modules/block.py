@@ -2095,7 +2095,7 @@ class CenterPreservedPartialGeometry(nn.Module):
         offsets = (base * radius.unsqueeze(1) + residual_limit * torch.tanh(offset_raw)).clamp(
             -self.max_radius, self.max_radius
         )
-        soft_weights = self.weight_head(geometry).softmax(dim=1)
+        soft_weights = self.weight_head(geometry).float().softmax(dim=1).to(dtype=geometry.dtype)
         center_prior = torch.cat((torch.ones_like(soft_weights[:, :1]), torch.zeros_like(soft_weights[:, 1:])), dim=1)
         weights = (1.0 - self.center_floor) * soft_weights + self.center_floor * center_prior
         return offsets, weights
@@ -2160,17 +2160,21 @@ class SCPGDSC3k2(DSC3k2):
         super().__init__(c1=c_p3, c2=c2, n=n, dsc3k=dsc3k, e=e, g=g, shortcut=shortcut, k1=k1, k2=k2, d2=d2)
         self.c_shallow, self.c_p3, self.c2 = int(c_shallow), int(c_p3), int(c2)
         self.dsc3k_enabled = bool(dsc3k)
-        self.detail_router = ShallowEvidenceRouter(self.c_shallow, self.c2, max_gain=detail_gain, reduction=reduction)
-        self.geometry = CenterPreservedPartialGeometry(
-            self.c2,
-            geom_ratio=geom_ratio,
-            samples=samples,
-            min_radius=min_radius,
-            max_radius=max_radius,
-            center_floor=center_floor,
-            max_gain=geom_gain,
-            reduction=reduction,
-        )
+        # Keep downstream same-seed initialization identical to the original DSC3k2 path.
+        with torch.random.fork_rng(devices=[], enabled=True):
+            self.detail_router = ShallowEvidenceRouter(
+                self.c_shallow, self.c2, max_gain=detail_gain, reduction=reduction
+            )
+            self.geometry = CenterPreservedPartialGeometry(
+                self.c2,
+                geom_ratio=geom_ratio,
+                samples=samples,
+                min_radius=min_radius,
+                max_radius=max_radius,
+                center_floor=center_floor,
+                max_gain=geom_gain,
+                reduction=reduction,
+            )
 
     def forward(self, x):
         if not isinstance(x, (list, tuple)) or len(x) != 2:

@@ -114,6 +114,8 @@ from .head import (
     SemanticContextBridge,
     BoundaryContextBridge,
     CSTDDetect,
+    GradientIsolatedMicroReconciler,
+    GIMRDetect,
     Segment,
     WorldDetect,
     v10Detect,
@@ -236,5 +238,7 @@ __all__ = (
     "SemanticContextBridge",
     "BoundaryContextBridge",
     "CSTDDetect",
+    "GradientIsolatedMicroReconciler",
+    "GIMRDetect",
     "DSConv",
 )
