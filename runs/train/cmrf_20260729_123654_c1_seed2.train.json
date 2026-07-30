@@ -1,0 +1,22 @@
+{
+  "name": "cmrf_20260729_123654_c1_seed2",
+  "stage": "C1",
+  "seed": 2,
+  "structure": "C1 / CRR",
+  "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/cmrf_ablation/yolov13-cmrf-c1-crr.yaml",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cmrf_20260729_123654_c1_seed2/weights/best.pt",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "resume": false,
+    "device": 0
+  },
+  "completed_at": "2026-07-29T16:49:24.411361+00:00"
+}
