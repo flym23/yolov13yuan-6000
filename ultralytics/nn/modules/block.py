@@ -70,6 +70,11 @@ __all__ = (
     "SymmetricMomentPreservedGeometry",
     "CMRFDSC3k2",
     "ReliabilityFrequencyAlignUp",
+    "MicroObjectMomentRefiner",
+    "CARMDSC3k2",
+    "OrthogonalComplementaryAlignUp",
+    "MissingAwareCandidateReactivator",
+    "MACRDSC3k2",
 )
 
 
@@ -3319,7 +3324,6 @@ class SymmetricMomentPreservedGeometry(nn.Module):
             }
         return output
 
-
 class CMRFDSC3k2(DSC3k2):
     """DSC3k2 main path enhanced by CRR and a reliability-controlled SMPG branch."""
 
@@ -3353,6 +3357,378 @@ class CMRFDSC3k2(DSC3k2):
             raise ValueError("CMRFDSC3k2 received unexpected P2/P3 channel counts.")
         routed, reliability = self.evidence_router(shallow, super().forward(p3))
         return self.geometry(routed, reliability)
+
+"""CARM-YOLOv13 structural modules.
+
+Place these classes in ultralytics/nn/modules/block.py after CMRFDSC3k2.
+Required existing symbols: Conv, DSC3k2, CMRFDSC3k2, torch, nn, F, math.
+"""
+
+
+class MicroObjectMomentRefiner(nn.Module):
+    """Refine compact P3 structures with bounded, symmetric five-point sampling.
+
+    The sampling supports are [center, +tangent, -tangent, +normal, -normal].
+    Paired weights are shared, so the weighted first offset moment is exactly zero.
+    A shallow-detail prior and a spatial release budget restrict the branch to compact
+    candidate regions. The zero-start gain makes the module an exact identity at init.
+    """
+
+    def __init__(
+        self,
+        c_shallow,
+        channels,
+        geom_ratio=0.25,
+        min_radius=0.20,
+        max_radius=0.75,
+        center_floor=0.65,
+        center_ceiling=0.90,
+        max_gain=0.06,
+        spatial_rho=0.15,
+        reduction=4,
+        eps=1e-6,
+    ):
+        super().__init__()
+        self.c_shallow = int(c_shallow)
+        self.channels = int(channels)
+        self.min_radius = float(min_radius)
+        self.max_radius = float(max_radius)
+        self.center_floor = float(center_floor)
+        self.center_ceiling = float(center_ceiling)
+        self.max_gain = float(max_gain)
+        self.spatial_rho = float(spatial_rho)
+        self.eps = float(eps)
+        reduction = int(reduction)
+
+        if self.c_shallow <= 0 or self.channels <= 0:
+            raise ValueError("MicroObjectMomentRefiner channel counts must be positive.")
+        if not 0.0 < float(geom_ratio) <= 1.0:
+            raise ValueError("geom_ratio must be in (0, 1].")
+        if not 0.0 <= self.min_radius <= self.max_radius:
+            raise ValueError("Require 0 <= min_radius <= max_radius.")
+        if not 0.0 <= self.center_floor <= self.center_ceiling <= 1.0:
+            raise ValueError("Require 0 <= center_floor <= center_ceiling <= 1.")
+        if self.max_gain < 0.0 or not 0.0 <= self.spatial_rho <= 1.0:
+            raise ValueError("max_gain must be non-negative and spatial_rho in [0, 1].")
+        if reduction < 1 or self.eps <= 0.0:
+            raise ValueError("reduction and eps must be positive.")
+
+        raw_channels = int(round(self.channels * float(geom_ratio) / 8.0)) * 8
+        self.geom_channels = min(self.channels, max(raw_channels, 8))
+        hidden = max(self.geom_channels // reduction, 16)
+
+        blur = torch.tensor(
+            ((1.0, 2.0, 1.0), (2.0, 4.0, 2.0), (1.0, 2.0, 1.0)),
+            dtype=torch.float32,
+        )
+        self.register_buffer("blur_kernel", (blur / blur.sum())[None, None], persistent=False)
+        sobel_x = torch.tensor(
+            ((-1.0, 0.0, 1.0), (-2.0, 0.0, 2.0), (-1.0, 0.0, 1.0)),
+            dtype=torch.float32,
+        )
+        self.register_buffer("sobel_x", sobel_x[None, None], persistent=False)
+        self.register_buffer("sobel_y", sobel_x.t().contiguous()[None, None], persistent=False)
+
+        self.reduce = Conv(self.channels, self.geom_channels, 1, 1)
+        self.shallow_proj = Conv(self.c_shallow, self.geom_channels, 1, 1, act=False)
+        self.prior_head = nn.Sequential(
+            nn.Conv2d(4, 8, 3, 1, 1, bias=True),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(8, 1, 1, bias=True),
+            nn.Sigmoid(),
+        )
+        self.geometry_trunk = nn.Sequential(
+            Conv(2 * self.geom_channels + 3, hidden, 3, 1),
+            Conv(hidden, hidden, 3, 1, g=hidden),
+            Conv(hidden, hidden, 1, 1),
+        )
+        self.radius_head = nn.Conv2d(hidden, 2, 1, bias=True)
+        self.center_head = nn.Conv2d(hidden, 1, 1, bias=True)
+        self.pair_mass_head = nn.Conv2d(hidden, 2, 1, bias=True)
+        for layer in (self.radius_head, self.center_head, self.pair_mass_head):
+            nn.init.zeros_(layer.weight)
+            nn.init.zeros_(layer.bias)
+
+        self.out_proj = nn.Conv2d(self.geom_channels, self.channels, 1, bias=True)
+        nn.init.kaiming_normal_(self.out_proj.weight, mode="fan_out", nonlinearity="linear")
+        nn.init.zeros_(self.out_proj.bias)
+        nn.init.normal_(self.prior_head[-2].weight, mean=0.0, std=1e-3)
+        nn.init.zeros_(self.prior_head[-2].bias)
+
+        self.alpha_raw = nn.Parameter(torch.zeros(1, dtype=torch.float32))
+        self.record_diagnostics = False
+        self.latest_diagnostics = {}
+
+    def set_diagnostics(self, enabled=True):
+        self.record_diagnostics = bool(enabled)
+        if not self.record_diagnostics:
+            self.latest_diagnostics = {}
+        return self
+
+    @staticmethod
+    def _local_mean(x, kernel_size=3):
+        radius = kernel_size // 2
+        return F.avg_pool2d(
+            F.pad(x, (radius, radius, radius, radius), mode="replicate"),
+            kernel_size,
+            1,
+        )
+
+    def _blur_downsample(self, x):
+        kernel = self.blur_kernel.to(device=x.device, dtype=x.dtype).repeat(self.c_shallow, 1, 1, 1)
+        return F.conv2d(
+            F.pad(x, (1, 1, 1, 1), mode="replicate"),
+            kernel,
+            stride=2,
+            groups=self.c_shallow,
+        )
+
+    @staticmethod
+    def _align(x, size):
+        return x if x.shape[-2:] == size else F.interpolate(x, size=size, mode="bilinear", align_corners=False)
+
+    @staticmethod
+    def _spatial_zscore(x, eps):
+        value = x.float()
+        mean = value.mean(dim=(2, 3), keepdim=True)
+        std = value.var(dim=(2, 3), keepdim=True, unbiased=False).add(eps).sqrt()
+        return (value - mean) / std
+
+    def _relative_support(self, detail_energy, low_energy):
+        ratio = (detail_energy.float() / (low_energy.float() + self.eps)).clamp(0.0, 8.0)
+        absolute = 1.0 - torch.exp(-ratio)
+        relative = torch.sigmoid(self._spatial_zscore(detail_energy, self.eps))
+        return (absolute * relative).clamp(0.0, 1.0)
+
+    def _spatial_budget(self, gate):
+        mean = gate.float().mean(dim=(2, 3), keepdim=True)
+        scale = torch.minimum(
+            torch.ones_like(mean),
+            torch.full_like(mean, self.spatial_rho) / mean.clamp_min(self.eps),
+        ).detach()
+        return (gate.float() * scale).clamp(0.0, 1.0).to(gate.dtype), scale
+
+    def _contour_cues(self, x):
+        summary = F.pad(x.float().mean(dim=1, keepdim=True), (1, 1, 1, 1), mode="replicate")
+        grad_x_raw = F.conv2d(summary, self.sobel_x.to(device=x.device, dtype=summary.dtype))
+        grad_y_raw = F.conv2d(summary, self.sobel_y.to(device=x.device, dtype=summary.dtype))
+        rms = (grad_x_raw.square() + grad_y_raw.square()).mean(dim=(2, 3), keepdim=True).add(self.eps).sqrt()
+        grad_x = grad_x_raw / rms
+        grad_y = grad_y_raw / rms
+        magnitude = (grad_x.square() + grad_y.square() + self.eps).sqrt()
+        return grad_x.to(x.dtype), grad_y.to(x.dtype), magnitude.to(x.dtype)
+
+    @staticmethod
+    def _base_grid(batch, height, width, device):
+        y = (torch.arange(height, device=device, dtype=torch.float32) + 0.5) * (2.0 / max(height, 1)) - 1.0
+        x = (torch.arange(width, device=device, dtype=torch.float32) + 0.5) * (2.0 / max(width, 1)) - 1.0
+        grid_y, grid_x = torch.meshgrid(y, x, indexing="ij")
+        return torch.stack((grid_x, grid_y), dim=-1).unsqueeze(0).expand(batch, -1, -1, -1)
+
+    def _sample(self, x, offsets):
+        batch, channels, height, width = x.shape
+        if offsets.shape != (batch, 5, 2, height, width):
+            raise ValueError(f"Unexpected offset shape {tuple(offsets.shape)}.")
+        base = self._base_grid(batch, height, width, x.device).unsqueeze(1)
+        offset_x = offsets[:, :, 0].float() * (2.0 / max(width, 1))
+        offset_y = offsets[:, :, 1].float() * (2.0 / max(height, 1))
+        grid = base + torch.stack((offset_x, offset_y), dim=-1)
+        source = x.float().unsqueeze(1).expand(-1, 5, -1, -1, -1).reshape(
+            batch * 5, channels, height, width
+        )
+        sampled = F.grid_sample(
+            source,
+            grid.reshape(batch * 5, height, width, 2),
+            mode="bilinear",
+            padding_mode="border",
+            align_corners=False,
+        )
+        return sampled.reshape(batch, 5, channels, height, width).to(dtype=x.dtype)
+
+    def compute_components(self, shallow, semantic):
+        if shallow.ndim != 4 or semantic.ndim != 4 or shallow.shape[0] != semantic.shape[0]:
+            raise ValueError("MicroObjectMomentRefiner expects compatible NCHW tensors.")
+        if shallow.shape[1] != self.c_shallow or semantic.shape[1] != self.channels:
+            raise ValueError("MicroObjectMomentRefiner received unexpected channel counts.")
+        if shallow.device != semantic.device or shallow.dtype != semantic.dtype:
+            raise ValueError("MicroObjectMomentRefiner inputs must share device and dtype.")
+
+        target_size = semantic.shape[-2:]
+        shallow_low_raw = self._align(self._blur_downsample(shallow), target_size)
+        shallow_avg_raw = F.adaptive_avg_pool2d(shallow, target_size)
+        shallow_detail_raw = (F.adaptive_max_pool2d(shallow, target_size) - shallow_avg_raw).clamp_min(0.0)
+
+        shallow_detail_energy = shallow_detail_raw.float().abs().mean(dim=1, keepdim=True)
+        shallow_low_energy = shallow_low_raw.float().abs().mean(dim=1, keepdim=True)
+        shallow_support = self._relative_support(shallow_detail_energy, shallow_low_energy)
+
+        semantic_float = semantic.float()
+        semantic_low = self._local_mean(semantic_float, 3)
+        semantic_detail = (semantic_float - semantic_low).abs()
+        semantic_support = self._relative_support(
+            semantic_detail.mean(dim=1, keepdim=True),
+            semantic_low.abs().mean(dim=1, keepdim=True),
+        )
+
+        local_detail = self._local_mean(shallow_detail_energy, 5)
+        compact_ratio = (shallow_detail_energy / (local_detail + self.eps)).clamp(0.0, 8.0)
+        compactness = (1.0 - torch.exp(-compact_ratio)).clamp(0.0, 1.0)
+        analytic_prior = (shallow_support * compactness * (0.35 + 0.65 * semantic_support)).clamp(0.0, 1.0)
+        prior_cues = torch.cat(
+            (shallow_support, semantic_support, compactness, analytic_prior), dim=1
+        ).detach().to(dtype=semantic.dtype)
+        learned_prior = self.prior_head(prior_cues)
+        micro_gate, budget_scale = self._spatial_budget(
+            analytic_prior.detach().to(dtype=semantic.dtype) * learned_prior
+        )
+
+        feature = self.reduce(semantic)
+        shallow_feature = self.shallow_proj(shallow_detail_raw)
+        grad_x, grad_y, magnitude = self._contour_cues(feature)
+        geometry = self.geometry_trunk(
+            torch.cat((feature, shallow_feature, grad_x, grad_y, magnitude), dim=1)
+        )
+
+        local_norm = (grad_x.float().square() + grad_y.float().square() + self.eps).sqrt()
+        normal_x = grad_x.float() / local_norm
+        normal_y = grad_y.float() / local_norm
+        tangent_x = -normal_y
+        tangent_y = normal_x
+
+        base_radius = self.min_radius + (self.max_radius - self.min_radius) * (1.0 - micro_gate.float())
+        radius_scale = 0.75 + 0.25 * torch.sigmoid(self.radius_head(geometry).float())
+        tangent_radius = (base_radius * radius_scale[:, 0:1]).clamp(self.min_radius, self.max_radius)
+        normal_radius = (base_radius * radius_scale[:, 1:2]).clamp(self.min_radius, self.max_radius)
+
+        tangent_offset = torch.cat((tangent_radius * tangent_x, tangent_radius * tangent_y), dim=1)
+        normal_offset = torch.cat((normal_radius * normal_x, normal_radius * normal_y), dim=1)
+        zero_offset = torch.zeros_like(tangent_offset)
+        offsets = torch.stack(
+            (zero_offset, tangent_offset, -tangent_offset, normal_offset, -normal_offset), dim=1
+        ).to(dtype=feature.dtype)
+
+        learned_center = torch.sigmoid(self.center_head(geometry).float())
+        center_mass = self.center_floor + (self.center_ceiling - self.center_floor) * (
+            0.65 * micro_gate.float() + 0.35 * learned_center
+        ).clamp(0.0, 1.0)
+        pair_mix = self.pair_mass_head(geometry).float().softmax(dim=1)
+        remaining = 1.0 - center_mass
+        tangent_mass = remaining * pair_mix[:, 0:1]
+        normal_mass = remaining * pair_mix[:, 1:2]
+        weights = torch.cat(
+            (
+                center_mass,
+                0.5 * tangent_mass,
+                0.5 * tangent_mass,
+                0.5 * normal_mass,
+                0.5 * normal_mass,
+            ),
+            dim=1,
+        ).to(dtype=feature.dtype)
+
+        sampled = self._sample(feature, offsets)
+        aggregated = (sampled * weights.unsqueeze(2)).sum(dim=1)
+        residual = micro_gate * self.out_proj(aggregated - feature)
+        return residual, micro_gate, offsets, weights, budget_scale
+
+    def forward(self, shallow, semantic):
+        residual, micro_gate, offsets, weights, budget_scale = self.compute_components(shallow, semantic)
+        gain = (self.max_gain * torch.tanh(self.alpha_raw)).to(dtype=semantic.dtype)
+        output = semantic + gain * residual
+        if self.record_diagnostics:
+            self.latest_diagnostics = {
+                "gain": gain.detach(),
+                "micro_gate": micro_gate.detach(),
+                "offsets": offsets.detach(),
+                "weights": weights.detach(),
+                "first_moment": (offsets.float() * weights.unsqueeze(2).float()).sum(dim=1).detach(),
+                "budget_scale": budget_scale.detach(),
+            }
+        return output
+
+
+class CARMDSC3k2(CMRFDSC3k2):
+    """CMRF C4 main path plus a zero-start micro-object moment refiner."""
+
+    def __init__(
+        self,
+        c_shallow,
+        c_p3,
+        c2,
+        n=1,
+        dsc3k=False,
+        e=0.25,
+        geom_ratio=0.50,
+        min_radius=0.25,
+        max_radius=1.25,
+        center_floor=0.50,
+        center_ceiling=0.80,
+        max_angle_deg=22.5,
+        detail_gain=0.08,
+        geom_gain=0.08,
+        reduction=4,
+        release_rho=0.25,
+        unique_weight=0.35,
+        local_self=0.75,
+        micro_ratio=0.25,
+        micro_min_radius=0.20,
+        micro_max_radius=0.75,
+        micro_center_floor=0.65,
+        micro_center_ceiling=0.90,
+        micro_gain=0.06,
+        micro_spatial_rho=0.15,
+        micro_reduction=4,
+        g=1,
+        shortcut=True,
+        k1=3,
+        k2=7,
+        d2=1,
+    ):
+        super().__init__(
+            c_shallow=c_shallow,
+            c_p3=c_p3,
+            c2=c2,
+            n=n,
+            dsc3k=dsc3k,
+            e=e,
+            geom_ratio=geom_ratio,
+            min_radius=min_radius,
+            max_radius=max_radius,
+            center_floor=center_floor,
+            center_ceiling=center_ceiling,
+            max_angle_deg=max_angle_deg,
+            detail_gain=detail_gain,
+            geom_gain=geom_gain,
+            reduction=reduction,
+            release_rho=release_rho,
+            unique_weight=unique_weight,
+            local_self=local_self,
+            g=g,
+            shortcut=shortcut,
+            k1=k1,
+            k2=k2,
+            d2=d2,
+        )
+        with torch.random.fork_rng(devices=[], enabled=True):
+            self.micro_refiner = MicroObjectMomentRefiner(
+                c_shallow=self.c_shallow,
+                channels=self.c2,
+                geom_ratio=micro_ratio,
+                min_radius=micro_min_radius,
+                max_radius=micro_max_radius,
+                center_floor=micro_center_floor,
+                center_ceiling=micro_center_ceiling,
+                max_gain=micro_gain,
+                spatial_rho=micro_spatial_rho,
+                reduction=micro_reduction,
+            )
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 2:
+            raise ValueError("CARMDSC3k2 expects [P2_shallow, P3_downsampled].")
+        shallow, _ = x
+        return self.micro_refiner(shallow, super().forward(x))
+
 
 
 class ReliabilityFrequencyAlignUp(nn.Module):
@@ -3451,3 +3827,521 @@ class ReliabilityFrequencyAlignUp(nn.Module):
                 "gates": gates.detach(), "budget_scale": budget_scale.detach(),
             }
         return output
+
+class OrthogonalComplementaryAlignUp(nn.Module):
+    """Precision-safe P4-to-P3 upsampling with an orthogonal high-frequency residual.
+
+    The main path is immutable nearest-neighbor upsampling. Low-frequency cross-scale
+    agreement only gates a lateral high-frequency candidate. Before injection, the
+    correction is local-mean removed, made channel-wise orthogonal to the nearest base,
+    and bounded by a sample-wise scalar RMS budget. The branch is an exact identity at init.
+    """
+
+    def __init__(
+        self,
+        c_deep,
+        c_lateral,
+        scale=2,
+        reduction=4,
+        max_gain=0.12,
+        max_residual_ratio=0.08,
+        candidate_floor=0.20,
+        residual_groups=4,
+        strict_scale=True,
+        detach_budget=True,
+        eps=1e-6,
+    ):
+        super().__init__()
+        self.c_deep = int(c_deep)
+        self.c_lateral = int(c_lateral)
+        self.scale = int(scale)
+        self.max_gain = float(max_gain)
+        self.max_residual_ratio = float(max_residual_ratio)
+        self.candidate_floor = float(candidate_floor)
+        self.strict_scale = bool(strict_scale)
+        self.detach_budget = bool(detach_budget)
+        self.eps = float(eps)
+        reduction = int(reduction)
+        residual_groups = int(residual_groups)
+
+        if self.c_deep <= 0 or self.c_lateral <= 0 or self.scale <= 1:
+            raise ValueError("OrthogonalComplementaryAlignUp channel counts and scale are invalid.")
+        if reduction < 1 or residual_groups < 1:
+            raise ValueError("reduction and residual_groups must be positive.")
+        if self.max_gain < 0.0 or not 0.0 < self.max_residual_ratio <= 1.0:
+            raise ValueError("max_gain must be non-negative and max_residual_ratio in (0, 1].")
+        if not 0.0 <= self.candidate_floor <= 1.0 or self.eps <= 0.0:
+            raise ValueError("candidate_floor must be in [0, 1] and eps positive.")
+
+        self.hidden = max(16, min(64, min(self.c_deep, self.c_lateral) // reduction))
+        self.residual_groups = max(1, math.gcd(math.gcd(self.hidden, self.c_deep), residual_groups))
+        blur = torch.tensor(
+            ((1.0, 2.0, 1.0), (2.0, 4.0, 2.0), (1.0, 2.0, 1.0)),
+            dtype=torch.float32,
+        )
+        self.register_buffer("blur_kernel", (blur / blur.sum())[None, None], persistent=False)
+
+        # Replacing a parameter-free nn.Upsample must not advance the downstream RNG stream.
+        with torch.random.fork_rng(devices=[], enabled=True):
+            self.deep_proj = nn.Conv2d(self.c_deep, self.hidden, 1, bias=False)
+            self.lateral_proj = nn.Conv2d(self.c_lateral, self.hidden, 1, bias=False)
+            self.candidate_gate = nn.Sequential(
+                nn.Conv2d(3 * self.hidden + 4, self.hidden, 3, 1, 1, bias=True),
+                nn.SiLU(inplace=True),
+                nn.Conv2d(self.hidden, 1, 1, bias=True),
+                nn.Sigmoid(),
+            )
+            self.residual_out = nn.Conv2d(
+                self.hidden,
+                self.c_deep,
+                1,
+                groups=self.residual_groups,
+                bias=True,
+            )
+            nn.init.normal_(self.candidate_gate[-2].weight, mean=0.0, std=1e-3)
+            nn.init.zeros_(self.candidate_gate[-2].bias)
+            nn.init.kaiming_normal_(self.residual_out.weight, mode="fan_out", nonlinearity="linear")
+            nn.init.zeros_(self.residual_out.bias)
+
+        self.alpha_raw = nn.Parameter(torch.zeros(1, dtype=torch.float32))
+        self.record_diagnostics = False
+        self.latest_diagnostics = {}
+
+    def set_diagnostics(self, enabled=True):
+        self.record_diagnostics = bool(enabled)
+        if not self.record_diagnostics:
+            self.latest_diagnostics = {}
+        return self
+
+    def _validate_inputs(self, deep, lateral):
+        if deep.ndim != 4 or lateral.ndim != 4 or deep.shape[0] != lateral.shape[0]:
+            raise ValueError("OrthogonalComplementaryAlignUp expects compatible NCHW tensors.")
+        if deep.shape[1] != self.c_deep or lateral.shape[1] != self.c_lateral:
+            raise ValueError("OrthogonalComplementaryAlignUp received unexpected channel counts.")
+        if deep.device != lateral.device or deep.dtype != lateral.dtype:
+            raise ValueError("OrthogonalComplementaryAlignUp inputs must share device and dtype.")
+        expected = (deep.shape[-2] * self.scale, deep.shape[-1] * self.scale)
+        if self.strict_scale and tuple(lateral.shape[-2:]) != expected:
+            raise ValueError(f"Expected lateral size {expected}, got {tuple(lateral.shape[-2:])}.")
+
+    def _blur(self, x):
+        kernel = self.blur_kernel.to(device=x.device, dtype=x.dtype).repeat(self.hidden, 1, 1, 1)
+        return F.conv2d(F.pad(x, (1, 1, 1, 1), mode="replicate"), kernel, groups=self.hidden)
+
+    @staticmethod
+    def _local_mean(x):
+        return F.avg_pool2d(F.pad(x, (1, 1, 1, 1), mode="replicate"), 3, 1)
+
+    @staticmethod
+    def _zscore(x, eps):
+        value = x.float()
+        mean = value.mean(dim=(2, 3), keepdim=True)
+        std = value.var(dim=(2, 3), keepdim=True, unbiased=False).add(eps).sqrt()
+        return (value - mean) / std
+
+    def _energy_budget(self, base, correction):
+        if base.shape != correction.shape:
+            raise ValueError("base and correction shapes differ.")
+        # A sample-wise scalar budget preserves the per-pixel channel-space orthogonality.
+        # Channel-wise scaling would generally destroy dot(base, correction) == 0.
+        base_rms = base.float().square().mean(dim=(1, 2, 3), keepdim=True).sqrt()
+        correction_rms = correction.float().square().mean(dim=(1, 2, 3), keepdim=True).sqrt()
+        scale = torch.minimum(
+            torch.ones_like(correction_rms),
+            self.max_residual_ratio * base_rms / (correction_rms + self.eps),
+        )
+        if self.detach_budget:
+            scale = scale.detach()
+        return (correction.float() * scale).to(dtype=base.dtype), scale
+
+    def _orthogonalize(self, base, correction):
+        base_float = base.float()
+        correction_float = correction.float()
+        denominator = base_float.square().sum(dim=1, keepdim=True)
+        projection = (correction_float * base_float).sum(dim=1, keepdim=True) / (denominator + self.eps)
+        # For exactly zero base vectors the projection is zero, as required.
+        return (correction_float - projection * base_float).to(dtype=correction.dtype)
+
+    def compute_components(self, deep, lateral):
+        self._validate_inputs(deep, lateral)
+        target_size = lateral.shape[-2:]
+        base = F.interpolate(deep, size=target_size, mode="nearest")
+        deep_embed = F.interpolate(self.deep_proj(deep), size=target_size, mode="nearest")
+        lateral_embed = self.lateral_proj(lateral)
+        deep_low = self._blur(deep_embed)
+        lateral_low = self._blur(lateral_embed)
+        lateral_high = lateral_embed - lateral_low
+
+        deep_norm = F.normalize(deep_low.float(), dim=1, eps=self.eps)
+        lateral_norm = F.normalize(lateral_low.float(), dim=1, eps=self.eps)
+        agreement = ((deep_norm * lateral_norm).sum(dim=1, keepdim=True) + 1.0).mul(0.5).clamp(0.0, 1.0)
+
+        deep_energy = deep_low.float().abs().mean(dim=1, keepdim=True)
+        lateral_energy = lateral_low.float().abs().mean(dim=1, keepdim=True)
+        energy_scale = deep_energy + lateral_energy + self.eps
+        missing_support = torch.sigmoid(((lateral_energy - deep_energy) / energy_scale).clamp(-8.0, 8.0))
+
+        high_energy = lateral_high.float().abs().mean(dim=1, keepdim=True)
+        relative_detail = torch.sigmoid(self._zscore(high_energy, self.eps))
+        absolute_detail = 1.0 - torch.exp(
+            -(high_energy / (deep_energy + lateral_energy + self.eps)).clamp(0.0, 8.0)
+        )
+        # A flat or exactly zero map must have zero detail support rather than a sigmoid default of 0.5.
+        detail_support = (absolute_detail * relative_detail).clamp(0.0, 1.0)
+        disagreement = (deep_embed.float() - lateral_embed.float()).abs().mean(dim=1, keepdim=True)
+        discrepancy_support = torch.exp(-(disagreement / (deep_energy + lateral_energy + self.eps)).clamp(0.0, 8.0))
+
+        analytic_candidate = (
+            detail_support
+            * (self.candidate_floor + (1.0 - self.candidate_floor) * missing_support)
+            * (0.50 * agreement + 0.50 * discrepancy_support)
+        ).clamp(0.0, 1.0)
+        cues = torch.cat(
+            (
+                deep_embed,
+                lateral_embed,
+                (deep_embed - lateral_embed).abs(),
+                agreement.to(deep.dtype),
+                missing_support.to(deep.dtype),
+                detail_support.to(deep.dtype),
+                analytic_candidate.to(deep.dtype),
+            ),
+            dim=1,
+        )
+        candidate_gate = analytic_candidate.detach().to(deep.dtype) * self.candidate_gate(cues)
+
+        raw_correction = candidate_gate * self.residual_out(lateral_high)
+        zero_mean_correction = raw_correction - self._local_mean(raw_correction.float()).to(raw_correction.dtype)
+        orthogonal_correction = self._orthogonalize(base, zero_mean_correction)
+        correction, budget_scale = self._energy_budget(base, orthogonal_correction)
+        return base, correction, candidate_gate, agreement, missing_support, detail_support, budget_scale
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 2:
+            raise TypeError("OrthogonalComplementaryAlignUp expects [P4_deep, P3_lateral].")
+        base, correction, candidate_gate, agreement, missing_support, detail_support, budget_scale = self.compute_components(
+            x[0], x[1]
+        )
+        gain = (self.max_gain * torch.tanh(self.alpha_raw)).to(dtype=base.dtype)
+        output = base + gain * correction
+        if self.record_diagnostics:
+            dot = (base.float() * correction.float()).sum(dim=1, keepdim=True)
+            self.latest_diagnostics = {
+                "gain": gain.detach(),
+                "candidate_gate": candidate_gate.detach(),
+                "agreement": agreement.detach(),
+                "missing_support": missing_support.detach(),
+                "detail_support": detail_support.detach(),
+                "budget_scale": budget_scale.detach(),
+                "orthogonal_dot": dot.detach(),
+            }
+        return output
+
+class MissingAwareCandidateReactivator(nn.Module):
+    """Recover P3 candidates supported by P2 detail and P4 context but weak in P3.
+
+    Both spatial and channel releases are explicitly budgeted. A per-channel RMS budget
+    and zero-start scalar preserve the high-precision base path while allowing bounded
+    recovery of missed small/medium targets.
+    """
+
+    def __init__(
+        self,
+        c_shallow,
+        c_context,
+        channels,
+        max_gain=0.08,
+        spatial_rho=0.15,
+        channel_rho=0.25,
+        max_residual_ratio=0.12,
+        unique_weight=0.30,
+        reduction=4,
+        detach_budget=True,
+        eps=1e-6,
+    ):
+        super().__init__()
+        self.c_shallow = int(c_shallow)
+        self.c_context = int(c_context)
+        self.channels = int(channels)
+        self.max_gain = float(max_gain)
+        self.spatial_rho = float(spatial_rho)
+        self.channel_rho = float(channel_rho)
+        self.max_residual_ratio = float(max_residual_ratio)
+        self.unique_weight = float(unique_weight)
+        self.detach_budget = bool(detach_budget)
+        self.eps = float(eps)
+        reduction = int(reduction)
+
+        if min(self.c_shallow, self.c_context, self.channels) <= 0:
+            raise ValueError("MissingAwareCandidateReactivator channel counts must be positive.")
+        if self.max_gain < 0.0 or reduction < 1 or self.eps <= 0.0:
+            raise ValueError("max_gain must be non-negative; reduction and eps positive.")
+        for name, value in (
+            ("spatial_rho", self.spatial_rho),
+            ("channel_rho", self.channel_rho),
+            ("max_residual_ratio", self.max_residual_ratio),
+            ("unique_weight", self.unique_weight),
+        ):
+            if not 0.0 <= value <= 1.0:
+                raise ValueError(f"{name} must be in [0, 1].")
+        if self.max_residual_ratio == 0.0:
+            raise ValueError("max_residual_ratio must be positive.")
+
+        hidden = max(self.channels // reduction, 16)
+        blur = torch.tensor(
+            ((1.0, 2.0, 1.0), (2.0, 4.0, 2.0), (1.0, 2.0, 1.0)),
+            dtype=torch.float32,
+        )
+        self.register_buffer("blur_kernel", (blur / blur.sum())[None, None], persistent=False)
+
+        self.shallow_proj = Conv(self.c_shallow, self.channels, 1, 1, act=False)
+        self.context_proj = Conv(self.c_context, self.channels, 1, 1, act=False)
+        self.spatial_gate = nn.Sequential(
+            nn.Conv2d(4, 8, 3, 1, 1, bias=True),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(8, 1, 1, bias=True),
+            nn.Sigmoid(),
+        )
+        self.channel_gate = nn.Sequential(
+            nn.Conv2d(3 * self.channels, hidden, 1, bias=True),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(hidden, self.channels, 1, bias=True),
+            nn.Sigmoid(),
+        )
+        self.route_gate = nn.Sequential(
+            Conv(3 * self.channels, hidden, 1, 1),
+            nn.Conv2d(hidden, self.channels, 1, bias=True),
+            nn.Sigmoid(),
+        )
+        self.out_proj = nn.Conv2d(self.channels, self.channels, 1, bias=True)
+        nn.init.normal_(self.spatial_gate[-2].weight, mean=0.0, std=1e-3)
+        nn.init.zeros_(self.spatial_gate[-2].bias)
+        nn.init.normal_(self.channel_gate[-2].weight, mean=0.0, std=1e-3)
+        nn.init.zeros_(self.channel_gate[-2].bias)
+        nn.init.kaiming_normal_(self.out_proj.weight, mode="fan_out", nonlinearity="linear")
+        nn.init.zeros_(self.out_proj.bias)
+
+        self.alpha_raw = nn.Parameter(torch.zeros(1, dtype=torch.float32))
+        self.record_diagnostics = False
+        self.latest_diagnostics = {}
+
+    def set_diagnostics(self, enabled=True):
+        self.record_diagnostics = bool(enabled)
+        if not self.record_diagnostics:
+            self.latest_diagnostics = {}
+        return self
+
+    @staticmethod
+    def _local_mean(x):
+        return F.avg_pool2d(F.pad(x, (1, 1, 1, 1), mode="replicate"), 3, 1)
+
+    @staticmethod
+    def _zscore(x, eps):
+        value = x.float()
+        mean = value.mean(dim=(2, 3), keepdim=True)
+        std = value.var(dim=(2, 3), keepdim=True, unbiased=False).add(eps).sqrt()
+        return (value - mean) / std
+
+    def _blur_downsample(self, x):
+        kernel = self.blur_kernel.to(device=x.device, dtype=x.dtype).repeat(self.c_shallow, 1, 1, 1)
+        return F.conv2d(
+            F.pad(x, (1, 1, 1, 1), mode="replicate"),
+            kernel,
+            stride=2,
+            groups=self.c_shallow,
+        )
+
+    @staticmethod
+    def _align(x, size, mode="bilinear"):
+        if x.shape[-2:] == size:
+            return x
+        if mode == "nearest":
+            return F.interpolate(x, size=size, mode=mode)
+        return F.interpolate(x, size=size, mode=mode, align_corners=False)
+
+    def _spatial_budget(self, gate):
+        mean = gate.float().mean(dim=(2, 3), keepdim=True)
+        scale = torch.minimum(
+            torch.ones_like(mean),
+            torch.full_like(mean, self.spatial_rho) / mean.clamp_min(self.eps),
+        )
+        if self.detach_budget:
+            scale = scale.detach()
+        return (gate.float() * scale).clamp(0.0, 1.0).to(gate.dtype), scale
+
+    def _channel_budget(self, gate):
+        mean = gate.float().mean(dim=1, keepdim=True)
+        scale = torch.minimum(
+            torch.ones_like(mean),
+            torch.full_like(mean, self.channel_rho) / mean.clamp_min(self.eps),
+        )
+        if self.detach_budget:
+            scale = scale.detach()
+        return (gate.float() * scale).clamp(0.0, 1.0).to(gate.dtype), scale
+
+    def _energy_budget(self, base, correction):
+        base_rms = base.float().square().mean(dim=(2, 3), keepdim=True).sqrt()
+        correction_rms = correction.float().square().mean(dim=(2, 3), keepdim=True).sqrt()
+        scale = torch.minimum(
+            torch.ones_like(correction_rms),
+            self.max_residual_ratio * base_rms / (correction_rms + self.eps),
+        )
+        if self.detach_budget:
+            scale = scale.detach()
+        return (correction.float() * scale).to(dtype=base.dtype), scale
+
+    def compute_components(self, shallow, base, context):
+        if shallow.ndim != 4 or base.ndim != 4 or context.ndim != 4:
+            raise ValueError("MissingAwareCandidateReactivator expects NCHW tensors.")
+        if shallow.shape[0] != base.shape[0] or context.shape[0] != base.shape[0]:
+            raise ValueError("MissingAwareCandidateReactivator batch sizes differ.")
+        if shallow.shape[1] != self.c_shallow or context.shape[1] != self.c_context or base.shape[1] != self.channels:
+            raise ValueError("MissingAwareCandidateReactivator received unexpected channel counts.")
+        if shallow.device != base.device or context.device != base.device:
+            raise ValueError("MissingAwareCandidateReactivator inputs must share device.")
+        if shallow.dtype != base.dtype or context.dtype != base.dtype:
+            raise ValueError("MissingAwareCandidateReactivator inputs must share dtype.")
+
+        target_size = base.shape[-2:]
+        shallow_low_raw = self._align(self._blur_downsample(shallow), target_size)
+        shallow_avg_raw = F.adaptive_avg_pool2d(shallow, target_size)
+        shallow_detail_raw = (F.adaptive_max_pool2d(shallow, target_size) - shallow_avg_raw).clamp_min(0.0)
+        shallow_feature = self.shallow_proj(shallow_detail_raw)
+        context_feature = self._align(self.context_proj(context), target_size, mode="nearest")
+
+        shallow_detail_energy = shallow_detail_raw.float().abs().mean(dim=1, keepdim=True)
+        shallow_low_energy = shallow_low_raw.float().abs().mean(dim=1, keepdim=True)
+        shallow_ratio = (shallow_detail_energy / (shallow_low_energy + self.eps)).clamp(0.0, 8.0)
+        shallow_support = ((1.0 - torch.exp(-shallow_ratio)) * torch.sigmoid(self._zscore(shallow_detail_energy, self.eps))).clamp(0.0, 1.0)
+
+        context_energy = context_feature.float().abs().mean(dim=1, keepdim=True)
+        context_reference = context_energy.mean(dim=(2, 3), keepdim=True)
+        context_absolute = 1.0 - torch.exp(
+            -(context_energy / (context_reference + self.eps)).clamp(0.0, 8.0)
+        )
+        context_support = (
+            context_absolute * torch.sigmoid(self._zscore(context_energy, self.eps))
+        ).clamp(0.0, 1.0)
+
+        base_float = base.float()
+        base_low = self._local_mean(base_float)
+        base_detail = (base_float - base_low).abs().mean(dim=1, keepdim=True)
+        base_energy = base_low.abs().mean(dim=1, keepdim=True) + base_detail
+        base_reference = base_energy.mean(dim=(2, 3), keepdim=True)
+        base_absolute = 1.0 - torch.exp(
+            -(base_energy / (base_reference + self.eps)).clamp(0.0, 8.0)
+        )
+        base_support = (
+            base_absolute * torch.sigmoid(self._zscore(base_energy, self.eps))
+        ).clamp(0.0, 1.0)
+
+        semantic_factor = context_support + self.unique_weight * (1.0 - context_support)
+        missing_prior = (shallow_support * (1.0 - base_support) * semantic_factor).clamp(0.0, 1.0)
+        spatial_cues = torch.cat((shallow_support, context_support, base_support, missing_prior), dim=1).detach().to(base.dtype)
+        spatial_release, spatial_scale = self._spatial_budget(
+            missing_prior.detach().to(base.dtype) * self.spatial_gate(spatial_cues)
+        )
+
+        def normalize_token(token):
+            return token / (token.mean(dim=1, keepdim=True) + self.eps)
+
+        shallow_token = shallow_feature.float().abs().mean(dim=(2, 3), keepdim=True)
+        context_token = context_feature.float().abs().mean(dim=(2, 3), keepdim=True)
+        base_token = base_float.abs().mean(dim=(2, 3), keepdim=True)
+        channel_input = torch.cat(
+            (normalize_token(shallow_token), normalize_token(context_token), normalize_token(base_token)), dim=1
+        ).detach().to(base.dtype)
+        channel_release, channel_scale = self._channel_budget(self.channel_gate(channel_input))
+
+        route = self.route_gate(torch.cat((shallow_feature, context_feature, base), dim=1))
+        raw_residual = self.out_proj(route * (shallow_feature + context_support.to(base.dtype) * context_feature))
+        gated_residual = spatial_release * channel_release * raw_residual
+        residual, energy_scale = self._energy_budget(base, gated_residual)
+        return residual, spatial_release, channel_release, spatial_scale, channel_scale, energy_scale
+
+    def forward(self, shallow, base, context):
+        residual, spatial_release, channel_release, spatial_scale, channel_scale, energy_scale = self.compute_components(
+            shallow, base, context
+        )
+        gain = (self.max_gain * torch.tanh(self.alpha_raw)).to(dtype=base.dtype)
+        output = base + gain * residual
+        if self.record_diagnostics:
+            self.latest_diagnostics = {
+                "gain": gain.detach(),
+                "spatial_release": spatial_release.detach(),
+                "channel_release": channel_release.detach(),
+                "spatial_scale": spatial_scale.detach(),
+                "channel_scale": channel_scale.detach(),
+                "energy_scale": energy_scale.detach(),
+            }
+        return output
+
+
+class MACRDSC3k2(DSC3k2):
+    """Original P3 neck DSC3k2 plus bounded missing-candidate reactivation."""
+
+    def __init__(
+        self,
+        c_shallow,
+        c_fused,
+        c_context,
+        c2,
+        n=1,
+        dsc3k=False,
+        e=0.5,
+        max_gain=0.08,
+        spatial_rho=0.15,
+        channel_rho=0.25,
+        max_residual_ratio=0.12,
+        unique_weight=0.30,
+        reduction=4,
+        detach_budget=True,
+        g=1,
+        shortcut=True,
+        k1=3,
+        k2=7,
+        d2=1,
+    ):
+        super().__init__(
+            c1=c_fused,
+            c2=c2,
+            n=n,
+            dsc3k=dsc3k,
+            e=e,
+            g=g,
+            shortcut=shortcut,
+            k1=k1,
+            k2=k2,
+            d2=d2,
+        )
+        self.c_shallow = int(c_shallow)
+        self.c_fused = int(c_fused)
+        self.c_context = int(c_context)
+        self.c2 = int(c2)
+        self.dsc3k_enabled = bool(dsc3k)
+        with torch.random.fork_rng(devices=[], enabled=True):
+            self.reactivator = MissingAwareCandidateReactivator(
+                c_shallow=self.c_shallow,
+                c_context=self.c_context,
+                channels=self.c2,
+                max_gain=max_gain,
+                spatial_rho=spatial_rho,
+                channel_rho=channel_rho,
+                max_residual_ratio=max_residual_ratio,
+                unique_weight=unique_weight,
+                reduction=reduction,
+                detach_budget=detach_budget,
+            )
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 3:
+            raise ValueError("MACRDSC3k2 expects [P2_shallow, P3_fused, P4_context].")
+        shallow, fused, context = x
+        if shallow.ndim != 4 or fused.ndim != 4 or context.ndim != 4:
+            raise ValueError("MACRDSC3k2 inputs must be NCHW tensors.")
+        if shallow.shape[0] != fused.shape[0] or context.shape[0] != fused.shape[0]:
+            raise ValueError("MACRDSC3k2 batch sizes differ.")
+        if shallow.shape[1] != self.c_shallow or fused.shape[1] != self.c_fused or context.shape[1] != self.c_context:
+            raise ValueError("MACRDSC3k2 received unexpected channel counts.")
+        base = super().forward(fused)
+        return self.reactivator(shallow, base, context)

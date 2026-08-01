@@ -1,0 +1,13 @@
+[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m                                                              [100%][0m
+============================= slowest 30 durations =============================
+0.63s call     tests/test_carm_modules.py::test_all_carm_ablation_yamls_topology_and_stride
+0.15s call     tests/test_carm_modules.py::test_model_eval_and_fuse_smoke
+0.08s call     tests/test_carm_modules.py::test_carm_model_yaml_build_and_stride
+0.03s call     tests/test_carm_modules.py::test_micro_identity_moment_budget_and_two_stage_gradients
+0.03s call     tests/test_carm_modules.py::test_carm_exact_c4_initialization_and_rng_pairing
+0.02s call     tests/test_carm_modules.py::test_reactivator_identity_budgets_and_two_stage_gradients
+0.01s call     tests/test_carm_modules.py::test_ocaf_identity_orthogonality_budget_zero_base_and_gradients
+0.01s call     tests/test_carm_modules.py::test_macr_exact_original_initialization_and_rng_pairing
+
+(22 durations < 0.005s hidden.  Use -vv to show these durations.)
+[32m[32m[1m11 passed[0m[32m in 0.98s[0m[0m

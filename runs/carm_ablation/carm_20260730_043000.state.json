@@ -1,0 +1,35 @@
+{
+  "run_id": "carm_20260730_043000",
+  "status": "complete",
+  "stage": "complete",
+  "detail": "a0_a7_finished=true; three_parallel_seeds_per_stage=true",
+  "launcher_pid": 2647567,
+  "completed_stages": [
+    "a0",
+    "a1",
+    "a2",
+    "a3",
+    "a4",
+    "a5",
+    "a6",
+    "a7"
+  ],
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "device": 0,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "parallel_seed_processes": 3
+  },
+  "dependency": {
+    "cmrf_state": "/home/room305/ZZF/yolov13yuan-6000/runs/cmrf_ablation/cmrf_20260729_123654.state.json",
+    "common_pretrained": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cmrf_20260729_123654_c4_seed0/weights/best.pt"
+  },
+  "updated_at": "2026-07-31T09:55:20.978090+00:00"
+}

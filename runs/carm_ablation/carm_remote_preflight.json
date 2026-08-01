@@ -1,0 +1,507 @@
+{
+  "imgsz": 128,
+  "scales": [
+    "n",
+    "s",
+    "l",
+    "x"
+  ],
+  "models": {
+    "a0": {
+      "n": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a0-c4.yaml",
+        "structure": "A0 / CMRF-C4 同批次基线（无 MOMR、OCAF-Up、MACR）",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 2554717,
+        "gflops": 0.295251968,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "s": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a0-c4.yaml",
+        "structure": "A0 / CMRF-C4 同批次基线（无 MOMR、OCAF-Up、MACR）",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 9396333,
+        "gflops": 0.997971968,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "l": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a0-c4.yaml",
+        "structure": "A0 / CMRF-C4 同批次基线（无 MOMR、OCAF-Up、MACR）",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 29040141,
+        "gflops": 4.187252736,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "x": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a0-c4.yaml",
+        "structure": "A0 / CMRF-C4 同批次基线（无 MOMR、OCAF-Up、MACR）",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 33281453,
+        "gflops": 5.643393024,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      }
+    },
+    "a1": {
+      "n": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a1-momr.yaml",
+        "structure": "A1 / CMRF-C4 + MOMR",
+        "layer4": "CARMDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 2575748,
+        "gflops": 0.306061312,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "s": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a1-momr.yaml",
+        "structure": "A1 / CMRF-C4 + MOMR",
+        "layer4": "CARMDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 9457556,
+        "gflops": 1.029359616,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "l": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a1-momr.yaml",
+        "structure": "A1 / CMRF-C4 + MOMR",
+        "layer4": "CARMDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 29281572,
+        "gflops": 4.310956032,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "x": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a1-momr.yaml",
+        "structure": "A1 / CMRF-C4 + MOMR",
+        "layer4": "CARMDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 33539268,
+        "gflops": 5.775484928,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      }
+    },
+    "a2": {
+      "n": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a2-ocaf.yaml",
+        "structure": "A2 / CMRF-C4 + OCAF-Up",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 2592927,
+        "gflops": 0.313094144,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "s": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a2-ocaf.yaml",
+        "structure": "A2 / CMRF-C4 + OCAF-Up",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 9546479,
+        "gflops": 1.068259328,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "l": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a2-ocaf.yaml",
+        "structure": "A2 / CMRF-C4 + OCAF-Up",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 29227407,
+        "gflops": 4.269991936,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "x": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a2-ocaf.yaml",
+        "structure": "A2 / CMRF-C4 + OCAF-Up",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 33468719,
+        "gflops": 5.726132224,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      }
+    },
+    "a3": {
+      "n": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a3-macr.yaml",
+        "structure": "A3 / CMRF-C4 + MACR",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 2580095,
+        "gflops": 0.303071232,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "s": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a3-macr.yaml",
+        "structure": "A3 / CMRF-C4 + MACR",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 9495935,
+        "gflops": 1.028401152,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "l": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a3-macr.yaml",
+        "structure": "A3 / CMRF-C4 + MACR",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 29435647,
+        "gflops": 4.307728384,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "x": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a3-macr.yaml",
+        "structure": "A3 / CMRF-C4 + MACR",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 34071167,
+        "gflops": 5.901101056,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      }
+    },
+    "a4": {
+      "n": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a4-momr-ocaf.yaml",
+        "structure": "A4 / CMRF-C4 + MOMR + OCAF-Up",
+        "layer4": "CARMDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 2613958,
+        "gflops": 0.323903488,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "s": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a4-momr-ocaf.yaml",
+        "structure": "A4 / CMRF-C4 + MOMR + OCAF-Up",
+        "layer4": "CARMDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 9607702,
+        "gflops": 1.099646976,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "l": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a4-momr-ocaf.yaml",
+        "structure": "A4 / CMRF-C4 + MOMR + OCAF-Up",
+        "layer4": "CARMDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 29468838,
+        "gflops": 4.393695232,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "x": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a4-momr-ocaf.yaml",
+        "structure": "A4 / CMRF-C4 + MOMR + OCAF-Up",
+        "layer4": "CARMDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "DSC3k2",
+        "parameters": 33726534,
+        "gflops": 5.858224128,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      }
+    },
+    "a5": {
+      "n": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a5-momr-macr.yaml",
+        "structure": "A5 / CMRF-C4 + MOMR + MACR",
+        "layer4": "CARMDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 2601126,
+        "gflops": 0.313880576,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "s": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a5-momr-macr.yaml",
+        "structure": "A5 / CMRF-C4 + MOMR + MACR",
+        "layer4": "CARMDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 9557158,
+        "gflops": 1.0597888,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "l": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a5-momr-macr.yaml",
+        "structure": "A5 / CMRF-C4 + MOMR + MACR",
+        "layer4": "CARMDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 29677078,
+        "gflops": 4.43143168,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "x": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a5-momr-macr.yaml",
+        "structure": "A5 / CMRF-C4 + MOMR + MACR",
+        "layer4": "CARMDSC3k2",
+        "layer19": "Upsample",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 34328982,
+        "gflops": 6.03319296,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      }
+    },
+    "a6": {
+      "n": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a6-ocaf-macr.yaml",
+        "structure": "A6 / CMRF-C4 + OCAF-Up + MACR",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 2618305,
+        "gflops": 0.320913408,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "s": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a6-ocaf-macr.yaml",
+        "structure": "A6 / CMRF-C4 + OCAF-Up + MACR",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 9646081,
+        "gflops": 1.098688512,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "l": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a6-ocaf-macr.yaml",
+        "structure": "A6 / CMRF-C4 + OCAF-Up + MACR",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 29622913,
+        "gflops": 4.390467584,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "x": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a6-ocaf-macr.yaml",
+        "structure": "A6 / CMRF-C4 + OCAF-Up + MACR",
+        "layer4": "CMRFDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 34258433,
+        "gflops": 5.983840256,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      }
+    },
+    "a7": {
+      "n": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a7-full.yaml",
+        "structure": "A7 / 完整 CARM-YOLOv13（MOMR + OCAF-Up + MACR）",
+        "layer4": "CARMDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 2639336,
+        "gflops": 0.331722752,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "s": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a7-full.yaml",
+        "structure": "A7 / 完整 CARM-YOLOv13（MOMR + OCAF-Up + MACR）",
+        "layer4": "CARMDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 9707304,
+        "gflops": 1.13007616,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "l": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a7-full.yaml",
+        "structure": "A7 / 完整 CARM-YOLOv13（MOMR + OCAF-Up + MACR）",
+        "layer4": "CARMDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 29864344,
+        "gflops": 4.51417088,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      },
+      "x": {
+        "yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a7-full.yaml",
+        "structure": "A7 / 完整 CARM-YOLOv13（MOMR + OCAF-Up + MACR）",
+        "layer4": "CARMDSC3k2",
+        "layer19": "OrthogonalComplementaryAlignUp",
+        "layer20": "Concat",
+        "layer21": "MACRDSC3k2",
+        "parameters": 34516248,
+        "gflops": 6.11593216,
+        "stride": [
+          8.0,
+          16.0,
+          32.0
+        ]
+      }
+    }
+  }
+}

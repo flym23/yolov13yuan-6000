@@ -78,6 +78,11 @@ from .block import (
     SymmetricMomentPreservedGeometry,
     CMRFDSC3k2,
     ReliabilityFrequencyAlignUp,
+    MicroObjectMomentRefiner,
+    CARMDSC3k2,
+    OrthogonalComplementaryAlignUp,
+    MissingAwareCandidateReactivator,
+    MACRDSC3k2,
 )
 from .conv import (
     CBAM,
@@ -230,6 +235,11 @@ __all__ = (
     "SymmetricMomentPreservedGeometry",
     "CMRFDSC3k2",
     "ReliabilityFrequencyAlignUp",
+    "MicroObjectMomentRefiner",
+    "CARMDSC3k2",
+    "OrthogonalComplementaryAlignUp",
+    "MissingAwareCandidateReactivator",
+    "MACRDSC3k2",
     "HRCTDetect",
     "NonUniformDFL",
     "SUDLDetect",

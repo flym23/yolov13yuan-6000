@@ -1,0 +1,12 @@
+{
+  "stage": "a0",
+  "seed": 0,
+  "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a0-c4.yaml",
+  "pretrained": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cmrf_20260729_123654_c4_seed0/weights/best.pt",
+  "pretrained_sha256": "eb084e324624af771157fa345eedcf3ca028cbe0007050cb1e68c46cd8d6cab0",
+  "source_keys": 968,
+  "target_keys": 968,
+  "transferred_keys": 968,
+  "missing_keys": [],
+  "unexpected_keys": []
+}

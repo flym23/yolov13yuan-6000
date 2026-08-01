@@ -82,6 +82,9 @@ from ultralytics.nn.modules import (
     MCASUp,
     CMRFDSC3k2,
     ReliabilityFrequencyAlignUp,
+    CARMDSC3k2,
+    MACRDSC3k2,
+    OrthogonalComplementaryAlignUp,
     SBRHDetect,
     P3DecoupledDetect,
     RAMPDetect,
@@ -985,7 +988,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-        if m in {SCPGDSC3k2, CBERSCPGDSC3k2, CMRFDSC3k2}:
+        if m in {SCPGDSC3k2, CBERSCPGDSC3k2, CMRFDSC3k2, CARMDSC3k2}:
             if not isinstance(f, (list, tuple)) or len(f) != 2:
                 raise ValueError(f"{m.__name__} requires from=[P2_layer, P3_layer].")
             c_shallow, c_p3 = ch[f[0]], ch[f[1]]
@@ -1019,6 +1022,30 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             # The following original Concat, rather than this module, owns lateral feature fusion.
             args = [c_deep, c_lateral, *args]
             c2 = c_deep
+        elif m is OrthogonalComplementaryAlignUp:
+            if not isinstance(f, (list, tuple)) or len(f) != 2:
+                raise ValueError(
+                    "OrthogonalComplementaryAlignUp requires from=[deep_layer, lateral_layer]."
+                )
+            c_deep, c_lateral = ch[f[0]], ch[f[1]]
+            # The following original Concat, rather than this module, owns lateral feature fusion.
+            args = [c_deep, c_lateral, *args]
+            c2 = c_deep
+        elif m is MACRDSC3k2:
+            if not isinstance(f, (list, tuple)) or len(f) != 3:
+                raise ValueError(
+                    "MACRDSC3k2 requires from=[P2_shallow, P3_fused, P4_context]."
+                )
+            c_shallow, c_fused, c_context = ch[f[0]], ch[f[1]], ch[f[2]]
+            c2 = args[0]
+            if c2 != nc:
+                c2 = make_divisible(min(c2 * width, max_channels), 8)
+            # Constructor: c_shallow, c_fused, c_context, c2, n, dsc3k, e, ...
+            args = [c_shallow, c_fused, c_context, c2, n, *args[1:]]
+            n = 1
+            legacy = False
+            if scale in "lx":
+                args[5] = True
         elif m in {
             Classify,
             Conv,

@@ -1,0 +1,47 @@
+{
+  "name": "carm_20260730_043000_a2_seed0",
+  "stage": "A2",
+  "seed": 0,
+  "structure": "A2 / CMRF-C4 + OCAF-Up",
+  "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a2-ocaf.yaml",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/carm_20260730_043000_a2_seed0/weights/best.pt",
+  "weights_sha256": "b47bd992a3f00b6e99790f5a8041fb3ead3c4cc83dc9cd8c2b86eac170c28abb",
+  "initialization": {
+    "stage": "a2",
+    "seed": 0,
+    "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a2-ocaf.yaml",
+    "pretrained": "/home/room305/ZZF/yolov13yuan-6000/runs/train/cmrf_20260729_123654_c4_seed0/weights/best.pt",
+    "pretrained_sha256": "eb084e324624af771157fa345eedcf3ca028cbe0007050cb1e68c46cd8d6cab0",
+    "source_keys": 968,
+    "target_keys": 977,
+    "transferred_keys": 968,
+    "missing_keys": [
+      "model.19.alpha_raw",
+      "model.19.deep_proj.weight",
+      "model.19.lateral_proj.weight",
+      "model.19.candidate_gate.0.weight",
+      "model.19.candidate_gate.0.bias",
+      "model.19.candidate_gate.2.weight",
+      "model.19.candidate_gate.2.bias",
+      "model.19.residual_out.weight",
+      "model.19.residual_out.bias"
+    ],
+    "unexpected_keys": []
+  },
+  "best_epoch": 228,
+  "training_seconds": 11719.514353816048,
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "resume": false,
+    "device": 0
+  },
+  "completed_at": "2026-07-30T16:28:22.772222+00:00"
+}
