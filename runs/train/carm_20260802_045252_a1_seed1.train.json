@@ -1,0 +1,34 @@
+{
+  "name": "carm_20260802_045252_a1_seed1",
+  "stage": "A1",
+  "seed": 1,
+  "structure": "A1 / CMRF-C4 + MOMR",
+  "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a1-momr.yaml",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/carm_20260802_045252_a1_seed1/weights/best.pt",
+  "weights_sha256": "5428c00f630e1ad515d561ac5d56d7fe1ec3d7051339e72c7804b0545a8a0f89",
+  "initialization": {
+    "stage": "a1",
+    "seed": 1,
+    "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/carm_ablation/yolov13-carm-a1-momr.yaml",
+    "method": "YOLO.load",
+    "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+    "pretrained_sha256": "6653035017b0f111f80ec11ed914874ea85699b104aeac1e46e517d16889d6b7",
+    "trainer_receives_loaded_model": true
+  },
+  "best_epoch": 161,
+  "training_seconds": 8773.343078463105,
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "resume": false,
+    "device": 0
+  },
+  "completed_at": "2026-08-02T09:50:31.290434+00:00"
+}

@@ -36,16 +36,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def sha256(path: Path) -> str:
-    import hashlib
-
-    digest = hashlib.sha256()
-    with path.open("rb") as file:
-        for chunk in iter(lambda: file.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
 def mean_std_min_max(values: list[float]) -> dict[str, float]:
     return {
         "mean": statistics.mean(values),
@@ -115,6 +105,7 @@ def main() -> None:
             test_payload = load_json(test_path)
             train_payload = load_json(train_path)
             assert test_payload is not None and train_payload is not None
+            initialization = train_payload["initialization"]
             row = {
                 "stage": stage,
                 "seed": seed,
@@ -129,10 +120,10 @@ def main() -> None:
                 "Peak_GPU_memory_MiB": None,
                 "Training_seconds": float(train_payload["training_seconds"]),
                 "Best_epoch": train_payload["best_epoch"],
-                "Initialization_SHA256": train_payload["initialization"]["pretrained_sha256"],
-                "Transferred_keys": int(train_payload["initialization"]["transferred_keys"]),
-                "Missing_keys": train_payload["initialization"]["missing_keys"],
-                "Unexpected_keys": train_payload["initialization"]["unexpected_keys"],
+                "Initialization_method": initialization["method"],
+                "Initialization_weights": initialization["pretrained"],
+                "Initialization_SHA256": initialization["pretrained_sha256"],
+                "Trainer_receives_loaded_model": bool(initialization["trainer_receives_loaded_model"]),
             }
             row.update({label: float(test_payload["metrics"][key]) * 100.0 for label, key in METRICS.items()})
             row.update({label: float(test_payload.get("scale_metrics_percent", {}).get(label, 0.0)) for label in SCALE_METRICS})
@@ -190,7 +181,8 @@ def main() -> None:
     fields = (
         "stage", "seed", "name", "P", "R", "mAP50", "mAP75", "mAP50-95", "APS", "APM", "APL",
         "Params", "GFLOPs", "Latency_ms", "FPS", "Peak_GPU_memory_MiB", "Training_seconds", "Best_epoch",
-        "Initialization_SHA256", "Transferred_keys", "weight_sha256",
+        "Initialization_method", "Initialization_weights", "Initialization_SHA256",
+        "Trainer_receives_loaded_model", "weight_sha256",
     )
     with csv_path.open("w", encoding="utf-8", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fields)

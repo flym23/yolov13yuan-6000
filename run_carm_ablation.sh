@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# CARM A0--A7: exactly three deterministic training seeds run concurrently per ablation group.
+# CARM A0--A7: run exactly three deterministic seed workers per group.
 set -Eeuo pipefail
 
 ROOT=$(cd "$(dirname "$0")" && pwd)
+cd "$ROOT"
 PY=/home/room305/.conda/envs/yolov13/bin/python
 DATA=/home/room305/ZZF/URPC2020half/data.yaml
 BASELINE_ROOT=${BASELINE_ROOT:-/home/room305/ZZF/yolov13-6000}
-CMRF_STATE_FILE=${1:?usage: run_carm_ablation.sh /absolute/path/to/completed-cmrf-state.json}
-DEFAULT_C4_WEIGHTS="$ROOT/runs/train/cmrf_20260729_123654_c4_seed0/weights/best.pt"
-PRETRAINED=${CARM_PRETRAINED:-$DEFAULT_C4_WEIGHTS}
+PRETRAINED="$ROOT/yolov13n.pt"
 T7_REFERENCE=${T7_REFERENCE:-}
 C4_REFERENCE=${C4_REFERENCE:-$ROOT/runs/test/cmrf_20260729_123654_summary.json}
 STATE_DIR="$ROOT/runs/carm_ablation"
@@ -30,7 +29,7 @@ export WANDB_DISABLED=true PIN_MEMORY=false
 write_state() {
   "$PY" "$ROOT/tools/carm_chain_state.py" --path "$STATE_FILE" --run-id "$RUN_ID" --status "$1" \
     --stage "$CURRENT_STAGE" --detail "${2:-}" --launcher-pid "$$" --completed "${COMPLETED[@]}" \
-    --cmrf-state "$CMRF_STATE_FILE" --pretrained "$PRETRAINED"
+    --pretrained "$PRETRAINED"
 }
 
 cleanup() { rmdir "$LOCK" 2>/dev/null || true; }
@@ -61,13 +60,9 @@ wait_group() {
   echo "CARM input file missing" >&2
   exit 79
 }
-[[ -f "$CMRF_STATE_FILE" ]] || { echo "CMRF state unavailable: $CMRF_STATE_FILE" >&2; exit 80; }
-CMRF_STATUS=$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["status"])' "$CMRF_STATE_FILE")
-[[ "$CMRF_STATUS" == "complete" ]] || { echo "CMRF has not completed: status=$CMRF_STATUS" >&2; exit 81; }
-
 echo "$$" >"$STATE_DIR/$RUN_ID.launcher.pid"
 CURRENT_STAGE=preflight
-write_state running "cmrf_complete=true; common_initialization=$(sha256sum "$PRETRAINED" | awk '{print $1}')"
+write_state running "direct_start=true; initialization=yolov13n.pt; sha256=$(sha256sum "$PRETRAINED" | awk '{print $1}')"
 "$PY" -m py_compile "$ROOT/ultralytics/nn/modules/block.py" "$ROOT/ultralytics/nn/modules/__init__.py" \
   "$ROOT/ultralytics/nn/tasks.py" "$ROOT/tests/test_carm_modules.py" "$ROOT/tools/run_carm_ablation.py" \
   "$ROOT/tools/validate_carm_models.py" "$ROOT/tools/summarize_carm_results.py" "$ROOT/tools/carm_chain_state.py" \
@@ -82,7 +77,7 @@ for stage in "${STAGES[@]}"; do
   TRAIN_PIDS=()
   for seed in 0 1 2; do
     name="${RUN_ID}_${stage}_seed${seed}"
-    "$PY" "$ROOT/tools/run_carm_ablation.py" --root "$ROOT" --stage "$stage" --data "$DATA" --pretrained "$PRETRAINED" \
+    "$PY" "$ROOT/tools/run_carm_ablation.py" --root "$ROOT" --stage "$stage" --data "$DATA" \
       --name "$name" --seed "$seed" --epochs 300 --patience 40 >"$TRAIN_DIR/$name.log" 2>&1 &
     TRAIN_PIDS+=("$!")
   done

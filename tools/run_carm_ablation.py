@@ -39,23 +39,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--stage", choices=tuple(STAGES), required=True)
     parser.add_argument("--data", type=Path, required=True)
-    parser.add_argument("--pretrained", type=Path, required=True)
     parser.add_argument("--name", required=True)
     parser.add_argument("--seed", type=int, choices=(0, 1, 2), required=True)
     parser.add_argument("--epochs", type=int, default=300)
     parser.add_argument("--patience", type=int, default=40)
     return parser.parse_args()
-
-
-def checkpoint_state_dict(path: Path) -> dict[str, object]:
-    import torch
-
-    try:
-        checkpoint = torch.load(path, map_location="cpu", weights_only=False)
-    except TypeError:
-        checkpoint = torch.load(path, map_location="cpu")
-    model = checkpoint["model"] if isinstance(checkpoint, dict) and "model" in checkpoint else checkpoint
-    return model.float().state_dict()
 
 
 def best_epoch(results_csv: Path) -> int | None:
@@ -75,15 +63,15 @@ def best_epoch(results_csv: Path) -> int | None:
 
 def main() -> None:
     args = parse_args()
-    root, data, pretrained = args.root.resolve(), args.data.resolve(), args.pretrained.resolve()
+    root, data = args.root.resolve(), args.data.resolve()
+    pretrained = root / "yolov13n.pt"
     yaml_name, structure = STAGES[args.stage]
     model_yaml = root / "ultralytics" / "cfg" / "models" / "v13" / "carm_ablation" / yaml_name
     output_dir = root / "runs" / "train" / args.name
-    initialization_path = root / "runs" / "train" / f"{args.name}.initialization.json"
-    for path, label in ((data, "dataset YAML"), (model_yaml, "model YAML"), (pretrained, "common initialization weights")):
+    for path, label in ((data, "dataset YAML"), (model_yaml, "model YAML"), (pretrained, "YOLOv13n pretrained weights")):
         if not path.is_file():
             raise FileNotFoundError(f"CARM {label} unavailable: {path}")
-    if output_dir.exists() or initialization_path.exists():
+    if output_dir.exists():
         raise FileExistsError(f"refusing to reuse CARM output: {output_dir}")
 
     os.environ["WANDB_DISABLED"] = "true"
@@ -99,28 +87,20 @@ def main() -> None:
     from ultralytics import YOLO
 
     model = YOLO(str(model_yaml))
-    source_state = checkpoint_state_dict(pretrained)
-    target_state = model.model.state_dict()
-    transferred = {
-        key: value
-        for key, value in source_state.items()
-        if key in target_state and tuple(value.shape) == tuple(target_state[key].shape)
-    }
-    incompatible = model.model.load_state_dict(transferred, strict=False)
+    # Keep the same public loading path as the CMRF workers. Besides loading matching
+    # tensors, YOLO.load() sets model.ckpt so Model.train() forwards this model to Trainer.
+    model.load(str(pretrained))
+    if not model.ckpt:
+        raise RuntimeError("YOLO.load() did not retain a checkpoint for Trainer")
     initialization = {
         "stage": args.stage,
         "seed": args.seed,
         "model_yaml": str(model_yaml),
+        "method": "YOLO.load",
         "pretrained": str(pretrained),
         "pretrained_sha256": sha256(pretrained),
-        "source_keys": len(source_state),
-        "target_keys": len(target_state),
-        "transferred_keys": len(transferred),
-        "missing_keys": list(incompatible.missing_keys),
-        "unexpected_keys": list(incompatible.unexpected_keys),
+        "trainer_receives_loaded_model": bool(model.ckpt),
     }
-    initialization_path.parent.mkdir(parents=True, exist_ok=True)
-    initialization_path.write_text(json.dumps(initialization, ensure_ascii=False, indent=2), encoding="utf-8")
 
     started = perf_counter()
     model.train(

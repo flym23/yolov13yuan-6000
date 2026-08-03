@@ -1,0 +1,35 @@
+{
+  "run_id": "carm_20260802_045252",
+  "status": "complete",
+  "stage": "complete",
+  "detail": "a0_a7_finished=true; three_parallel_seeds_per_stage=true",
+  "launcher_pid": 3011836,
+  "completed_stages": [
+    "a0",
+    "a1",
+    "a2",
+    "a3",
+    "a4",
+    "a5",
+    "a6",
+    "a7"
+  ],
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "device": 0,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "parallel_seed_processes": 3
+  },
+  "launch_mode": "direct",
+  "initialization": {
+    "weights": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt"
+  },
+  "updated_at": "2026-08-03T00:53:09.282857+00:00"
+}

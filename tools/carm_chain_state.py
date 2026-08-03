@@ -18,7 +18,6 @@ def main() -> None:
     parser.add_argument("--detail", default="")
     parser.add_argument("--launcher-pid", type=int, required=True)
     parser.add_argument("--completed", nargs="*", default=[])
-    parser.add_argument("--cmrf-state", required=True)
     parser.add_argument("--pretrained", required=True)
     args = parser.parse_args()
     payload = {
@@ -33,7 +32,8 @@ def main() -> None:
             "epochs": 300, "patience": 40, "batch": 16, "imgsz": 640, "device": 0, "workers": 2,
             "amp": False, "deterministic": True, "plots": False, "parallel_seed_processes": 3,
         },
-        "dependency": {"cmrf_state": args.cmrf_state, "common_pretrained": args.pretrained},
+        "launch_mode": "direct",
+        "initialization": {"weights": args.pretrained},
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
     args.path.parent.mkdir(parents=True, exist_ok=True)
