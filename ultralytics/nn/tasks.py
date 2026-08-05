@@ -85,6 +85,7 @@ from ultralytics.nn.modules import (
     CARMDSC3k2,
     MACRDSC3k2,
     OrthogonalComplementaryAlignUp,
+    MESADSC3k2,
     SBRHDetect,
     P3DecoupledDetect,
     RAMPDetect,
@@ -1031,10 +1032,10 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             # The following original Concat, rather than this module, owns lateral feature fusion.
             args = [c_deep, c_lateral, *args]
             c2 = c_deep
-        elif m is MACRDSC3k2:
+        elif m in {MACRDSC3k2, MESADSC3k2}:
             if not isinstance(f, (list, tuple)) or len(f) != 3:
                 raise ValueError(
-                    "MACRDSC3k2 requires from=[P2_shallow, P3_fused, P4_context]."
+                    f"{m.__name__} requires from=[P2_shallow, P3_fused, P4_context]."
                 )
             c_shallow, c_fused, c_context = ch[f[0]], ch[f[1]], ch[f[2]]
             c2 = args[0]

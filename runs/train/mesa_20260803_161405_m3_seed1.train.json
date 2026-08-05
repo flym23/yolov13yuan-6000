@@ -1,0 +1,31 @@
+{
+  "name": "mesa_20260803_161405_m3_seed1",
+  "stage": "M3",
+  "seed": 1,
+  "structure": "M3 / A3 + DMBR",
+  "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/mesa_ablation/yolov13-mesa-m3-dmbr.yaml",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/mesa_20260803_161405_m3_seed1/weights/best.pt",
+  "weights_sha256": "cd92069dc29e0553192b60f1357c3fe5a13fc2ba4773e24a7285991c0116dbd8",
+  "initialization": {
+    "method": "YOLO.load",
+    "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+    "pretrained_sha256": "6653035017b0f111f80ec11ed914874ea85699b104aeac1e46e517d16889d6b7",
+    "trainer_receives_loaded_model": true
+  },
+  "best_epoch": 160,
+  "training_seconds": 8745.213212787174,
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "resume": false,
+    "device": 0
+  },
+  "completed_at": "2026-08-04T02:04:26.848304+00:00"
+}

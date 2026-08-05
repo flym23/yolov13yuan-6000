@@ -1,0 +1,31 @@
+{
+  "name": "mesa_20260803_161405_m7_seed0",
+  "stage": "M7",
+  "seed": 0,
+  "structure": "M7 / 完整 MESA：HEMA + GISR + DMBR",
+  "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/mesa_ablation/yolov13-mesa-m7-full.yaml",
+  "dataset": "/home/room305/ZZF/URPC2020half/data.yaml",
+  "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/mesa_20260803_161405_m7_seed0/weights/best.pt",
+  "weights_sha256": "5bea469407cf93ab5734e5412c5fe2b3b37c1e93cc831c6ee5f41e4d975da2fd",
+  "initialization": {
+    "method": "YOLO.load",
+    "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+    "pretrained_sha256": "6653035017b0f111f80ec11ed914874ea85699b104aeac1e46e517d16889d6b7",
+    "trainer_receives_loaded_model": true
+  },
+  "best_epoch": 178,
+  "training_seconds": 10143.032605708111,
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "resume": false,
+    "device": 0
+  },
+  "completed_at": "2026-08-04T13:23:23.750241+00:00"
+}

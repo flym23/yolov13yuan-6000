@@ -75,6 +75,10 @@ __all__ = (
     "OrthogonalComplementaryAlignUp",
     "MissingAwareCandidateReactivator",
     "MACRDSC3k2",
+    "HomeostaticEvidenceMassAllocator",
+    "GradientIsolatedScaleReactivator",
+    "DualMomentBoundaryRefiner",
+    "MESADSC3k2",
 )
 
 
@@ -4345,3 +4349,243 @@ class MACRDSC3k2(DSC3k2):
             raise ValueError("MACRDSC3k2 received unexpected channel counts.")
         base = super().forward(fused)
         return self.reactivator(shallow, base, context)
+
+
+class HomeostaticEvidenceMassAllocator(nn.Module):
+    """Allocate unresolved P3 evidence under an image-wise spatial mass budget."""
+
+    def __init__(self, rho_min=0.04, rho_max=0.16, temperature=0.70, unique_weight=0.25, eps=1e-6):
+        super().__init__()
+        if not 0.0 <= rho_min <= rho_max <= 1.0 or temperature <= 0.0 or eps <= 0.0:
+            raise ValueError("invalid HEMA allocation bounds")
+        self.rho_min, self.rho_max = float(rho_min), float(rho_max)
+        self.temperature, self.unique_weight, self.eps = float(temperature), float(unique_weight), float(eps)
+        self.score_head = nn.Sequential(nn.Conv2d(5, 8, 3, 1, 1), nn.SiLU(), nn.Conv2d(8, 1, 1))
+        self.scale_head = nn.Sequential(nn.Conv2d(5, 8, 3, 1, 1), nn.SiLU(), nn.Conv2d(8, 2, 1))
+        for head in (self.score_head, self.scale_head):
+            nn.init.zeros_(head[-1].weight)
+            nn.init.zeros_(head[-1].bias)
+        self.record_diagnostics, self.latest_diagnostics = False, {}
+
+    @staticmethod
+    def _align(x, size):
+        return x if x.shape[-2:] == size else F.interpolate(x, size=size, mode="bilinear", align_corners=False)
+
+    @staticmethod
+    def _local_mean(x, k):
+        p = k // 2
+        return F.avg_pool2d(F.pad(x, (p, p, p, p), mode="replicate"), k, 1)
+
+    def _support(self, x):
+        x = x.float().clamp_min(0.0)
+        reference = x.mean(dim=(2, 3), keepdim=True)
+        ratio = (x / (reference + self.eps)).clamp(0.0, 8.0)
+        centered = x - x.mean(dim=(2, 3), keepdim=True)
+        z = centered / (x.var(dim=(2, 3), keepdim=True, unbiased=False).add(self.eps).sqrt())
+        return ((1.0 - torch.exp(-ratio)) * torch.sigmoid(z)).clamp(0.0, 1.0)
+
+    def forward(self, shallow, post_feature, context, fallback_gate=None, homeostatic=True):
+        if min(shallow.ndim, post_feature.ndim, context.ndim) != 4:
+            raise ValueError("HEMA expects NCHW tensors")
+        if shallow.shape[0] != post_feature.shape[0] or context.shape[0] != post_feature.shape[0]:
+            raise ValueError("HEMA batch sizes differ")
+        size = post_feature.shape[-2:]
+        shallow_avg, shallow_max = F.adaptive_avg_pool2d(shallow, size), F.adaptive_max_pool2d(shallow, size)
+        shallow_support = self._support((shallow_max - shallow_avg).abs().mean(1, keepdim=True))
+        post_low = self._local_mean(post_feature.float(), 3)
+        post_support = self._support((post_feature.float() - post_low).abs().mean(1, keepdim=True) + post_low.abs().mean(1, keepdim=True))
+        context_energy = self._align(context.detach().float().abs().mean(1, keepdim=True), size)
+        context_support = self._support(context_energy)
+        unresolved = (shallow_support * (1.0 - post_support) * (context_support + self.unique_weight * (1.0 - context_support))).clamp(0.0, 1.0)
+        local3, local7 = self._local_mean(unresolved, 3), self._local_mean(unresolved, 7)
+        compact = ((unresolved - local7).clamp_min(0.0) / (unresolved + self.eps)).clamp(0.0, 1.0)
+        extent = (local7 / (local3 + local7 + self.eps)).clamp(0.0, 1.0)
+        cues = torch.cat((shallow_support, post_support, context_support, compact, extent), 1).detach().to(post_feature.dtype)
+        if homeostatic:
+            evidence = unresolved.detach().float()
+            height, width = size
+            n = height * width
+            mean_value = evidence.mean(dim=(2, 3), keepdim=True)
+            peak = evidence.amax(dim=(2, 3), keepdim=True)
+            cv = evidence.var(dim=(2, 3), keepdim=True, unbiased=False).sqrt() / (mean_value + self.eps)
+            activity = (peak * cv.clamp(0.0, 1.0)).clamp(0.0, 1.0)
+            probability = evidence / (evidence.sum(dim=(2, 3), keepdim=True) + self.eps)
+            entropy = -(probability * (probability + self.eps).log()).sum(dim=(2, 3), keepdim=True) / math.log(max(n, 2))
+            rho = (self.rho_min + (self.rho_max - self.rho_min) * (1.0 - entropy.clamp(0.0, 1.0))) * activity
+            logits = ((evidence + self.eps).log() + 0.25 * torch.tanh(self.score_head(cues).float())) / self.temperature
+            total = logits.flatten(2).softmax(-1).view_as(evidence) * (n * rho)
+            total = total.clamp(0.0, 1.0)
+            total = total * torch.minimum(torch.ones_like(rho), rho / (total.mean(dim=(2, 3), keepdim=True) + self.eps)).detach()
+        else:
+            if fallback_gate is None:
+                raise ValueError("HEMA fallback gate required when homeostatic=False")
+            total = self._align(fallback_gate.float(), size).clamp(0.0, 1.0)
+            rho, activity, entropy = total.mean(dim=(2, 3), keepdim=True), total.amax(dim=(2, 3), keepdim=True), torch.zeros_like(total[:, :, :1, :1])
+        scale_logits = torch.cat(((compact + self.eps).log(), (extent + self.eps).log()), 1)
+        weights = (scale_logits + 0.25 * torch.tanh(self.scale_head(cues).float())).softmax(1)
+        total = total.to(post_feature.dtype)
+        micro = (total * weights[:, 0:1]).to(post_feature.dtype)
+        medium = (total * weights[:, 1:2]).to(post_feature.dtype)
+        context_support = context_support.to(post_feature.dtype)
+        if self.record_diagnostics:
+            self.latest_diagnostics = {"unresolved": unresolved.detach(), "total_gate": total.detach(), "micro_gate": micro.detach(), "medium_gate": medium.detach(), "effective_rho": rho.detach(), "activity": activity.detach(), "entropy": entropy.detach()}
+        return total, micro, medium, context_support
+
+
+class GradientIsolatedScaleReactivator(nn.Module):
+    """Scale-specific residual recovery with P4 gradient isolation and RMS budgets."""
+
+    def __init__(self, c_shallow, c_context, channels, max_gain=0.06, channel_rho=0.20, max_residual_ratio=0.08, large_protect_floor=0.35, reduction=4, detach_budget=True, eps=1e-6):
+        super().__init__()
+        if min(c_shallow, c_context, channels, reduction) < 1 or not 0.0 <= channel_rho <= 1.0 or not 0.0 < max_residual_ratio <= 1.0:
+            raise ValueError("invalid GISR configuration")
+        self.c_shallow, self.c_context, self.channels = int(c_shallow), int(c_context), int(channels)
+        self.max_gain, self.channel_rho = float(max_gain), float(channel_rho)
+        self.max_residual_ratio, self.large_protect_floor = float(max_residual_ratio), float(large_protect_floor)
+        self.detach_budget, self.eps = bool(detach_budget), float(eps)
+        hidden, groups = max(channels // reduction, 16), max(1, math.gcd(channels, 4))
+        self.detail_proj, self.low_proj, self.context_proj = Conv(c_shallow, channels, 1, act=False), Conv(c_shallow, channels, 1, act=False), Conv(c_context, channels, 1, act=False)
+        self.micro_expert = nn.Sequential(nn.Conv2d(channels, channels, 3, 1, 1, groups=groups), nn.SiLU(), nn.Conv2d(channels, channels, 1))
+        self.medium_expert = nn.Sequential(nn.Conv2d(2 * channels, hidden, 3, 1, 1), nn.SiLU(), nn.Conv2d(hidden, channels, 1))
+        self.single_expert = nn.Sequential(nn.Conv2d(2 * channels, hidden, 3, 1, 1), nn.SiLU(), nn.Conv2d(hidden, channels, 1))
+        self.channel_head = nn.Sequential(nn.Conv2d(3 * channels, hidden, 1), nn.SiLU(), nn.Conv2d(hidden, 2 * channels, 1), nn.Sigmoid())
+        nn.init.normal_(self.channel_head[-2].weight, 0.0, 1e-3)
+        nn.init.zeros_(self.channel_head[-2].bias)
+        self.alpha_raw = nn.Parameter(torch.zeros(1))
+        self.record_diagnostics, self.latest_diagnostics = False, {}
+
+    @staticmethod
+    def _mean(x):
+        return F.avg_pool2d(F.pad(x, (1, 1, 1, 1), mode="replicate"), 3, 1)
+
+    @staticmethod
+    def _align(x, size):
+        return x if x.shape[-2:] == size else F.interpolate(x, size=size, mode="bilinear", align_corners=False)
+
+    def _budget(self, base, residual):
+        base_rms = base.float().square().mean(dim=(1, 2, 3), keepdim=True).sqrt()
+        residual_rms = residual.float().square().mean(dim=(1, 2, 3), keepdim=True).sqrt()
+        scale = torch.minimum(torch.ones_like(residual_rms), self.max_residual_ratio * base_rms / (residual_rms + self.eps))
+        return residual * (scale.detach() if self.detach_budget else scale), scale
+
+    def forward(self, shallow, base, context, micro_gate, medium_gate, context_support, scale_split=True):
+        if shallow.shape[1] != self.c_shallow or context.shape[1] != self.c_context or base.shape[1] != self.channels:
+            raise ValueError("GISR received unexpected channel counts")
+        size = base.shape[-2:]
+        shallow_avg, shallow_max = F.adaptive_avg_pool2d(shallow, size), F.adaptive_max_pool2d(shallow, size)
+        detail, low = self.detail_proj((shallow_max - shallow_avg).clamp_min(0.0)), self.low_proj(shallow_avg)
+        context_feature = self._align(self.context_proj(context.detach()), size)
+        tokens = [feature.float().abs().mean((2, 3), keepdim=True) for feature in (detail, context_feature, base)]
+        channel = self.channel_head(torch.cat([token / (token.mean(1, keepdim=True) + self.eps) for token in tokens], 1).detach().to(base.dtype)).view(base.shape[0], 2, self.channels, 1, 1)
+        scale = torch.minimum(torch.ones_like(channel[:, :1, :1]), torch.full_like(channel[:, :1, :1], self.channel_rho) / (channel.float().mean((1, 2), keepdim=True) + self.eps))
+        channel = channel * (scale.detach() if self.detach_budget else scale)
+        if scale_split:
+            raw = micro_gate * channel[:, 0] * self.micro_expert(detail - self._mean(detail)) + medium_gate * channel[:, 1] * self.medium_expert(torch.cat((low, context_feature), 1))
+        else:
+            raw = (micro_gate + medium_gate).clamp(0.0, 1.0) * channel.mean(1) * self.single_expert(torch.cat((detail, context_feature), 1))
+        denominator = context_feature.float().square().sum(1, keepdim=True) + self.eps
+        parallel = (raw.float() * context_feature.float()).sum(1, keepdim=True) / denominator * context_feature.float()
+        support = self._mean(context_support.float()).clamp(0.0, 1.0)
+        protect = self.large_protect_floor + (1.0 - self.large_protect_floor) * support
+        residual, energy_scale = self._budget(base, (raw.float() - protect * parallel).to(base.dtype))
+        output = base + (self.max_gain * torch.tanh(self.alpha_raw)).to(base.dtype) * residual
+        if self.record_diagnostics:
+            self.latest_diagnostics = {"channel_gate": channel.detach(), "energy_scale": energy_scale.detach(), "large_protect": protect.detach()}
+        return output
+
+
+class DualMomentBoundaryRefiner(nn.Module):
+    """Candidate-gated tangent/normal second-difference boundary correction."""
+
+    def __init__(self, channels, refine_ratio=0.25, min_radius=0.20, max_radius=0.80, max_gain=0.05, spatial_rho=0.12, max_residual_ratio=0.06, reduction=4, detach_budget=True, eps=1e-6):
+        super().__init__()
+        if channels < 1 or not 0 <= min_radius <= max_radius or not 0 <= spatial_rho <= 1:
+            raise ValueError("invalid DMBR configuration")
+        self.channels, self.min_radius, self.max_radius = int(channels), float(min_radius), float(max_radius)
+        self.max_gain, self.spatial_rho, self.max_residual_ratio = float(max_gain), float(spatial_rho), float(max_residual_ratio)
+        self.detach_budget, self.eps = bool(detach_budget), float(eps)
+        reduced, hidden = min(channels, max(8, int(round(channels * refine_ratio / 8)) * 8)), max(16, channels // reduction)
+        self.reduce, self.geometry = Conv(channels, reduced, 1), nn.Sequential(Conv(reduced + 3, hidden, 3), Conv(hidden, hidden, 3, g=hidden), Conv(hidden, hidden, 1))
+        self.radius_head, self.mix_head, self.out_proj = nn.Conv2d(hidden, 2, 1), nn.Conv2d(hidden, 2, 1), nn.Conv2d(reduced, channels, 1)
+        self.gate_head = nn.Sequential(nn.Conv2d(3, 8, 3, 1, 1), nn.SiLU(), nn.Conv2d(8, 1, 1), nn.Sigmoid())
+        for layer in (self.radius_head, self.mix_head):
+            nn.init.zeros_(layer.weight)
+            nn.init.zeros_(layer.bias)
+        nn.init.zeros_(self.out_proj.bias)
+        sobel = torch.tensor(((-1., 0., 1.), (-2., 0., 2.), (-1., 0., 1.)))
+        self.register_buffer("sobel_x", sobel[None, None], persistent=False)
+        self.register_buffer("sobel_y", sobel.t()[None, None], persistent=False)
+        self.alpha_raw = nn.Parameter(torch.zeros(1))
+        self.record_diagnostics, self.latest_diagnostics = False, {}
+
+    def _sample(self, feature, offsets):
+        batch, channels, height, width = feature.shape
+        y, x = torch.meshgrid(torch.linspace(-1 + 1 / height, 1 - 1 / height, height, device=feature.device), torch.linspace(-1 + 1 / width, 1 - 1 / width, width, device=feature.device), indexing="ij")
+        base = torch.stack((x, y), -1)[None, None]
+        grid = base + torch.stack((offsets[:, :, 0] * 2 / width, offsets[:, :, 1] * 2 / height), -1)
+        source = feature.float()[:, None].expand(-1, 5, -1, -1, -1).reshape(batch * 5, channels, height, width)
+        return F.grid_sample(source, grid.reshape(batch * 5, height, width, 2), align_corners=False, padding_mode="border").reshape(batch, 5, channels, height, width).to(feature.dtype)
+
+    def forward(self, feature, candidate_gate):
+        if feature.shape[1] != self.channels or candidate_gate.shape[1] != 1:
+            raise ValueError("DMBR received unexpected channel counts")
+        if candidate_gate.shape[-2:] != feature.shape[-2:]:
+            candidate_gate = F.interpolate(candidate_gate, size=feature.shape[-2:], mode="bilinear", align_corners=False)
+        reduced = self.reduce(feature)
+        summary = F.pad(reduced.float().mean(1, keepdim=True), (1, 1, 1, 1), mode="replicate")
+        gx, gy = F.conv2d(summary, self.sobel_x), F.conv2d(summary, self.sobel_y)
+        norm = (gx.square() + gy.square()).sqrt() + self.eps
+        gx, gy = gx / norm, gy / norm
+        magnitude = (gx.square() + gy.square()).sqrt()
+        geometry = self.geometry(torch.cat((reduced, gx.to(reduced.dtype), gy.to(reduced.dtype), magnitude.to(reduced.dtype)), 1))
+        radius = self.min_radius + (self.max_radius - self.min_radius) * (0.5 + 0.5 * torch.sigmoid(self.radius_head(geometry).float()))
+        tangent, normal = torch.cat((-gy * radius[:, :1], gx * radius[:, :1]), 1), torch.cat((gx * radius[:, 1:], gy * radius[:, 1:]), 1)
+        offsets = torch.stack((torch.zeros_like(tangent), tangent, -tangent, normal, -normal), 1).to(reduced.dtype)
+        sampled = self._sample(reduced, offsets)
+        curvature = self.mix_head(geometry).float().softmax(1).to(reduced.dtype)
+        curvature = curvature[:, :1] * (0.5 * (sampled[:, 1] + sampled[:, 2]) - sampled[:, 0]) + curvature[:, 1:] * (0.5 * (sampled[:, 3] + sampled[:, 4]) - sampled[:, 0])
+        support = (1.0 - torch.exp(-(magnitude / (magnitude.mean((2, 3), keepdim=True) + self.eps)).clamp(0.0, 8.0))).to(feature.dtype)
+        gate = candidate_gate.clamp(0.0, 1.0) * support * self.gate_head(torch.cat((candidate_gate, F.avg_pool2d(F.pad(candidate_gate, (1, 1, 1, 1), mode="replicate"), 3, 1), support), 1))
+        spatial = torch.minimum(torch.ones_like(gate[:, :, :1, :1]), torch.full_like(gate[:, :, :1, :1], self.spatial_rho) / (gate.float().mean((2, 3), keepdim=True) + self.eps))
+        raw = gate * (spatial.detach() if self.detach_budget else spatial) * self.out_proj(curvature)
+        base_rms, raw_rms = feature.float().square().mean((2, 3), keepdim=True).sqrt(), raw.float().square().mean((2, 3), keepdim=True).sqrt()
+        energy = torch.minimum(torch.ones_like(raw_rms), self.max_residual_ratio * base_rms / (raw_rms + self.eps))
+        residual = raw * (energy.detach() if self.detach_budget else energy)
+        output = feature + (self.max_gain * torch.tanh(self.alpha_raw)).to(feature.dtype) * residual
+        if self.record_diagnostics:
+            self.latest_diagnostics = {"boundary_gate": gate.detach(), "offsets": offsets.detach(), "spatial_scale": spatial.detach(), "energy_scale": energy.detach()}
+        return output
+
+
+class MESADSC3k2(MACRDSC3k2):
+    """CARM-A3 path plus zero-start HEMA, GISR and DMBR corrections."""
+
+    def __init__(self, c_shallow, c_fused, c_context, c2, n=1, dsc3k=False, e=0.5, max_gain=0.08, spatial_rho=0.15, channel_rho=0.25, max_residual_ratio=0.12, unique_weight=0.30, reduction=4, detach_budget=True, use_hema=True, use_gisr=True, use_dmbr=True, hema_rho_min=0.04, hema_rho_max=0.16, hema_temperature=0.70, hema_unique_weight=0.25, gisr_gain=0.06, gisr_channel_rho=0.20, gisr_residual_ratio=0.08, gisr_large_protect_floor=0.35, dmbr_ratio=0.25, dmbr_min_radius=0.20, dmbr_max_radius=0.80, dmbr_gain=0.05, dmbr_spatial_rho=0.12, dmbr_residual_ratio=0.06, g=1, shortcut=True, k1=3, k2=7, d2=1):
+        super().__init__(c_shallow, c_fused, c_context, c2, n, dsc3k, e, max_gain, spatial_rho, channel_rho, max_residual_ratio, unique_weight, reduction, detach_budget, g, shortcut, k1, k2, d2)
+        self.use_hema, self.use_gisr, self.use_dmbr = bool(use_hema), bool(use_gisr), bool(use_dmbr)
+        with torch.random.fork_rng(devices=[], enabled=True):
+            self.mass_allocator = HomeostaticEvidenceMassAllocator(hema_rho_min, hema_rho_max, hema_temperature, hema_unique_weight)
+            self.scale_reactivator = GradientIsolatedScaleReactivator(c_shallow, c_context, c2, gisr_gain, gisr_channel_rho, gisr_residual_ratio, gisr_large_protect_floor, reduction, detach_budget)
+            self.boundary_refiner = DualMomentBoundaryRefiner(c2, dmbr_ratio, dmbr_min_radius, dmbr_max_radius, dmbr_gain, dmbr_spatial_rho, dmbr_residual_ratio, reduction, detach_budget)
+
+    def _a3_forward_and_gate(self, shallow, fused, context):
+        base = DSC3k2.forward(self, fused)
+        residual, gate, _, _, _, _ = self.reactivator.compute_components(shallow, base, context)
+        output = base + (self.reactivator.max_gain * torch.tanh(self.reactivator.alpha_raw)).to(base.dtype) * residual
+        return output, gate
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != 3:
+            raise ValueError("MESADSC3k2 expects [P2_shallow, P3_fused, P4_context]")
+        shallow, fused, context = x
+        if shallow.shape[1] != self.c_shallow or fused.shape[1] != self.c_fused or context.shape[1] != self.c_context:
+            raise ValueError("MESADSC3k2 received unexpected channel counts")
+        feature, legacy_gate = self._a3_forward_and_gate(shallow, fused, context)
+        candidate_gate = legacy_gate
+        if self.use_hema or self.use_gisr:
+            total, micro, medium, support = self.mass_allocator(shallow, feature, context, legacy_gate, self.use_hema)
+            feature = self.scale_reactivator(shallow, feature, context, micro, medium, support, self.use_gisr)
+            candidate_gate = (legacy_gate.float() + total.float()).clamp(0.0, 1.0).to(feature.dtype)
+        if self.use_dmbr:
+            feature = self.boundary_refiner(feature, candidate_gate)
+        return feature

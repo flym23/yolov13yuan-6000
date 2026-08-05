@@ -83,6 +83,10 @@ from .block import (
     OrthogonalComplementaryAlignUp,
     MissingAwareCandidateReactivator,
     MACRDSC3k2,
+    HomeostaticEvidenceMassAllocator,
+    GradientIsolatedScaleReactivator,
+    DualMomentBoundaryRefiner,
+    MESADSC3k2,
 )
 from .conv import (
     CBAM,
@@ -240,6 +244,10 @@ __all__ = (
     "OrthogonalComplementaryAlignUp",
     "MissingAwareCandidateReactivator",
     "MACRDSC3k2",
+    "HomeostaticEvidenceMassAllocator",
+    "GradientIsolatedScaleReactivator",
+    "DualMomentBoundaryRefiner",
+    "MESADSC3k2",
     "HRCTDetect",
     "NonUniformDFL",
     "SUDLDetect",
