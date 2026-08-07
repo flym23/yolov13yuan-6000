@@ -1,0 +1,34 @@
+{
+  "name": "seal_20260805_150924_s7_seed0",
+  "stage": "S7",
+  "seed": 0,
+  "structure": "S7 / 完整 SEAL-YOLOv13（DSRF + SARB + QAD）",
+  "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/seal_ablation/yolov13-seal-s7-full.yaml",
+  "dataset": "/home/room305/ZZF/URPC2019/data.yaml",
+  "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/seal_20260805_150924_s7_seed0/weights/best.pt",
+  "weights_sha256": "a5cba4a42fe88447256dc8e42a7165af8e9f736eca6c60d5b1a9ae06f93e255a",
+  "initialization": {
+    "stage": "s7",
+    "seed": 0,
+    "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/seal_ablation/yolov13-seal-s7-full.yaml",
+    "method": "YOLO.load",
+    "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+    "pretrained_sha256": "6653035017b0f111f80ec11ed914874ea85699b104aeac1e46e517d16889d6b7",
+    "trainer_receives_loaded_model": true
+  },
+  "best_epoch": 155,
+  "training_seconds": 16863.922511226003,
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "resume": false,
+    "device": 0
+  },
+  "completed_at": "2026-08-07T01:08:34.931718+00:00"
+}

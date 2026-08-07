@@ -1,0 +1,34 @@
+{
+  "name": "seal_20260805_150924_s0_seed1",
+  "stage": "S0",
+  "seed": 1,
+  "structure": "S0 / CARM-A3 同批次基线（CMRF + MACR）",
+  "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/seal_ablation/yolov13-seal-s0-carm-a3.yaml",
+  "dataset": "/home/room305/ZZF/URPC2019/data.yaml",
+  "weights": "/home/room305/ZZF/yolov13yuan-6000/runs/train/seal_20260805_150924_s0_seed1/weights/best.pt",
+  "weights_sha256": "0c46aae210f03788e30f9fbfb82f2c5da3be4cac1a086cee6283961e926f9c13",
+  "initialization": {
+    "stage": "s0",
+    "seed": 1,
+    "model_yaml": "/home/room305/ZZF/yolov13yuan-6000/ultralytics/cfg/models/v13/seal_ablation/yolov13-seal-s0-carm-a3.yaml",
+    "method": "YOLO.load",
+    "pretrained": "/home/room305/ZZF/yolov13yuan-6000/yolov13n.pt",
+    "pretrained_sha256": "6653035017b0f111f80ec11ed914874ea85699b104aeac1e46e517d16889d6b7",
+    "trainer_receives_loaded_model": true
+  },
+  "best_epoch": 146,
+  "training_seconds": 11984.111671421997,
+  "settings": {
+    "epochs": 300,
+    "patience": 40,
+    "batch": 16,
+    "imgsz": 640,
+    "workers": 2,
+    "amp": false,
+    "deterministic": true,
+    "plots": false,
+    "resume": false,
+    "device": 0
+  },
+  "completed_at": "2026-08-05T22:25:25.656060+00:00"
+}

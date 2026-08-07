@@ -1,0 +1,34 @@
+{
+  "task": "seal_deploy_20260805T141700Z",
+  "created_at": "2026-08-05T15:08:12.770227+00:00",
+  "remote_root": "/home/room305/ZZF/yolov13yuan-6000",
+  "sync_plan": [
+    {
+      "relative_path": "tools/validate_seal_pretrained.py",
+      "local_source": "E:\\Visual Studio.project\\yolov13yuan-6000\\tools\\validate_seal_pretrained.py",
+      "remote_target": "/home/room305/ZZF/yolov13yuan-6000/tools/validate_seal_pretrained.py",
+      "size": 2804,
+      "sha256": "2cfb2659622ba12ecd84e4a302ab97e29a552b1fb78a50adbfd7c49c21a1613d"
+    },
+    {
+      "relative_path": "run_seal_ablation.sh",
+      "local_source": "E:\\Visual Studio.project\\yolov13yuan-6000\\run_seal_ablation.sh",
+      "remote_target": "/home/room305/ZZF/yolov13yuan-6000/run_seal_ablation.sh",
+      "size": 3998,
+      "sha256": "1c6b579eec610619f170ba9b303bea52d504e40d523bf51554789e09c5211ea6"
+    }
+  ],
+  "backup": [
+    {
+      "relative_path": "tools/validate_seal_pretrained.py",
+      "backed_up": false,
+      "reason": "new file"
+    },
+    {
+      "relative_path": "run_seal_ablation.sh",
+      "backed_up": false,
+      "reason": "new file"
+    }
+  ],
+  "verification": "all files match local SHA-256"
+}

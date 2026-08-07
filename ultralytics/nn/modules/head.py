@@ -36,6 +36,8 @@ __all__ = (
     "CSTDDetect",
     "GradientIsolatedMicroReconciler",
     "GIMRDetect",
+    "P3QualityDecoupler",
+    "QualityAlignedDecoupledDetect",
     "Segment",
     "Pose",
     "Classify",
@@ -1774,3 +1776,263 @@ class v10Detect(Detect):
             for x in ch
         )
         self.one2one_cv3 = copy.deepcopy(self.cv3)
+
+
+class P3QualityDecoupler(nn.Module):
+    """Build separate P3 features for box regression and classification.
+
+    The box residual is boundary-driven and projected onto the orthogonal complement
+    of detached P4 semantics. The classification residual is a low-frequency semantic
+    deficit supplied by P4. Both are sample-wise RMS bounded and zero-started.
+    """
+
+    def __init__(
+        self,
+        c_p3,
+        c_p4,
+        box_gain=0.06,
+        cls_gain=0.05,
+        box_residual_ratio=0.06,
+        cls_residual_ratio=0.05,
+        reduction=4,
+        detach_context=True,
+        detach_budget=True,
+        eps=1e-6,
+    ):
+        super().__init__()
+        self.c_p3 = int(c_p3)
+        self.c_p4 = int(c_p4)
+        self.box_gain = float(box_gain)
+        self.cls_gain = float(cls_gain)
+        self.box_residual_ratio = float(box_residual_ratio)
+        self.cls_residual_ratio = float(cls_residual_ratio)
+        self.detach_context = bool(detach_context)
+        self.detach_budget = bool(detach_budget)
+        self.eps = float(eps)
+        reduction = int(reduction)
+
+        if self.c_p3 <= 0 or self.c_p4 <= 0:
+            raise ValueError("channel counts must be positive.")
+        if self.box_gain < 0.0 or self.cls_gain < 0.0 or reduction < 1 or self.eps <= 0.0:
+            raise ValueError("gains must be non-negative; reduction and eps positive.")
+        for name, value in (
+            ("box_residual_ratio", self.box_residual_ratio),
+            ("cls_residual_ratio", self.cls_residual_ratio),
+        ):
+            if not 0.0 < value <= 1.0:
+                raise ValueError(f"{name} must be in (0, 1].")
+
+        hidden = max(self.c_p3 // reduction, 16)
+        kernel = torch.tensor(
+            ((1.0, 2.0, 1.0), (2.0, 4.0, 2.0), (1.0, 2.0, 1.0)), dtype=torch.float32
+        )
+        sobel_x = torch.tensor(
+            ((-1.0, 0.0, 1.0), (-2.0, 0.0, 2.0), (-1.0, 0.0, 1.0)), dtype=torch.float32
+        )
+        self.register_buffer("blur_kernel", (kernel / kernel.sum())[None, None], persistent=False)
+        self.register_buffer("sobel_x", sobel_x[None, None], persistent=False)
+        self.register_buffer("sobel_y", sobel_x.t().contiguous()[None, None], persistent=False)
+
+        self.p4_proj = Conv(self.c_p4, self.c_p3, 1, 1, act=False)
+        self.box_gate = nn.Sequential(
+            nn.Conv2d(4, 8, 3, 1, 1, bias=True),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(8, 1, 1, bias=True),
+            nn.Sigmoid(),
+        )
+        self.cls_gate = nn.Sequential(
+            nn.Conv2d(4, 8, 3, 1, 1, bias=True),
+            nn.SiLU(inplace=True),
+            nn.Conv2d(8, 1, 1, bias=True),
+            nn.Sigmoid(),
+        )
+        self.box_proj = nn.Sequential(Conv(self.c_p3, hidden, 3, 1), nn.Conv2d(hidden, self.c_p3, 1, bias=True))
+        self.cls_proj = nn.Sequential(Conv(self.c_p3, hidden, 1, 1), nn.Conv2d(hidden, self.c_p3, 1, bias=True))
+        nn.init.normal_(self.box_gate[-2].weight, mean=0.0, std=1e-3)
+        nn.init.zeros_(self.box_gate[-2].bias)
+        nn.init.normal_(self.cls_gate[-2].weight, mean=0.0, std=1e-3)
+        nn.init.zeros_(self.cls_gate[-2].bias)
+        nn.init.kaiming_normal_(self.box_proj[-1].weight, mode="fan_out", nonlinearity="linear")
+        nn.init.zeros_(self.box_proj[-1].bias)
+        nn.init.kaiming_normal_(self.cls_proj[-1].weight, mode="fan_out", nonlinearity="linear")
+        nn.init.zeros_(self.cls_proj[-1].bias)
+
+        self.box_alpha_raw = nn.Parameter(torch.zeros(1, dtype=torch.float32))
+        self.cls_alpha_raw = nn.Parameter(torch.zeros(1, dtype=torch.float32))
+        self.record_diagnostics = False
+        self.latest_diagnostics = {}
+
+    def set_diagnostics(self, enabled=True):
+        self.record_diagnostics = bool(enabled)
+        if not self.record_diagnostics:
+            self.latest_diagnostics = {}
+        return self
+
+    def _blur(self, x):
+        kernel = self.blur_kernel.to(device=x.device, dtype=x.dtype).repeat(self.c_p3, 1, 1, 1)
+        return F.conv2d(F.pad(x, (1, 1, 1, 1), mode="replicate"), kernel, groups=self.c_p3)
+
+    def _boundary(self, x):
+        summary = F.pad(x.float().mean(dim=1, keepdim=True), (1, 1, 1, 1), mode="replicate")
+        gx = F.conv2d(summary, self.sobel_x.to(device=x.device, dtype=summary.dtype))
+        gy = F.conv2d(summary, self.sobel_y.to(device=x.device, dtype=summary.dtype))
+        magnitude = (gx.square() + gy.square()).sqrt()
+        reference = magnitude.mean(dim=(2, 3), keepdim=True)
+        return (1.0 - torch.exp(-(magnitude / (reference + self.eps)).clamp(0.0, 8.0))).clamp(0.0, 1.0)
+
+    @staticmethod
+    def _align(x, size):
+        return x if x.shape[-2:] == size else F.interpolate(x, size=size, mode="bilinear", align_corners=False)
+
+    def _sample_energy_budget(self, base, correction, ratio):
+        base_rms = base.float().square().mean(dim=(1, 2, 3), keepdim=True).sqrt()
+        correction_rms = correction.float().square().mean(dim=(1, 2, 3), keepdim=True).sqrt()
+        scale = torch.minimum(
+            torch.ones_like(correction_rms), float(ratio) * base_rms / (correction_rms + self.eps)
+        )
+        if self.detach_budget:
+            scale = scale.detach()
+        return (correction.float() * scale).to(base.dtype), scale
+
+    def _orthogonalize(self, candidate, semantic):
+        candidate_f = candidate.float()
+        semantic_f = semantic.float()
+        coefficient = (candidate_f * semantic_f).sum(dim=1, keepdim=True) / (
+            semantic_f.square().sum(dim=1, keepdim=True) + self.eps
+        )
+        return (candidate_f - coefficient * semantic_f).to(candidate.dtype)
+
+    def compute_components(self, p3, p4):
+        if p3.ndim != 4 or p4.ndim != 4 or p3.shape[0] != p4.shape[0]:
+            raise ValueError("P3QualityDecoupler expects compatible NCHW tensors.")
+        if p3.shape[1] != self.c_p3 or p4.shape[1] != self.c_p4:
+            raise ValueError("P3QualityDecoupler received unexpected channel counts.")
+        if p3.device != p4.device or p3.dtype != p4.dtype:
+            raise ValueError("P3 and P4 must share device and dtype.")
+
+        p4_input = p4.detach() if self.detach_context else p4
+        p4_semantic = self._align(self.p4_proj(p4_input), p3.shape[-2:])
+        p3_low = self._blur(p3)
+        p4_low = self._blur(p4_semantic)
+        p3_detail = p3 - p3_low
+        agreement = (
+            (F.normalize(p3_low.float(), dim=1, eps=self.eps) * F.normalize(p4_low.float(), dim=1, eps=self.eps)).sum(
+                dim=1, keepdim=True
+            )
+            + 1.0
+        ).mul(0.5).clamp(0.0, 1.0)
+        p3_energy = p3_low.float().abs().mean(dim=1, keepdim=True)
+        p4_energy = p4_low.float().abs().mean(dim=1, keepdim=True)
+        reference = p3_energy + p4_energy + self.eps
+        deficit = ((p4_energy - p3_energy).clamp_min(0.0) / reference).clamp(0.0, 1.0)
+        amplitude = torch.exp(-((p4_energy - p3_energy).abs() / reference).clamp(0.0, 8.0))
+        boundary = self._boundary(p3)
+
+        box_prior = (boundary * (0.25 + 0.75 * agreement)).clamp(0.0, 1.0)
+        cls_prior = (agreement * amplitude * (1.0 - torch.exp(-4.0 * deficit))).clamp(0.0, 1.0)
+        cues = torch.cat((agreement, deficit, amplitude, boundary), dim=1).detach().to(p3.dtype)
+        box_support = box_prior.detach().to(p3.dtype) * self.box_gate(cues)
+        cls_support = cls_prior.detach().to(p3.dtype) * self.cls_gate(cues)
+
+        raw_box = self.box_proj(p3_detail)
+        box_orthogonal = self._orthogonalize(raw_box, p4_low)
+        box_residual, box_scale = self._sample_energy_budget(p3, box_support * box_orthogonal, self.box_residual_ratio)
+        raw_cls = self.cls_proj(p4_low - p3_low)
+        cls_residual, cls_scale = self._sample_energy_budget(p3, cls_support * raw_cls, self.cls_residual_ratio)
+        return box_residual, cls_residual, agreement, deficit, boundary, box_support, cls_support, box_scale, cls_scale, p4_low
+
+    def forward(self, p3, p4):
+        components = self.compute_components(p3, p4)
+        box_gain = (self.box_gain * torch.tanh(self.box_alpha_raw)).to(p3.dtype)
+        cls_gain = (self.cls_gain * torch.tanh(self.cls_alpha_raw)).to(p3.dtype)
+        box_feature = p3 + box_gain * components[0]
+        cls_feature = p3 + cls_gain * components[1]
+        if self.record_diagnostics:
+            dot = (components[0].float() * components[9].float()).sum(dim=1, keepdim=True)
+            norm = components[0].float().norm(dim=1, keepdim=True) * components[9].float().norm(dim=1, keepdim=True)
+            self.latest_diagnostics = {
+                "box_gain": box_gain.detach(),
+                "cls_gain": cls_gain.detach(),
+                "agreement": components[2].detach(),
+                "deficit": components[3].detach(),
+                "boundary": components[4].detach(),
+                "box_support": components[5].detach(),
+                "cls_support": components[6].detach(),
+                "box_scale": components[7].detach(),
+                "cls_scale": components[8].detach(),
+                "box_context_cosine": (dot / (norm + self.eps)).detach(),
+            }
+        return box_feature, cls_feature
+
+
+class QualityAlignedDecoupledDetect(Detect):
+    """Standard Detect with zero-start, P3-only task-specific quality calibration."""
+
+    def __init__(
+        self,
+        nc=80,
+        box_gain=0.06,
+        cls_gain=0.05,
+        box_residual_ratio=0.06,
+        cls_residual_ratio=0.05,
+        reduction=4,
+        detach_context=True,
+        detach_budget=True,
+        ch=(),
+    ):
+        if len(ch) != 3:
+            raise ValueError("QualityAlignedDecoupledDetect requires exactly three detection scales.")
+        super().__init__(nc=nc, ch=ch)
+        with torch.random.fork_rng(devices=[], enabled=True):
+            self.p3_decoupler = P3QualityDecoupler(
+                c_p3=ch[0],
+                c_p4=ch[1],
+                box_gain=box_gain,
+                cls_gain=cls_gain,
+                box_residual_ratio=box_residual_ratio,
+                cls_residual_ratio=cls_residual_ratio,
+                reduction=reduction,
+                detach_context=detach_context,
+                detach_budget=detach_budget,
+            )
+
+    def _task_features(self, x):
+        box_p3, cls_p3 = self.p3_decoupler(x[0], x[1])
+        box_features = [box_p3, x[1], x[2]]
+        cls_features = [cls_p3, x[1], x[2]]
+        return box_features, cls_features
+
+    def forward(self, x):
+        if self.end2end:
+            return self.forward_end2end(x)
+        if not isinstance(x, (list, tuple)) or len(x) != self.nl:
+            raise ValueError(f"QualityAlignedDecoupledDetect expects {self.nl} feature maps.")
+        box_features, cls_features = self._task_features(list(x))
+        outputs = [
+            torch.cat((self.cv2[i](box_features[i]), self.cv3[i](cls_features[i])), dim=1) for i in range(self.nl)
+        ]
+        if self.training:
+            return outputs
+        y = self._inference(outputs)
+        return y if self.export else (y, outputs)
+
+    def forward_end2end(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != self.nl:
+            raise ValueError(f"QualityAlignedDecoupledDetect expects {self.nl} feature maps.")
+        x = list(x)
+        x_detach = [xi.detach() for xi in x]
+        one2one_box, one2one_cls = self._task_features(x_detach)
+        one2one = [
+            torch.cat((self.one2one_cv2[i](one2one_box[i]), self.one2one_cv3[i](one2one_cls[i])), dim=1)
+            for i in range(self.nl)
+        ]
+        one2many_box, one2many_cls = self._task_features(x)
+        one2many = [
+            torch.cat((self.cv2[i](one2many_box[i]), self.cv3[i](one2many_cls[i])), dim=1)
+            for i in range(self.nl)
+        ]
+        if self.training:
+            return {"one2many": one2many, "one2one": one2one}
+        y = self._inference(one2one)
+        y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
+        return y if self.export else (y, {"one2many": one2many, "one2one": one2one})

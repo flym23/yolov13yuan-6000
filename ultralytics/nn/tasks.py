@@ -84,14 +84,16 @@ from ultralytics.nn.modules import (
     ReliabilityFrequencyAlignUp,
     CARMDSC3k2,
     MACRDSC3k2,
+    DSRFDSC3k2,
+    SARBDSC3k2,
     OrthogonalComplementaryAlignUp,
-    MESADSC3k2,
     SBRHDetect,
     P3DecoupledDetect,
     RAMPDetect,
     CPCRDetect,
     CSTDDetect,
     GIMRDetect,
+    QualityAlignedDecoupledDetect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -1032,7 +1034,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             # The following original Concat, rather than this module, owns lateral feature fusion.
             args = [c_deep, c_lateral, *args]
             c2 = c_deep
-        elif m in {MACRDSC3k2, MESADSC3k2}:
+        elif m is MACRDSC3k2:
             if not isinstance(f, (list, tuple)) or len(f) != 3:
                 raise ValueError(
                     f"{m.__name__} requires from=[P2_shallow, P3_fused, P4_context]."
@@ -1047,6 +1049,19 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             legacy = False
             if scale in "lx":
                 args[5] = True
+        elif m is SARBDSC3k2:
+            if not isinstance(f, (list, tuple)) or len(f) != 2:
+                raise ValueError("SARBDSC3k2 requires from=[P4_fused, HyperACE_P4_context].")
+            c_fused, c_context = ch[f[0]], ch[f[1]]
+            c2 = args[0]
+            if c2 != nc:
+                c2 = make_divisible(min(c2 * width, max_channels), 8)
+            # Constructor: c_fused, c_context, c2, n, dsc3k, e, ...
+            args = [c_fused, c_context, c2, n, *args[1:]]
+            n = 1
+            legacy = False
+            if scale in "lx":
+                args[4] = True
         elif m in {
             Classify,
             Conv,
@@ -1083,6 +1098,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2fCIB,
             A2C2f,
             DSC3k2,
+            DSRFDSC3k2,
             DRSCDSC3k2,
             DAPD,
             CAGDSC3k2,
@@ -1115,12 +1131,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 C2PSA,
                 A2C2f,
                 DSC3k2,
+                DSRFDSC3k2,
                 DRSCDSC3k2,
                 CAGDSC3k2,
             }:
                 args.insert(2, n)  # number of repeats
                 n = 1
-            if m in {C3k2, DSC3k2, DRSCDSC3k2, CAGDSC3k2}:  # for P/U sizes
+            if m in {C3k2, DSC3k2, DSRFDSC3k2, DRSCDSC3k2, CAGDSC3k2}:  # for P/U sizes
                 legacy = False
                 if scale in "lx":
                     args[3] = True
@@ -1170,6 +1187,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             P3DecoupledDetect,
             CSTDDetect,
             GIMRDetect,
+            QualityAlignedDecoupledDetect,
             WorldDetect,
             Segment,
             Pose,
@@ -1180,7 +1198,19 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, HRCTDetect, SUDLDetect, SBRHDetect, P3DecoupledDetect, CSTDDetect, GIMRDetect, Segment, Pose, OBB}:
+            if m in {
+                Detect,
+                HRCTDetect,
+                SUDLDetect,
+                SBRHDetect,
+                P3DecoupledDetect,
+                CSTDDetect,
+                GIMRDetect,
+                QualityAlignedDecoupledDetect,
+                Segment,
+                Pose,
+                OBB,
+            }:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
