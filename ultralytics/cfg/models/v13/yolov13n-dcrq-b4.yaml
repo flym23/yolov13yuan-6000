@@ -1,0 +1,236 @@
+# REPAIRED: derived from DCRQ B2; same-index layer4 DAWRBDSC3k2, never an inserted layer.
+nc: 4
+quality_gain: 0.25
+scales:
+  n:
+  - 0.5
+  - 0.25
+  - 1024
+  s:
+  - 0.5
+  - 0.5
+  - 1024
+  l:
+  - 1.0
+  - 1.0
+  - 512
+  x:
+  - 1.0
+  - 1.5
+  - 512
+backbone:
+- - -1
+  - 1
+  - Conv
+  - - 64
+    - 3
+    - 2
+- - -1
+  - 1
+  - Conv
+  - - 128
+    - 3
+    - 2
+    - 1
+    - 2
+- - -1
+  - 2
+  - DSC3k2
+  - - 256
+    - false
+    - 0.25
+- - -1
+  - 1
+  - Conv
+  - - 256
+    - 3
+    - 2
+    - 1
+    - 4
+- - -1
+  - 2
+  - DAWRBDSC3k2
+  - - 512
+    - false
+    - 0.25
+    - 4
+    - 0.05
+    - true
+- - -1
+  - 1
+  - DSConv
+  - - 512
+    - 3
+    - 2
+- - -1
+  - 4
+  - A2C2f
+  - - 512
+    - true
+    - 4
+- - -1
+  - 1
+  - DSConv
+  - - 1024
+    - 3
+    - 2
+- - -1
+  - 4
+  - A2C2f
+  - - 1024
+    - true
+    - 1
+head:
+- - - 4
+    - 6
+    - 8
+  - 2
+  - HyperACE
+  - - 512
+    - 8
+    - true
+    - true
+    - 0.5
+    - 1
+    - both
+- - -1
+  - 1
+  - nn.Upsample
+  - - None
+    - 2
+    - nearest
+- - 9
+  - 1
+  - DownsampleConv
+  - []
+- - - 6
+    - 9
+  - 1
+  - FullPAD_Tunnel
+  - []
+- - - 4
+    - 10
+  - 1
+  - FullPAD_Tunnel
+  - []
+- - - 8
+    - 11
+  - 1
+  - FullPAD_Tunnel
+  - []
+- - -1
+  - 1
+  - nn.Upsample
+  - - None
+    - 2
+    - nearest
+- - - -1
+    - 12
+  - 1
+  - Concat
+  - - 1
+- - -1
+  - 2
+  - DSC3k2
+  - - 512
+    - true
+- - - -1
+    - 9
+  - 1
+  - FullPAD_Tunnel
+  - []
+- - 17
+  - 1
+  - nn.Upsample
+  - - None
+    - 2
+    - nearest
+- - - -1
+    - 13
+  - 1
+  - RCFConcat
+  - - 4
+    - 0.04
+    - true
+- - -1
+  - 2
+  - DSC3k2
+  - - 256
+    - true
+- - 10
+  - 1
+  - Conv
+  - - 256
+    - 1
+    - 1
+- - - 21
+    - 22
+  - 1
+  - FullPAD_Tunnel
+  - []
+- - -1
+  - 1
+  - Conv
+  - - 256
+    - 3
+    - 2
+- - - -1
+    - 18
+  - 1
+  - Concat
+  - - 1
+- - -1
+  - 2
+  - DSC3k2
+  - - 512
+    - true
+- - - -1
+    - 9
+  - 1
+  - FullPAD_Tunnel
+  - []
+- - 26
+  - 1
+  - Conv
+  - - 512
+    - 3
+    - 2
+- - - -1
+    - 14
+  - 1
+  - Concat
+  - - 1
+- - -1
+  - 2
+  - DSC3k2
+  - - 1024
+    - true
+- - - -1
+    - 11
+  - 1
+  - FullPAD_Tunnel
+  - []
+- - - 23
+    - 27
+    - 31
+  - 1
+  - RPQUDQDetect
+  - - nc
+    - stat_strengths:
+      - 1.0
+      - 0.5
+      - 0.25
+      detach_stats: true
+      rpq_strengths:
+      - 0.25
+      - 0.2
+      - 0.15
+      rpq_threshold: 0.5
+      rpq_negative_ratio: 0.25
+      rpq_max_factor: 1.25
+dcrq_repair:
+  stage: B4_DCRQ_FULL
+  parent: yolov13n-dcrq-b2.yaml
+  same_index_layer4: DAWRBDSC3k2
+  layer_count: 33
+  pretrained_coverage_requirement: B2_subset

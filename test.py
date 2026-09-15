@@ -134,6 +134,17 @@ class ScaleAwareDetectionValidator(DetectionValidator):
         )[5]
         return float(ap.mean()) if len(ap) else 0.0
 
+    def _compute_map75(self):
+        """Return the overall AP at IoU=0.75 from the normal validator statistics."""
+        stats = {
+            key: torch.cat(value, 0).cpu().numpy()
+            for key, value in self.stats.items()
+        }
+        if len(stats["target_cls"]) == 0:
+            return 0.0
+        ap = ap_per_class(stats["tp"], stats["conf"], stats["pred_cls"], stats["target_cls"], names=self.names)[5]
+        return float(ap[:, 5].mean()) if len(ap) else 0.0
+
     @staticmethod
     def _concat_or_empty(values, dtype=torch.float32):
         return torch.cat(values, 0) if values else torch.empty(0, dtype=dtype)
@@ -177,6 +188,7 @@ class ScaleAwareDetectionValidator(DetectionValidator):
         }
         for name, value in self.scale_maps.items():
             stats[f"metrics/{name}(B)"] = value
+        stats["metrics/mAP75(B)"] = self._compute_map75()
         self.metrics.scale_maps = self.scale_maps
         self.metrics.scale_area_ranges = self.scale_area_ranges
         self.metrics.per_class_diagnostics = self._class_diagnostics()
@@ -224,6 +236,18 @@ def parse_args():
         default=2,
         help="Validation dataloader workers.",
     )
+    parser.add_argument(
+        "--project",
+        type=Path,
+        default=ROOT_DIR / "runs" / "test",
+        help="Absolute or relative validation-output project directory.",
+    )
+    parser.add_argument(
+        "--plots",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Whether to save validation plots.",
+    )
     return parser.parse_args()
 
 
@@ -261,9 +285,9 @@ def main():
         iou=0.5,
         device=args.device,
         amp=False,
-        plots=True,
+        plots=args.plots,
         save_json=True,
-        project=str(ROOT_DIR / "runs/test"),
+        project=str(args.project.resolve()),
         name=args.name,
         exist_ok=True,
     )
@@ -274,6 +298,7 @@ def main():
         "weights": str(args.weights),
         "data": str(args.data),
         "amp": False,
+        "plots": args.plots,
         "model": {
             "layers": int(layers),
             "parameters": int(parameters),

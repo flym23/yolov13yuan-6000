@@ -105,6 +105,8 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
+from .dcrq import DAWRB, DAWRBDSC3k2, RCFConcat, RecallPreservingQualityCalibrator, StrictResidualBudget
+from .bsrq import BoundedSpectralConditioner, BoundedSpectralStem, ReliabilityAdaptiveFullPAD, SCQQualityFusion, StatConsensusGate
 from .head import (
     OBB,
     Classify,
@@ -131,7 +133,10 @@ from .head import (
     GIMRDetect,
     P3QualityDecoupler,
     QualityAlignedDecoupledDetect,
+    RPQUDQDetect,
+    SCQUDQDetect,
     Segment,
+    UDQDetect,
     WorldDetect,
     v10Detect,
 )
@@ -270,5 +275,18 @@ __all__ = (
     "GIMRDetect",
     "P3QualityDecoupler",
     "QualityAlignedDecoupledDetect",
+    "UDQDetect",
+    "RPQUDQDetect",
+    "SCQUDQDetect",
+    "BoundedSpectralConditioner",
+    "BoundedSpectralStem",
+    "ReliabilityAdaptiveFullPAD",
+    "StatConsensusGate",
+    "SCQQualityFusion",
+    "StrictResidualBudget",
+    "DAWRB",
+    "DAWRBDSC3k2",
+    "RCFConcat",
+    "RecallPreservingQualityCalibrator",
     "DSConv",
 )

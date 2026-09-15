@@ -42,6 +42,9 @@ from ultralytics.nn.modules import (
     Conv,
     Conv2,
     DSConv,
+    DAWRB,
+    DAWRBDSC3k2,
+    BoundedSpectralStem,
     ConvTranspose,
     Detect,
     HRCTDetect,
@@ -71,6 +74,7 @@ from ultralytics.nn.modules import (
     HyperACE,
     DownsampleConv,
     FullPAD_Tunnel,
+    ReliabilityAdaptiveFullPAD,
     DSC3k2,
     DRSC,  # noqa: F401 - exported for YAML/global resolution compatibility
     DRSCDSC3k2,
@@ -94,6 +98,10 @@ from ultralytics.nn.modules import (
     CSTDDetect,
     GIMRDetect,
     QualityAlignedDecoupledDetect,
+    RCFConcat,
+    RPQUDQDetect,
+    SCQUDQDetect,
+    UDQDetect,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -1034,6 +1042,18 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             # The following original Concat, rather than this module, owns lateral feature fusion.
             args = [c_deep, c_lateral, *args]
             c2 = c_deep
+        elif m is DAWRB:
+            if isinstance(f, (list, tuple)):
+                raise ValueError("DAWRB requires exactly one input layer.")
+            c1 = ch[f]
+            args = [c1, *args]
+            c2 = c1
+        elif m is RCFConcat:
+            if not isinstance(f, (list, tuple)) or len(f) != 2:
+                raise ValueError("RCFConcat requires from=[deep_layer, lateral_layer].")
+            c_deep, c_lateral = ch[f[0]], ch[f[1]]
+            args = [c_deep, c_lateral, *args]
+            c2 = c_deep + c_lateral
         elif m is MACRDSC3k2:
             if not isinstance(f, (list, tuple)) or len(f) != 3:
                 raise ValueError(
@@ -1103,6 +1123,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             DAPD,
             CAGDSC3k2,
             DSConv,
+            BoundedSpectralStem,
+            DAWRBDSC3k2,
         }:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
@@ -1134,10 +1156,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 DSRFDSC3k2,
                 DRSCDSC3k2,
                 CAGDSC3k2,
+                DAWRBDSC3k2,
             }:
                 args.insert(2, n)  # number of repeats
                 n = 1
-            if m in {C3k2, DSC3k2, DSRFDSC3k2, DRSCDSC3k2, CAGDSC3k2}:  # for P/U sizes
+            if m in {C3k2, DSC3k2, DSRFDSC3k2, DRSCDSC3k2, CAGDSC3k2, DAWRBDSC3k2}:  # for P/U sizes
                 legacy = False
                 if scale in "lx":
                     args[3] = True
@@ -1188,6 +1211,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             CSTDDetect,
             GIMRDetect,
             QualityAlignedDecoupledDetect,
+            UDQDetect,
+            SCQUDQDetect,
+            RPQUDQDetect,
             WorldDetect,
             Segment,
             Pose,
@@ -1207,6 +1233,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 CSTDDetect,
                 GIMRDetect,
                 QualityAlignedDecoupledDetect,
+                UDQDetect,
+                SCQUDQDetect,
+                RPQUDQDetect,
                 Segment,
                 Pose,
                 OBB,
@@ -1241,7 +1270,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             if scale in "lx":  # for L/X sizes
                 args.append(False)
                 c2 =c1
-        elif m is FullPAD_Tunnel:
+        elif m in {FullPAD_Tunnel, ReliabilityAdaptiveFullPAD}:
             c2 = ch[f[0]]
         else:
             c2 = ch[f]

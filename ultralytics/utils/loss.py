@@ -167,7 +167,11 @@ class v8DetectionLoss:
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
-        self.no = m.nc + m.reg_max * 4
+        self.has_quality_branch = bool(getattr(m, "has_quality_branch", False))
+        self.no = m.no if self.has_quality_branch else m.nc + m.reg_max * 4
+        self.quality_gain = float(getattr(model, "yaml", {}).get("quality_gain", 0.0))
+        if self.has_quality_branch and self.quality_gain < 0.0:
+            raise ValueError("quality_gain must be non-negative.")
         self.reg_max = m.reg_max
         self.device = device
 
@@ -207,9 +211,13 @@ class v8DetectionLoss:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         feats = preds[1] if isinstance(preds, tuple) else preds
-        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.nc), 1
-        )
+        prediction = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2)
+        if self.has_quality_branch:
+            pred_distri, pred_scores, pred_quality = prediction.split((self.reg_max * 4, self.nc, 1), 1)
+            pred_quality = pred_quality.permute(0, 2, 1).contiguous()
+        else:
+            pred_distri, pred_scores = prediction.split((self.reg_max * 4, self.nc), 1)
+            pred_quality = None
 
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
@@ -246,12 +254,26 @@ class v8DetectionLoss:
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
         loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
 
-        # Bbox loss
+        quality_target = torch.zeros_like(pred_quality) if pred_quality is not None else None
+
+        # Bbox loss and the detached IoU target for the optional UDQ quality branch.
         if fg_mask.sum():
             target_bboxes /= stride_tensor
             loss[0], loss[2] = self.bbox_loss(
                 pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask
             )
+            if quality_target is not None:
+                matched_iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=False).detach()
+                # bbox_iou() preserves the trailing singleton coordinate dimension for paired boxes, yielding
+                # (num_foreground, 1). Normalize explicitly so the Boolean-indexed quality branch receives
+                # exactly one target per foreground anchor on every supported PyTorch version.
+                quality_target[fg_mask] = matched_iou.clamp(0.0, 1.0).reshape(-1, 1)
+
+        if pred_quality is not None and self.quality_gain:
+            # Varifocal-style supervision: foreground quality equals matched IoU; background quality is zero.
+            quality_weight = quality_target + (1.0 - quality_target) * pred_quality.detach().sigmoid().square()
+            quality_loss = (self.bce(pred_quality, quality_target) * quality_weight).sum() / target_scores_sum
+            loss[1] += self.quality_gain * quality_loss
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain

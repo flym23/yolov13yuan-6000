@@ -12,7 +12,9 @@ from torch.nn.init import constant_, xavier_uniform_
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 
 from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto
+from .bsrq import SCQQualityFusion
 from .conv import Conv, DWConv
+from .dcrq import RecallPreservingQualityCalibrator
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
@@ -38,6 +40,9 @@ __all__ = (
     "GIMRDetect",
     "P3QualityDecoupler",
     "QualityAlignedDecoupledDetect",
+    "UDQDetect",
+    "SCQUDQDetect",
+    "RPQUDQDetect",
     "Segment",
     "Pose",
     "Classify",
@@ -2036,3 +2041,169 @@ class QualityAlignedDecoupledDetect(Detect):
         y = self._inference(one2one)
         y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
         return y if self.export else (y, {"one2many": one2many, "one2one": one2one})
+
+
+class UDQDetect(Detect):
+    """Detect with DFL-statistics-guided quality logits and preserved box/class branches."""
+
+    has_quality_branch = True
+
+    def __init__(self, nc=80, config=None, ch=(), **overrides):
+        if not isinstance(ch, (list, tuple)) or len(ch) != 3:
+            raise ValueError(f"UDQDetect requires P3/P4/P5 channels, got {ch}.")
+        if config is not None and not isinstance(config, dict):
+            raise TypeError("UDQDetect config must be a mapping when provided.")
+        options = dict(config or {})
+        options.update(overrides)
+        self.quality_mix = float(options.pop("quality_mix", 0.50))
+        self.detach_stats = bool(options.pop("detach_stats", True))
+        strengths = tuple(float(value) for value in options.pop("stat_strengths", (1.0, 0.5, 0.25)))
+        if options:
+            raise ValueError(f"Unsupported UDQDetect options: {sorted(options)}.")
+        if not 0.0 <= self.quality_mix <= 1.0:
+            raise ValueError("quality_mix must be in [0, 1].")
+        if len(strengths) != len(ch) or any(value < 0.0 for value in strengths):
+            raise ValueError("stat_strengths must contain one non-negative value per detection scale.")
+        super().__init__(nc=nc, ch=ch)
+        if self.end2end:
+            raise NotImplementedError("UDQDetect supports the standard one-to-many Detect path only.")
+        self.no = self.reg_max * 4 + self.nc + 1
+        quality_channels = max(16, ch[0] // 4)
+        self.cvq = nn.ModuleList(
+            nn.Sequential(Conv(channels, quality_channels, 3), Conv(quality_channels, quality_channels, 3), nn.Conv2d(quality_channels, 1, 1))
+            for channels in ch
+        )
+        self.cvq_stat = nn.ModuleList(
+            nn.Sequential(Conv(12, quality_channels, 1), nn.Conv2d(quality_channels, 1, 1)) for _ in ch
+        )
+        self.register_buffer("stat_strengths", torch.tensor(strengths, dtype=torch.float32), persistent=True)
+
+    def _dfl_statistics(self, box_logits):
+        """Return detached certainty, peak, and inverse-variance evidence for four DFL sides."""
+        batch, channels, height, width = box_logits.shape
+        if channels != self.reg_max * 4:
+            raise ValueError(f"Expected {self.reg_max * 4} DFL channels, got {channels}.")
+        probability = box_logits.float().view(batch, 4, self.reg_max, height, width).softmax(dim=2)
+        entropy = -(probability.clamp_min(1e-8).log() * probability).sum(dim=2) / math.log(self.reg_max)
+        certainty = 1.0 - entropy.clamp(0.0, 1.0)
+        peak = probability.amax(dim=2)
+        positions = torch.arange(self.reg_max, device=probability.device, dtype=probability.dtype).view(1, 1, -1, 1, 1)
+        mean = (probability * positions).sum(dim=2, keepdim=True)
+        variance = (probability * (positions - mean).square()).sum(dim=2)
+        maximum_variance = max(((self.reg_max - 1) ** 2) * 0.25, 1e-8)
+        inverse_variance = 1.0 - (variance / maximum_variance).clamp(0.0, 1.0)
+        statistics = torch.cat((certainty, peak, inverse_variance), dim=1)
+        return statistics.detach() if self.detach_stats else statistics
+
+    def _quality_logits(self, feature, box_logits, level_index):
+        statistics = self._dfl_statistics(box_logits).to(dtype=feature.dtype)
+        quality_feature = self.cvq[level_index](feature)
+        quality_statistic = self.cvq_stat[level_index](statistics)
+        return self._fuse_quality_statistics(quality_feature, quality_statistic, statistics, level_index)
+
+    def _fuse_quality_statistics(self, quality_feature, quality_statistic, statistics, level_index):
+        """Keep B1's original quality fusion as a minimal override hook for derived heads."""
+        strength = self.stat_strengths[level_index].to(device=quality_feature.device, dtype=quality_feature.dtype)
+        return quality_feature + strength * quality_statistic
+
+    def _calibrate_class_probability(self, cls_prob, quality_prob, level_index):
+        """Original UDQ inference rule, retained unchanged for the D-only ablation."""
+        return cls_prob * ((1.0 - self.quality_mix) + self.quality_mix * quality_prob)
+
+    def _inference(self, outputs):
+        """Decode standard boxes while omitting the auxiliary quality channel from public predictions."""
+        shape = outputs[0].shape
+        if self.format != "imx" and (self.dynamic or self.shape != shape):
+            self.anchors, self.strides = (value.transpose(0, 1) for value in make_anchors(outputs, self.stride, 0.5))
+            self.shape = shape
+        box_blocks, class_blocks = [], []
+        for level_index, output in enumerate(outputs):
+            box_logits, cls_logits, quality_logits = output.split((self.reg_max * 4, self.nc, 1), dim=1)
+            box_blocks.append(box_logits.view(shape[0], self.reg_max * 4, -1))
+            class_blocks.append(
+                self._calibrate_class_probability(cls_logits.sigmoid(), quality_logits.sigmoid(), level_index).view(shape[0], self.nc, -1)
+            )
+        box, cls_prob = torch.cat(box_blocks, dim=2), torch.cat(class_blocks, dim=2)
+        if self.export and self.format in {"tflite", "edgetpu"}:
+            grid_h, grid_w = shape[2], shape[3]
+            grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
+            norm = self.strides / (self.stride[0] * grid_size)
+            dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
+        elif self.export and self.format == "imx":
+            dbox = self.decode_bboxes(self.dfl(box) * self.strides, self.anchors.unsqueeze(0) * self.strides, xywh=False)
+            return dbox.transpose(1, 2), cls_prob.permute(0, 2, 1)
+        else:
+            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+        return torch.cat((dbox, cls_prob), dim=1)
+
+    def forward(self, x):
+        if not isinstance(x, (list, tuple)) or len(x) != self.nl:
+            raise ValueError(f"UDQDetect expects {self.nl} feature maps.")
+        outputs = []
+        for level_index, feature in enumerate(x):
+            box_logits = self.cv2[level_index](feature)
+            outputs.append(torch.cat((box_logits, self.cv3[level_index](feature), self._quality_logits(feature, box_logits, level_index)), dim=1))
+        if self.training:
+            return outputs
+        prediction = self._inference(outputs)
+        return prediction if self.export else (prediction, outputs)
+
+    def bias_init(self):
+        """Initialize standard branches as Detect and start each quality logit at a neutral prior."""
+        super().bias_init()
+        for feature_branch, statistic_branch in zip(self.cvq, self.cvq_stat):
+            nn.init.zeros_(feature_branch[-1].weight)
+            nn.init.zeros_(feature_branch[-1].bias)
+            nn.init.zeros_(statistic_branch[-1].weight)
+            nn.init.zeros_(statistic_branch[-1].bias)
+
+
+class SCQUDQDetect(UDQDetect):
+    """B1 UDQDetect with only its DFL-statistic quality fusion replaced by bounded SCQ."""
+
+    def __init__(self, nc=80, config=None, ch=(), **overrides):
+        if config is not None and not isinstance(config, dict):
+            raise TypeError("SCQUDQDetect config must be a mapping when provided.")
+        options = dict(config or {})
+        options.update(overrides)
+        max_deltas = tuple(float(value) for value in options.pop("scq_max_deltas", (0.25, 0.15, 0.08)))
+        hidden = int(options.pop("scq_hidden", 8))
+        stat_strengths = tuple(float(value) for value in options.get("stat_strengths", (1.0, 0.5, 0.25)))
+        if len(max_deltas) != len(stat_strengths):
+            raise ValueError("scq_max_deltas must contain one value per detection scale.")
+        super().__init__(nc=nc, config=options, ch=ch)
+        # SCQ is new-only state and must not alter any inherited B1 initialization sequence.
+        with torch.random.fork_rng(devices=[], enabled=True):
+            self.scq_fusion = SCQQualityFusion(
+                stat_strengths=stat_strengths,
+                max_deltas=max_deltas,
+                hidden=hidden,
+            )
+
+    def _fuse_quality_statistics(self, quality_feature, quality_statistic, statistics, level_index):
+        return self.scq_fusion(quality_feature, quality_statistic, statistics, level_index)
+
+
+class RPQUDQDetect(UDQDetect):
+    """UDQDetect whose inference-only calibration preserves recall at low predicted quality."""
+
+    def __init__(self, nc=80, config=None, ch=(), **overrides):
+        if config is not None and not isinstance(config, dict):
+            raise TypeError("RPQUDQDetect config must be a mapping when provided.")
+        options = dict(config or {})
+        options.update(overrides)
+        strengths = tuple(float(value) for value in options.pop("rpq_strengths", (0.25, 0.20, 0.15)))
+        threshold = float(options.pop("rpq_threshold", 0.50))
+        negative_ratio = float(options.pop("rpq_negative_ratio", 0.25))
+        max_factor = float(options.pop("rpq_max_factor", 1.25))
+        super().__init__(nc=nc, config=options, ch=ch)
+        self.rpqc = RecallPreservingQualityCalibrator(
+            nl=self.nl,
+            strengths=strengths,
+            threshold=threshold,
+            negative_ratio=negative_ratio,
+            max_factor=max_factor,
+        )
+
+    def _calibrate_class_probability(self, cls_prob, quality_prob, level_index):
+        return self.rpqc(cls_prob, quality_prob, level_index)
