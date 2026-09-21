@@ -153,11 +153,7 @@ from .transformer import (
     TransformerLayer,
 )
 
-from .ucra_v2 import UCRA1v2, UCRA2v2
-
 __all__ = (
-    "UCRA1v2",
-    "UCRA2v2",
     "Conv",
     "Conv2",
     "LightConv",

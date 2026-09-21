@@ -12,8 +12,6 @@ import torch
 import torch.nn as nn
 
 from ultralytics.nn.modules import (
-    UCRA1v2,
-    UCRA2v2,
     AIFI,
     C1,
     C2,
@@ -1014,14 +1012,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             legacy = False
             if scale in "lx":
                 args[4] = True
-        elif m in {UCRA1v2, UCRA2v2}:
-            if not isinstance(f, (list, tuple)) or len(f) != 2:
-                raise ValueError(f"{m.__name__} requires from=[deep_layer, lateral_layer].")
-            if n != 1:
-                raise ValueError(f"{m.__name__} replaces one Upsample and requires repeats=1.")
-            c_deep, c_lateral = ch[f[0]], ch[f[1]]
-            args = [c_deep, c_lateral, *args]
-            c2 = c_deep
         elif m is BCRAUp:
             if not isinstance(f, (list, tuple)) or len(f) != 2:
                 raise ValueError("BCRAUp requires from=[P5_deep, P4_lateral].")

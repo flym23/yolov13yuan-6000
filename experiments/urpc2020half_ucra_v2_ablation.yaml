@@ -1,0 +1,115 @@
+# UCRA-v2 / RDAS-UCRA ablation manifest for URPC2020half.
+# This file is intentionally an experiment manifest rather than an Ultralytics default.yaml replacement.
+# Codex MUST reuse the exact same baseline training recipe for every enabled run.
+
+# Explicit user overrides, 2026-09-20: these supersede the attachment's pilot policy.
+execution:
+  stages: [A0, A3, A4]
+  seeds: [0, 1, 2]
+  parallel_workers: 3
+  epochs: 180
+  device: 0
+  workers: 2
+  amp: false
+  deterministic: true
+  plots: false
+  imgsz: 640
+  batch: 16
+  pretrained: yolov13n.pt
+  early_stopping: false
+  output_layout: runs/ucra_v2_<run_id>/{train,test}/seed{0,1,2}/{A0,A3,A4}
+
+dataset:
+  root: /home/room305/ZZF/URPC2020half
+  data_yaml_resolution:
+    strategy: auto
+    preferred_candidates:
+      - /home/room305/ZZF/URPC2020half/URPC2020half.yaml
+      - /home/room305/ZZF/URPC2020half/data.yaml
+    validation:
+      nc: 4
+      require_train: true
+      require_val: true
+
+fairness:
+  inherit_exactly_from_baseline:
+    - weights_or_pretrained_source
+    - epochs
+    - imgsz
+    - batch
+    - optimizer
+    - lr0
+    - lrf
+    - momentum
+    - weight_decay
+    - warmup_epochs
+    - box
+    - cls
+    - dfl
+    - hsv_h
+    - hsv_s
+    - hsv_v
+    - degrees
+    - translate
+    - scale
+    - shear
+    - perspective
+    - flipud
+    - fliplr
+    - mosaic
+    - mixup
+    - copy_paste
+    - close_mosaic
+    - amp
+    - workers
+    - deterministic
+  primary_seed: 0
+  confirmatory_seeds: [0, 1, 2]
+  do_not_change_validation_thresholds_between_runs: true
+
+output:
+  project: runs/urpc2020half_ucra_v2
+  save_period: -1
+  plots: false
+
+runs:
+  - id: A0
+    enabled: true
+    description: YOLOv13-N baseline
+    model: ultralytics/cfg/models/v13/yolov13.yaml
+
+  - id: A3
+    enabled: true
+    description: UCRA-v2 reliability/budget branch, learned offset disabled
+    model: ultralytics/cfg/models/v13/yolov13n-ucra-v2-a3-no-offset.yaml
+
+  - id: A4
+    enabled: true
+    description: Full UCRA-v2 / RDAS-UCRA
+    model: ultralytics/cfg/models/v13/yolov13n-ucra-v2-a4-full.yaml
+
+evaluation:
+  report:
+    - precision
+    - recall
+    - map50
+    - map50_95
+    - AP_S
+    - AP_M
+    - AP_L
+    - params
+    - GFLOPs
+    - best_epoch
+  primary_comparison: A4_vs_A0
+  ablation_comparison: A4_vs_A3
+  stability_rule:
+    confirm_if_primary_run_improves: false
+    confirmation_seeds: [0, 1, 2]
+    minimum_direction_consistency: 2
+    minimum_direction_consistency_denominator: 3
+
+phase2:
+  enabled: false
+  description: >
+    Only after A4 is validated, combine A4 with SANWD using the previously prepared
+    SANWD loss implementation. Do not mix SANWD into A3/A4 structural ablation.
