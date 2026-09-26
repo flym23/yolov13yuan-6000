@@ -107,7 +107,6 @@ from .conv import (
 )
 from .dcrq import DAWRB, DAWRBDSC3k2, RCFConcat, RecallPreservingQualityCalibrator, StrictResidualBudget
 from .bsrq import BoundedSpectralConditioner, BoundedSpectralStem, ReliabilityAdaptiveFullPAD, SCQQualityFusion, StatConsensusGate
-from .f1_reconcile import F1ReconcileAdapter, F1ReconcileDetect
 from .head import (
     OBB,
     Classify,
@@ -203,8 +202,6 @@ __all__ = (
     "BottleneckCSP",
     "Proto",
     "Detect",
-    "F1ReconcileAdapter",
-    "F1ReconcileDetect",
     "Segment",
     "Pose",
     "Classify",

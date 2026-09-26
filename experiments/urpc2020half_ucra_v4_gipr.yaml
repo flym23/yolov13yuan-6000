@@ -1,0 +1,72 @@
+experiment: UCRA-v4 / GIPR-UCRA on URPC2020half
+dataset_root: /home/room305/ZZF/URPC2020half
+
+references:
+  A0:
+    reuse_existing_results: true
+    model: ultralytics/cfg/models/v13/yolov13.yaml
+  A4:
+    reuse_existing_results: true
+    model: ultralytics/cfg/models/v13/yolov13n-ucra-v2-a4-full.yaml
+  B2:
+    reuse_existing_results: true
+    model: ultralytics/cfg/models/v13/yolov13n-ucra-v3-b2-hybrid-full.yaml
+
+runs:
+  C0:
+    train: true
+    purpose: three-seed implementation-equivalence training rerun
+    model: ultralytics/cfg/models/v13/yolov13n-ucra-v4-c0-equivalence.yaml
+  C1:
+    train: true
+    purpose: A4 core plus gradient-isolated sparse central-difference precision residual
+    model: ultralytics/cfg/models/v13/yolov13n-ucra-v4-c1-gipr.yaml
+  C2:
+    train: true
+    condition: unconditional_by_user_request_20260923
+    purpose: conservative precision-residual fallback
+    model: ultralytics/cfg/models/v13/yolov13n-ucra-v4-c2-conservative.yaml
+
+fairness:
+  inherit_exact_recipe_from_A4: true
+  same_pretrained_checkpoint_as_A4: true
+  do_not_warm_start_primary_C1_from_A4_trained_checkpoint: true
+  fixed:
+    - dataset_split
+    - epochs
+    - imgsz
+    - batch
+    - optimizer
+    - lr0
+    - lrf
+    - weight_decay
+    - warmup
+    - box
+    - cls
+    - dfl
+    - augmentation
+    - amp
+    - workers
+    - validation_thresholds
+  screening_seed: null
+  confirmatory_seeds: [0, 1, 2]
+  execution: C0_then_C1_then_C2_with_three_parallel_seeds_per_stage
+
+decision:
+  primary_reference: A4
+  precision_reference: B2
+  primary_metric: mAP50_95
+  required_for_final_candidate:
+    mean_mAP50_95_gt_A4: true
+    mAP50_95_positive_vs_A4_seeds_at_least: 2
+    AP_S_mean_drop_vs_A4_pp_max: 0.20
+    recall_mean_drop_vs_A4_pp_max: 0.30
+    AP_M_AP_L_no_persistent_collapse: true
+  desired_behavior:
+    - retain_A4_small_object_and_recall_strength
+    - approach_or_exceed_B2_precision_and_mAP50_95
+    - reduce_A4_precision_seed_variance
+
+phase2:
+  enabled_after_C1_or_C2_structure_validation: false
+  next: selected_UCRA_v4_plus_SANWD

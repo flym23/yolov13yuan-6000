@@ -1,0 +1,10 @@
+{
+  "project": "/home/room305/ZZF/yolov13yuan-6000",
+  "run": "/home/room305/ZZF/yolov13yuan-6000/runs/sqanwd_urpc2020_20260924_r1",
+  "files": [
+    {
+      "relative_path": "ultralytics/utils/loss.py",
+      "original_sha256": "53cd12107e51459dc0324f3624b567770b227283e1597f0ce3d4de5dc78b1f47"
+    }
+  ]
+}

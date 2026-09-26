@@ -8,7 +8,6 @@ from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
-from ultralytics.utils.sqanwd import ScaleQualityAdaptiveNWD
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
@@ -114,69 +113,6 @@ class BboxLoss(nn.Module):
         return loss_iou, loss_dfl
 
 
-class SQANWDBboxLoss(BboxLoss):
-    """Mix CIoU with scale- and quality-gated NWD for detection box regression."""
-
-    def __init__(self, reg_max=16, cfg=None):
-        super().__init__(reg_max)
-        cfg = dict(cfg or {})
-        self.sqanwd = ScaleQualityAdaptiveNWD(
-            max_mix=float(cfg.get("max_mix", 0.20)),
-            c_ratio=float(cfg.get("c_ratio", 0.020)),
-            small_thr=float(cfg.get("small_thr", 0.050)),
-            small_temp=float(cfg.get("small_temp", 0.0125)),
-            iou_floor=float(cfg.get("iou_floor", 0.30)),
-            iou_ceiling=float(cfg.get("iou_ceiling", 0.80)),
-            calibration_min=float(cfg.get("calibration_min", 0.50)),
-            calibration_max=float(cfg.get("calibration_max", 2.00)),
-            mean_guard_min=float(cfg.get("mean_guard_min", 0.80)),
-            mean_guard_max=float(cfg.get("mean_guard_max", 1.25)),
-            eps=float(cfg.get("eps", 1e-9)),
-        )
-
-    @staticmethod
-    def _foreground_strides(stride_tensor, fg_mask):
-        if stride_tensor.ndim != 2 or stride_tensor.shape[-1] != 1:
-            raise ValueError("stride_tensor must have shape [A, 1]")
-        if fg_mask.ndim != 2:
-            raise ValueError("fg_mask must have shape [B, A]")
-        expanded = stride_tensor.reshape(1, -1, 1).expand(fg_mask.shape[0], -1, -1)
-        return expanded[fg_mask]
-
-    def forward(
-        self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores,
-        target_scores_sum, fg_mask, stride_tensor, imgsz,
-    ):
-        # BboxLoss receives boxes in feature-grid units after target_bboxes /= stride_tensor.
-        weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        pred_fg = pred_bboxes[fg_mask]
-        target_fg = target_bboxes[fg_mask]
-        ciou = bbox_iou(pred_fg, target_fg, xywh=False, CIoU=True)
-        plain_iou = bbox_iou(pred_fg, target_fg, xywh=False, CIoU=False).detach()
-        fg_stride = self._foreground_strides(stride_tensor, fg_mask).to(
-            device=pred_fg.device, dtype=pred_fg.dtype)
-        hybrid_loss, _ = self.sqanwd(
-            ciou_loss=1.0 - ciou,
-            plain_iou=plain_iou,
-            pred_xyxy_px=pred_fg * fg_stride,
-            target_xyxy_px=target_fg * fg_stride,
-            weight=weight,
-            imgsz_hw=imgsz,
-        )
-        loss_iou = (hybrid_loss * weight).sum() / target_scores_sum
-
-        # The DFL calculation is identical to the original BboxLoss path.
-        if self.dfl_loss:
-            target_ltrb = bbox2dist(anchor_points, target_bboxes, self.dfl_loss.reg_max - 1)
-            loss_dfl = self.dfl_loss(
-                pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]
-            ) * weight
-            loss_dfl = loss_dfl.sum() / target_scores_sum
-        else:
-            loss_dfl = torch.tensor(0.0).to(pred_dist.device)
-        return loss_iou, loss_dfl
-
-
 class RotatedBboxLoss(BboxLoss):
     """Criterion class for computing training losses during training."""
 
@@ -242,12 +178,7 @@ class v8DetectionLoss:
         self.use_dfl = m.reg_max > 1
 
         self.assigner = TaskAlignedAssigner(topk=tal_topk, num_classes=self.nc, alpha=0.5, beta=6.0)
-        sqanwd_cfg = getattr(model, "yaml", {}).get("sqanwd", {}) or {}
-        self.use_sqanwd = bool(sqanwd_cfg.get("enabled", False))
-        self.bbox_loss = (
-            SQANWDBboxLoss(m.reg_max, sqanwd_cfg).to(device)
-            if self.use_sqanwd else BboxLoss(m.reg_max).to(device)
-        )
+        self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
     def preprocess(self, targets, batch_size, scale_tensor):
@@ -328,17 +259,9 @@ class v8DetectionLoss:
         # Bbox loss and the detached IoU target for the optional UDQ quality branch.
         if fg_mask.sum():
             target_bboxes /= stride_tensor
-            if self.use_sqanwd:
-                loss[0], loss[2] = self.bbox_loss(
-                    pred_distri, pred_bboxes, anchor_points, target_bboxes,
-                    target_scores, target_scores_sum, fg_mask,
-                    stride_tensor=stride_tensor, imgsz=imgsz,
-                )
-            else:
-                loss[0], loss[2] = self.bbox_loss(
-                    pred_distri, pred_bboxes, anchor_points, target_bboxes,
-                    target_scores, target_scores_sum, fg_mask,
-                )
+            loss[0], loss[2] = self.bbox_loss(
+                pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask
+            )
             if quality_target is not None:
                 matched_iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=False).detach()
                 # bbox_iou() preserves the trailing singleton coordinate dimension for paired boxes, yielding

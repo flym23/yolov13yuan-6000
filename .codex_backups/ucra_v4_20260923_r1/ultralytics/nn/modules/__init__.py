@@ -107,7 +107,6 @@ from .conv import (
 )
 from .dcrq import DAWRB, DAWRBDSC3k2, RCFConcat, RecallPreservingQualityCalibrator, StrictResidualBudget
 from .bsrq import BoundedSpectralConditioner, BoundedSpectralStem, ReliabilityAdaptiveFullPAD, SCQQualityFusion, StatConsensusGate
-from .f1_reconcile import F1ReconcileAdapter, F1ReconcileDetect
 from .head import (
     OBB,
     Classify,
@@ -156,12 +155,10 @@ from .transformer import (
 
 from .ucra_v2 import UCRA1v2, UCRA2v2
 from .ucra_v3 import UCRA1v3, UCRA2v3
-from .ucra_v4 import UCRA2v4
 
 __all__ = (
     "UCRA1v3",
     "UCRA2v3",
-    "UCRA2v4",
     "UCRA1v2",
     "UCRA2v2",
     "Conv",
@@ -203,8 +200,6 @@ __all__ = (
     "BottleneckCSP",
     "Proto",
     "Detect",
-    "F1ReconcileAdapter",
-    "F1ReconcileDetect",
     "Segment",
     "Pose",
     "Classify",

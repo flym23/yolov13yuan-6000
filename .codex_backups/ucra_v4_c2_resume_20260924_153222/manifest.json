@@ -1,0 +1,116 @@
+{
+  "run_root": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1",
+  "checkpoints": [
+    {
+      "seed": 0,
+      "completed_epochs": 172,
+      "checkpoint": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed0/C2/weights/last.pt",
+      "checkpoint_sha256": "7e34af8a5def563825c4518dc95d164318964ab05bee35484e614b136039d58e"
+    },
+    {
+      "seed": 1,
+      "completed_epochs": 171,
+      "checkpoint": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed1/C2/weights/last.pt",
+      "checkpoint_sha256": "0f5269f81f05a6a12a0eec588dfcac184ab24500283eeac1abbde581d9284ba5"
+    },
+    {
+      "seed": 2,
+      "completed_epochs": 172,
+      "checkpoint": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed2/C2/weights/last.pt",
+      "checkpoint_sha256": "c48180ad89cbcbe56f031a2b7200ca2fb9cc2b62bea52a446549ba42e2cfbf4a"
+    }
+  ],
+  "files": [
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed0/C2/results.csv",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed0/C2/results.csv",
+      "size": 22713,
+      "sha256": "99f938728b15dca78b9dd5381bf31fe1151fa244813818edbe837f661a42a327"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed0/C2/args.yaml",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed0/C2/args.yaml",
+      "size": 1808,
+      "sha256": "78a1906bc6d1fc654c18de42b7fdf059a521c39fa3d5e514597d11ee2f95949d"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed0/C2/best_epoch.json",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed0/C2/best_epoch.json",
+      "size": 39,
+      "sha256": "9e033e4275c414903ab328c1a7030b52d518b3fd7165c7312e10b30c1228bf43"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed0/C2/weights/last.pt",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed0/C2/weights/last.pt",
+      "size": 16208401,
+      "sha256": "7e34af8a5def563825c4518dc95d164318964ab05bee35484e614b136039d58e"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed0/C2/weights/best.pt",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed0/C2/weights/best.pt",
+      "size": 16198033,
+      "sha256": "d541da44a0248103c61a254104ac2447e326a96ad8dcdae1ccfd6a8aef445bb6"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed1/C2/results.csv",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed1/C2/results.csv",
+      "size": 22584,
+      "sha256": "895cbc6b60f2f2eab8fb9f1342a1389696c2bf90c5af393f21cd08c51a49eefe"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed1/C2/args.yaml",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed1/C2/args.yaml",
+      "size": 1808,
+      "sha256": "dc34d16ef30ac25f74a7d1ff11ae71a29da904338c20625e00de914cfcb1c2f0"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed1/C2/best_epoch.json",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed1/C2/best_epoch.json",
+      "size": 40,
+      "sha256": "01e431baa9d1e888fc3a931276ed22583797d5fb3415829e95eb23aebf97da4b"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed1/C2/weights/last.pt",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed1/C2/weights/last.pt",
+      "size": 16208273,
+      "sha256": "0f5269f81f05a6a12a0eec588dfcac184ab24500283eeac1abbde581d9284ba5"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed1/C2/weights/best.pt",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed1/C2/weights/best.pt",
+      "size": 16200209,
+      "sha256": "c53e10869110d40775c60fab23776a4a241383452d60fd86c72bf6c761fce08a"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed2/C2/results.csv",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed2/C2/results.csv",
+      "size": 22689,
+      "sha256": "be845ee3e421091266dc1ee6867edde55412e3d5aa31c5ef1731837b5ad50519"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed2/C2/args.yaml",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed2/C2/args.yaml",
+      "size": 1808,
+      "sha256": "23ae6f5430b993ae280ef9626ca1f84756dfdb5702e0b798d27d26c01ae1bddb"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed2/C2/best_epoch.json",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed2/C2/best_epoch.json",
+      "size": 40,
+      "sha256": "6452b1d15f955013fd22e6b8ed758de9b435c146d65ab10493ea4dfa9c917dbb"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed2/C2/weights/last.pt",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed2/C2/weights/last.pt",
+      "size": 16208401,
+      "sha256": "c48180ad89cbcbe56f031a2b7200ca2fb9cc2b62bea52a446549ba42e2cfbf4a"
+    },
+    {
+      "source": "/home/room305/ZZF/yolov13yuan-6000/runs/ucra_v4_20260923_r1/train/seed2/C2/weights/best.pt",
+      "backup": "/home/room305/ZZF/yolov13yuan-6000/.codex_backups/ucra_v4_c2_resume_20260924_153222/train/seed2/C2/weights/best.pt",
+      "size": 16200209,
+      "sha256": "4c230d1f7c4fce904f8c3900d6853ea2acfc505d044a60568660afe1044712e0"
+    }
+  ],
+  "state_sha256": "6dc77257a8463ecd7840e263863c592bfe2268e17e73cbf427ac6423bf474ef3"
+}

@@ -52,7 +52,6 @@ from ultralytics.nn.modules import (
     BoundedSpectralStem,
     ConvTranspose,
     Detect,
-    F1ReconcileDetect,
     HRCTDetect,
     SUDLDetect,
     DWConv,
@@ -1218,7 +1217,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             m.legacy = legacy
         elif m in {
             Detect,
-            F1ReconcileDetect,
             HRCTDetect,
             SUDLDetect,
             SBRHDetect,
@@ -1241,7 +1239,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {
                 Detect,
-                F1ReconcileDetect,
                 HRCTDetect,
                 SUDLDetect,
                 SBRHDetect,

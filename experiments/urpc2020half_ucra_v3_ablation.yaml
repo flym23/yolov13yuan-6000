@@ -1,0 +1,78 @@
+experiment: UCRA-v3 / CSDR-UCRA on URPC2020half
+dataset_root: /home/room305/ZZF/URPC2020half
+
+# Explicit user request supersedes the seed-0 screening schedule in the attachment.
+execution:
+  stages: [B1, B2, B3]
+  parallel_seeds: [0, 1, 2]
+  epochs: 180
+  device: 0
+  workers: 2
+  amp: false
+  deterministic: true
+  plots: false
+  imgsz: 640
+  batch: 16
+  pretrained: yolov13n.pt
+  early_stopping: false
+  reference_run: runs/ucra_v2_20260920_r1
+  phase2: false
+
+reference:
+  A0:
+    model: ultralytics/cfg/models/v13/yolov13.yaml
+    reuse_existing_results: true
+  A4:
+    model: ultralytics/cfg/models/v13/yolov13n-ucra-v2-a4-full.yaml
+    reuse_existing_results: true
+
+candidate_runs:
+  B1:
+    model: ultralytics/cfg/models/v13/yolov13n-ucra-v3-b1-context-only.yaml
+    purpose: replace only P3 UCRA2v2 with v3 multi-band consensus branch; central-difference geometry disabled
+  B2:
+    model: ultralytics/cfg/models/v13/yolov13n-ucra-v3-b2-hybrid-full.yaml
+    purpose: enable central-difference geometry while retaining the already-tested UCRA1v2 P5-P4 stage
+  B3:
+    model: ultralytics/cfg/models/v13/yolov13n-ucra-v3-b3-full.yaml
+    purpose: full UCRA-v3; replace P5-P4 dynamic displacement with conservative semantic transport
+
+fairness:
+  inherit_exact_baseline_recipe: true
+  do_not_change:
+    - dataset_split
+    - pretrained_checkpoint
+    - epochs
+    - imgsz
+    - batch
+    - optimizer
+    - lr0
+    - lrf
+    - weight_decay
+    - warmup
+    - box
+    - cls
+    - dfl
+    - augmentation
+    - amp
+    - validation_thresholds
+  screening_seed: 0
+  confirmatory_seeds: [0, 1, 2]
+
+decision:
+  primary_metric: mAP50_95
+  secondary_metrics: [AP_S, AP_M, AP_L, mAP50, P, R]
+  stability:
+    require_primary_positive_seeds: 2
+    denominator: 3
+    prefer_primary_positive_seeds: 3
+    max_primary_std: 0.0025
+  go_no_go_relative_to_A4:
+    require_mean_mAP50_95_gt_A4: true
+    require_no_persistent_APM_APL_collapse: true
+    require_P_R_mean_drop_each_leq_pp: 0.5
+
+phase2:
+  enabled_after_structure_validation: false
+  candidate: B3_plus_SANWD
+  rule: do_not_modify_UCRA_v3_while_testing_SANWD

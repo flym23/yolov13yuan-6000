@@ -12,9 +12,6 @@ import torch
 import torch.nn as nn
 
 from ultralytics.nn.modules import (
-    UCRA1v3,
-    UCRA2v3,
-    UCRA2v4,
     UCRA1v2,
     UCRA2v2,
     AIFI,
@@ -52,7 +49,6 @@ from ultralytics.nn.modules import (
     BoundedSpectralStem,
     ConvTranspose,
     Detect,
-    F1ReconcileDetect,
     HRCTDetect,
     SUDLDetect,
     DWConv,
@@ -1018,7 +1014,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             legacy = False
             if scale in "lx":
                 args[4] = True
-        elif m in {UCRA1v2, UCRA2v2, UCRA1v3, UCRA2v3, UCRA2v4}:
+        elif m in {UCRA1v2, UCRA2v2}:
             if not isinstance(f, (list, tuple)) or len(f) != 2:
                 raise ValueError(f"{m.__name__} requires from=[deep_layer, lateral_layer].")
             if n != 1:
@@ -1218,7 +1214,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             m.legacy = legacy
         elif m in {
             Detect,
-            F1ReconcileDetect,
             HRCTDetect,
             SUDLDetect,
             SBRHDetect,
@@ -1241,7 +1236,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {
                 Detect,
-                F1ReconcileDetect,
                 HRCTDetect,
                 SUDLDetect,
                 SBRHDetect,
