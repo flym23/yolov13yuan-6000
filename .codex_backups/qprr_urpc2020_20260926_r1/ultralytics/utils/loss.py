@@ -9,7 +9,6 @@ from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import autocast
 from ultralytics.utils.sqanwd import ScaleQualityAdaptiveNWD
-from ultralytics.utils.qprr import QualityGatedPRRankLoss
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
@@ -250,33 +249,6 @@ class v8DetectionLoss:
             if self.use_sqanwd else BboxLoss(m.reg_max).to(device)
         )
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
-        qprr_cfg = getattr(model, "yaml", {}).get("qprr", {}) or {}
-        self.qprr_cfg = dict(qprr_cfg)
-        self.use_qprr = bool(qprr_cfg.get("enabled", False)) and float(qprr_cfg.get("gain", 0.0)) > 0.0
-        self.qprr = (
-            QualityGatedPRRankLoss(
-                gain=float(qprr_cfg.get("gain", 0.08)),
-                rank_margin=float(qprr_cfg.get("rank_margin", 0.50)),
-                sort_weight=float(qprr_cfg.get("sort_weight", 0.25)),
-                sort_margin=float(qprr_cfg.get("sort_margin", 1.00)),
-                quality_floor=float(qprr_cfg.get("quality_floor", 0.35)),
-                quality_ceiling=float(qprr_cfg.get("quality_ceiling", 0.75)),
-                neg_topk=int(qprr_cfg.get("neg_topk", 32)),
-                max_pos=int(qprr_cfg.get("max_pos", 64)),
-                near_gt_expand=float(qprr_cfg.get("near_gt_expand", 1.25)),
-                small_thr=float(qprr_cfg.get("small_thr", 0.050)),
-                small_temp=float(qprr_cfg.get("small_temp", 0.0125)),
-                small_boost=float(qprr_cfg.get("small_boost", 0.20)),
-                pos_gamma=float(qprr_cfg.get("pos_gamma", 1.0)),
-                neg_gamma=float(qprr_cfg.get("neg_gamma", 1.0)),
-                quality_gap=float(qprr_cfg.get("quality_gap", 0.05)),
-                calibration_min=float(qprr_cfg.get("calibration_min", 0.25)),
-                calibration_max=float(qprr_cfg.get("calibration_max", 2.00)),
-                eps=float(qprr_cfg.get("eps", 1e-9)),
-            ).to(device)
-            if self.use_qprr else None
-        )
-        self.last_qprr_diagnostics = {}
 
     def preprocess(self, targets, batch_size, scale_tensor):
         """Preprocesses the target counts and matches with the input batch size to output a tensor."""
@@ -349,37 +321,12 @@ class v8DetectionLoss:
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        base_cls_loss = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
-        loss[1] = base_cls_loss
+        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
 
         quality_target = torch.zeros_like(pred_quality) if pred_quality is not None else None
 
         # Bbox loss and the detached IoU target for the optional UDQ quality branch.
         if fg_mask.sum():
-            if self.use_qprr:
-                # TAL targets are still in pixel coordinates here. Clone before
-                # the in-place stride normalization used by the original box loss.
-                target_bboxes_px = target_bboxes.detach().clone()
-                pred_bboxes_px = pred_bboxes * stride_tensor
-                matched_iou = bbox_iou(
-                    pred_bboxes_px[fg_mask], target_bboxes_px[fg_mask], xywh=False, CIoU=False,
-                ).detach().clamp(0.0, 1.0).reshape(-1, 1)
-                qprr_aux, qprr_diag = self.qprr(
-                    pred_scores=pred_scores,
-                    target_scores=target_scores,
-                    fg_mask=fg_mask,
-                    matched_iou=matched_iou,
-                    target_bboxes_px=target_bboxes_px,
-                    anchor_points_px=(anchor_points * stride_tensor).detach(),
-                    gt_bboxes_px=gt_bboxes.detach(),
-                    mask_gt=mask_gt.detach(),
-                    imgsz_hw=imgsz.detach(),
-                    base_cls_loss=base_cls_loss,
-                )
-                loss[1] = loss[1] + qprr_aux
-                self.last_qprr_diagnostics = qprr_diag
-            else:
-                self.last_qprr_diagnostics = {}
             target_bboxes /= stride_tensor
             if self.use_sqanwd:
                 loss[0], loss[2] = self.bbox_loss(
@@ -398,8 +345,6 @@ class v8DetectionLoss:
                 # (num_foreground, 1). Normalize explicitly so the Boolean-indexed quality branch receives
                 # exactly one target per foreground anchor on every supported PyTorch version.
                 quality_target[fg_mask] = matched_iou.clamp(0.0, 1.0).reshape(-1, 1)
-        else:
-            self.last_qprr_diagnostics = {}
 
         if pred_quality is not None and self.quality_gain:
             # Varifocal-style supervision: foreground quality equals matched IoU; background quality is zero.
