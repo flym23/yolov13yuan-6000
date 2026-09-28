@@ -16,7 +16,7 @@ if __name__ == "__main__":
     model = YOLO(str(ROOT / "ultralytics/cfg/models/v13/yolov13.yaml"))
     model.load(str(ROOT / "yolov13n.pt"))
     model.train(
-        data="/home/room305/ZZF/URPC2020half/data.yaml",
+        data="/home/room305/ZZF/URPC2020/data.yaml",
         epochs=300,
         patience=40,
         batch=16,

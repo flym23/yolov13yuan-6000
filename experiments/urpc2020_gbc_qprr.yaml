@@ -1,0 +1,92 @@
+experiment: GBC-QPRR-YOLOv13
+name: Ground-Truth-Balanced Coverage Precision-Recall Ranking
+primary_dataset: /home/room305/ZZF/URPC2020/data.yaml
+confirmatory_dataset: /home/room305/ZZF/URPC2020half
+
+objective:
+  accepted_metrics: [P, R, F1]
+  primary_balanced_metric: F1
+  f1_rule: compute_per_seed_then_mean_std
+
+references:
+  A0: reuse_existing_results
+  A4: reuse_existing_results
+  D1_A4_QPRR_v1: reuse_existing_results
+  D3_A0_QPRR_v1: reuse_existing_results
+
+runs:
+  E0:
+    train: false
+    model: ultralytics/cfg/models/v13/yolov13n-gbc-qprr-e0-off.yaml
+    purpose: exact A0 equivalence, gain=0
+  E1:
+    train: true
+    model: ultralytics/cfg/models/v13/yolov13n-gbc-qprr-e1-instance.yaml
+    purpose: isolate GT-balanced/intra-GT ranking; coverage disabled
+  E2:
+    train: true
+    model: ultralytics/cfg/models/v13/yolov13n-gbc-qprr-e2-full.yaml
+    purpose: main balanced candidate; GT-balanced ranking + coverage
+  E3:
+    train: conditional
+    model: ultralytics/cfg/models/v13/yolov13n-a4-gbc-qprr-e3.yaml
+    purpose: precision-oriented A4 base + full GBC-QPRR
+
+fairness:
+  inherit_exact_recipe: true
+  disable_qprr_v1: true
+  disable_sqanwd: true
+  disable_f1r_head: true
+  no_architecture_change_for_E1_E2: true
+  do_not_change:
+    - split
+    - pretrained_checkpoint
+    - epochs
+    - imgsz
+    - batch
+    - optimizer
+    - lr0
+    - lrf
+    - momentum
+    - weight_decay
+    - warmup
+    - box
+    - cls
+    - dfl
+    - augmentation
+    - amp
+    - workers
+    - validation_thresholds
+
+screening:
+  note: "Do not use only seed0: D3 showed seed0 can be unrepresentative for Recall."
+  initial_seeds: [0, 1]
+  candidates: [E1, E2]
+  advance_to_seed2_if:
+    mean_F1_not_below_D3_first_two: true
+    and_one_of:
+      - mean_R_above_D3_first_two
+      - mean_F1_above_D3_first_two
+  E3_run_if: E2_passes_full_three_seed
+
+acceptance:
+  E2_vs_D3:
+    mean_F1_gt_D3: true
+    positive_F1_seeds_min: 2
+    mean_R_gt_D3: true
+    mean_P_not_below_A0: true
+    AP_S_drop_vs_D3_pp_max: 0.20
+    mAP50_95_drop_vs_D3_pp_max: 0.20
+  paper_valid_alternative:
+    precision_mode:
+      mean_P_gain_vs_A0_pp_min: 0.30
+      positive_P_seeds_min: 2
+      F1_drop_vs_D3_pp_max: 0.10
+    recall_mode:
+      mean_R_gain_vs_A0_pp_min: 0.20
+      positive_R_seeds_min: 2
+      F1_drop_vs_D3_pp_max: 0.10
+
+cross_dataset:
+  run_half_after_full_pass: true
+  require_same_primary_direction: true
