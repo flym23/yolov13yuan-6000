@@ -1,47 +1,31 @@
-"""Validate YOLOv13 weights with normal and scale-aware AP metrics."""
-
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
-
-os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0")
-os.environ["WANDB_DISABLED"] = "true"
-# Keep validation free of the DataLoader pin-memory worker that can reset its local IPC socket at teardown.
-os.environ["PIN_MEMORY"] = "false"
 
 import torch
 
-from ultralytics import YOLO
+ROOT = Path(__file__).resolve().parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0")
+os.environ["WANDB_DISABLED"] = "true"
+# Avoid the asynchronous DataLoader pin-memory teardown failure on the shared GPU runtime.
+os.environ["PIN_MEMORY"] = "false"
+import ultralytics  # noqa: E402
+from ultralytics import YOLO  # noqa: E402
 from ultralytics.models.yolo.detect.val import DetectionValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import ap_per_class
-from ultralytics.utils.torch_utils import get_flops, get_num_gradients, get_num_params
 
 
-ROOT_DIR = Path(__file__).resolve().parent
 SCALE_AREA_RANGES = {
     "APS": (0.0, 32.0**2),
     "APM": (32.0**2, 96.0**2),
     "APL": (96.0**2, float("inf")),
 }
-
-
-def metric_names_from_data(data: dict, expected_nc: int) -> dict[int, str]:
-    """Return complete zero-based metric names, rejecting malformed dataset metadata."""
-    raw_names = data.get("names")
-    if isinstance(raw_names, list):
-        names = dict(enumerate(raw_names))
-    elif isinstance(raw_names, dict):
-        names = {int(key): str(value) for key, value in raw_names.items()}
-    else:
-        raise TypeError("dataset YAML must define class names as a list or mapping")
-    expected_ids = set(range(expected_nc))
-    if set(names) != expected_ids:
-        raise ValueError(
-            f"dataset class names must use zero-based IDs {sorted(expected_ids)}, got {sorted(names)}"
-        )
-    return names
 
 
 class ScaleAwareDetectionValidator(DetectionValidator):
@@ -65,15 +49,12 @@ class ScaleAwareDetectionValidator(DetectionValidator):
 
     def init_metrics(self, model):
         super().init_metrics(model)
-        model_nc = len(model.names)
-        self.names = metric_names_from_data(self.data, model_nc)
-        self.nc = model_nc
-        self.metrics.names = self.names
         self.scale_stats = {
             name: {"tp": [], "conf": [], "pred_cls": [], "target_cls": []}
             for name in self.scale_area_ranges
         }
         self.scale_maps = {name: 0.0 for name in self.scale_area_ranges}
+        self.class_scale_maps = {str(name): {scale: None for scale in self.scale_area_ranges} for name in self.names.values()}
 
     def update_metrics(self, preds, batch):
         super().update_metrics(preds, batch)
@@ -100,98 +81,52 @@ class ScaleAwareDetectionValidator(DetectionValidator):
                 scale_pred = predn[pred_mask]
 
                 stat = {
-                    "tp": torch.zeros(
-                        len(scale_pred), self.niou, dtype=torch.bool, device=self.device
-                    ),
-                    "conf": scale_pred[:, 4]
-                    if len(scale_pred)
-                    else torch.zeros(0, device=self.device),
-                    "pred_cls": scale_pred[:, 5]
-                    if len(scale_pred)
-                    else torch.zeros(0, device=self.device),
+                    "tp": torch.zeros(len(scale_pred), self.niou, dtype=torch.bool, device=self.device),
+                    "conf": scale_pred[:, 4] if len(scale_pred) else torch.zeros(0, device=self.device),
+                    "pred_cls": scale_pred[:, 5] if len(scale_pred) else torch.zeros(0, device=self.device),
                     "target_cls": target_cls,
                 }
                 if len(target_cls) and len(scale_pred):
-                    stat["tp"] = self._process_batch(
-                        scale_pred, target_bbox, target_cls
-                    )
+                    stat["tp"] = self._process_batch(scale_pred, target_bbox, target_cls)
 
                 for key, value in stat.items():
                     self.scale_stats[name][key].append(value)
 
-    def _compute_scale_map(self, scale_stats):
-        stats = {
-            key: torch.cat(value, 0).cpu().numpy() for key, value in scale_stats.items()
-        }
+    def _compute_scale_maps(self, scale_stats):
+        stats = {key: torch.cat(value, 0).cpu().numpy() for key, value in scale_stats.items()}
         if len(stats["target_cls"]) == 0:
-            return 0.0
-        ap = ap_per_class(
+            return 0.0, {}
+        result = ap_per_class(
             stats["tp"],
             stats["conf"],
             stats["pred_cls"],
             stats["target_cls"],
             names=self.names,
-        )[5]
-        return float(ap.mean()) if len(ap) else 0.0
-
-    def _compute_map75(self):
-        """Return the overall AP at IoU=0.75 from the normal validator statistics."""
-        stats = {
-            key: torch.cat(value, 0).cpu().numpy()
-            for key, value in self.stats.items()
+        )
+        ap, class_indices = result[5], result[6]
+        per_class = {
+            str(self.names[int(class_index)]): float(ap[index].mean()) * 100.0
+            for index, class_index in enumerate(class_indices)
         }
-        if len(stats["target_cls"]) == 0:
-            return 0.0
-        ap = ap_per_class(stats["tp"], stats["conf"], stats["pred_cls"], stats["target_cls"], names=self.names)[5]
-        return float(ap[:, 5].mean()) if len(ap) else 0.0
-
-    @staticmethod
-    def _concat_or_empty(values, dtype=torch.float32):
-        return torch.cat(values, 0) if values else torch.empty(0, dtype=dtype)
-
-    def _class_diagnostics(self):
-        """Return per-class TP/FP/FN and recall at IoU 0.50/0.75, including size strata."""
-        combined = {key: self._concat_or_empty(value, torch.bool if key == "tp" else torch.float32) for key, value in self.stats.items()}
-        diagnostics = {}
-        for class_id in range(self.nc):
-            target_cls, pred_cls, tp = combined["target_cls"], combined["pred_cls"], combined["tp"]
-            target_count = int((target_cls == class_id).sum().item())
-            prediction_mask = pred_cls == class_id
-            true_positive_50 = int(tp[prediction_mask, 0].sum().item()) if tp.numel() else 0
-            true_positive_75 = int(tp[prediction_mask, 5].sum().item()) if tp.numel() else 0
-            entry = {
-                "targets": target_count,
-                "TP_iou50": true_positive_50,
-                "TP_iou75": true_positive_75,
-                "FP_iou50": int(prediction_mask.sum().item()) - true_positive_50,
-                "FN_iou50": max(target_count - true_positive_50, 0),
-                "recall_iou50": (true_positive_50 / target_count) if target_count else 0.0,
-                "recall_iou75": (true_positive_75 / target_count) if target_count else 0.0,
-            }
-            for scale_name, scale_stats in self.scale_stats.items():
-                scale_target = self._concat_or_empty(scale_stats["target_cls"])
-                scale_pred = self._concat_or_empty(scale_stats["pred_cls"])
-                scale_tp = self._concat_or_empty(scale_stats["tp"], torch.bool)
-                scale_targets = int((scale_target == class_id).sum().item())
-                scale_mask = scale_pred == class_id
-                scale_tp50 = int(scale_tp[scale_mask, 0].sum().item()) if scale_tp.numel() else 0
-                entry[f"{scale_name}_targets"] = scale_targets
-                entry[f"{scale_name}_recall_iou50"] = (scale_tp50 / scale_targets) if scale_targets else 0.0
-            diagnostics[str(class_id)] = entry
-        return diagnostics
+        return (float(ap.mean()) if len(ap) else 0.0), per_class
 
     def get_stats(self):
         stats = super().get_stats()
-        self.scale_maps = {
-            name: self._compute_scale_map(scale_stats)
-            for name, scale_stats in self.scale_stats.items()
-        }
+        self.scale_maps = {}
+        self.class_scale_maps = {str(name): {} for name in self.names.values()}
+        for scale_name, scale_stats in self.scale_stats.items():
+            mean_ap, per_class = self._compute_scale_maps(scale_stats)
+            self.scale_maps[scale_name] = mean_ap
+            for class_name in self.class_scale_maps:
+                self.class_scale_maps[class_name][scale_name] = per_class.get(class_name)
         for name, value in self.scale_maps.items():
             stats[f"metrics/{name}(B)"] = value
-        stats["metrics/mAP75(B)"] = self._compute_map75()
         self.metrics.scale_maps = self.scale_maps
         self.metrics.scale_area_ranges = self.scale_area_ranges
-        self.metrics.per_class_diagnostics = self._class_diagnostics()
+        # ``model.val()`` returns ``self.metrics`` rather than the validator itself. Persist
+        # the per-class map there so callers can write class_scale_ap.json instead of silently
+        # emitting an empty ``classes`` object.
+        self.metrics.class_scale_maps = self.class_scale_maps
         return stats
 
     def print_results(self):
@@ -199,55 +134,33 @@ class ScaleAwareDetectionValidator(DetectionValidator):
         if hasattr(self, "scale_maps"):
             LOGGER.info(
                 ("%22s" + "%11.3g" * 3)
-                % (
-                    "scale AP",
-                    self.scale_maps["APS"],
-                    self.scale_maps["APM"],
-                    self.scale_maps["APL"],
-                )
+                % ("scale AP", self.scale_maps["APS"], self.scale_maps["APM"], self.scale_maps["APL"])
             )
+
+# ---------------- 1. Runtime settings ----------------
+os.environ['WANDB_DISABLED'] = 'true'
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description="Validate URPC YOLO weights with scale-aware AP metrics.")
     parser.add_argument(
         "--weights",
-        type=Path,
-        required=True,
-        help="Path to a trained best.pt checkpoint.",
+        default="/home/room305/ZZF/yolov13yuan-6000/runs/baseline_d1_urpc2020_20260930_r1/train/seed1/A0/weights/best.pt",
+        help="Path to best.pt or another trained checkpoint.",
     )
+    parser.add_argument("--name", default="A0", help="Name under runs/test for this validation run.")
+    parser.add_argument("--device", default="0", help="CUDA device id used for validation.")
+    parser.add_argument("--batch", type=int, default=16, help="Validation batch size.")
+    parser.add_argument("--workers", type=int, default=2, help="Validation dataloader workers.")
+    parser.add_argument("--imgsz", type=int, default=640, help="Validation image size.")
     parser.add_argument(
         "--data",
         type=Path,
-        default=ROOT_DIR / "data.yaml",
-        help="Zero-based detection dataset YAML.",
+        default=ROOT / "data.yaml",
+        help="Dataset YAML used for validation.",
     )
-    parser.add_argument(
-        "--name", required=True, help="Name under runs/test for this validation run."
-    )
-    parser.add_argument(
-        "--device", default="0", help="CUDA device id used for validation."
-    )
-    parser.add_argument("--batch", type=int, default=16, help="Validation batch size.")
-    parser.add_argument("--imgsz", type=int, default=640, help="Validation image size.")
-    parser.add_argument(
-        "--workers",
-        type=int,
-        default=2,
-        help="Validation dataloader workers.",
-    )
-    parser.add_argument(
-        "--project",
-        type=Path,
-        default=ROOT_DIR / "runs" / "test",
-        help="Absolute or relative validation-output project directory.",
-    )
-    parser.add_argument(
-        "--plots",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Whether to save validation plots.",
-    )
+    parser.add_argument("--project", type=Path, default=ROOT / "runs" / "test", help="Validation output directory.")
+    parser.add_argument("--plots", action=argparse.BooleanOptionalAction, default=False, help="Save validation plots.")
     return parser.parse_args()
 
 
@@ -261,69 +174,92 @@ def to_float_dict(values):
     return out
 
 
-def main():
-    args = parse_args()
-    for path in (args.weights, args.data):
-        if not path.is_file():
-            raise FileNotFoundError(path)
+args = parse_args()
+package_path = Path(ultralytics.__file__).resolve()
+if ROOT not in package_path.parents:
+    raise RuntimeError(f"Imported ultralytics outside project root: {package_path}")
+best_weights_path = args.weights
 
-    model = YOLO(str(args.weights))
-    # model.info() returns None when verbose=False in the current Ultralytics implementation.
-    # Collect the four values explicitly so summary generation remains version-compatible.
-    layers = len(list(model.model.modules()))
-    parameters = get_num_params(model.model)
-    gradients = get_num_gradients(model.model)
-    gflops = get_flops(model.model, imgsz=args.imgsz)
-    results = model.val(
-        validator=ScaleAwareDetectionValidator,
-        data=str(args.data),
-        split="val",
-        imgsz=args.imgsz,
-        batch=args.batch,
-        workers=args.workers,
-        conf=0.001,
-        iou=0.5,
-        device=args.device,
-        amp=False,
-        plots=args.plots,
-        save_json=True,
-        project=str(args.project.resolve()),
-        name=args.name,
-        exist_ok=True,
-    )
+if not os.path.exists(best_weights_path):
+    print(f"Weights file does not exist: {best_weights_path}")
+    print("Finish training first, or pass a checkpoint path with --weights.")
+    exit(1)
 
-    save_dir = Path(results.save_dir)
-    scale_maps = getattr(results, "scale_maps", {})
-    summary = {
-        "weights": str(args.weights),
-        "data": str(args.data),
-        "amp": False,
-        "plots": args.plots,
-        "model": {
-            "layers": int(layers),
-            "parameters": int(parameters),
-            "gradients": int(gradients),
-            "gflops": float(gflops),
-        },
-        "metrics": to_float_dict(getattr(results, "results_dict", {})),
-        "scale_metrics_percent": {
-            name: value * 100 for name, value in scale_maps.items()
-        },
-        "per_class_diagnostics": getattr(results, "per_class_diagnostics", {}),
+print(f"Loading weights: {best_weights_path}")
+model = YOLO(best_weights_path)
+print("Starting validation...")
+data_yaml = args.data.resolve()
+if not data_yaml.is_file():
+    raise FileNotFoundError(data_yaml)
+
+results = model.val(
+    validator=ScaleAwareDetectionValidator,
+    data=str(data_yaml),
+    split='val',
+    imgsz=args.imgsz,
+    batch=args.batch,
+    workers=args.workers,
+    conf=0.001,
+    iou=0.5,
+    device=args.device,
+    plots=args.plots,
+    save_json=True,
+    project=str(args.project.resolve()),
+    name=args.name,
+)
+
+save_dir = Path(results.save_dir)
+metrics = to_float_dict(getattr(results, "results_dict", {}))
+scale_maps = getattr(results, "scale_maps", {})
+summary = {
+    "weights": best_weights_path,
+    "metrics": metrics,
+    "scale_metrics_percent": {},
+    "per_class_metrics_percent": {},
+}
+
+box_metrics = results.box
+names = getattr(results, "names", {})
+for metric_index, class_index in enumerate(box_metrics.ap_class_index):
+    class_name = str(names[int(class_index)])
+    precision, recall, map50, map75, map50_95 = box_metrics.class_result(metric_index)
+    summary["per_class_metrics_percent"][class_name] = {
+        "P": float(precision) * 100.0,
+        "R": float(recall) * 100.0,
+        "mAP50": float(map50) * 100.0,
+        "mAP75": float(map75) * 100.0,
+        "mAP50-95": float(map50_95) * 100.0,
     }
-    if scale_maps:
-        with (save_dir / "scale_ap_metrics.json").open("w", encoding="utf-8") as file:
-            json.dump(
-                {
-                    "area_ranges_px2": SCALE_AREA_RANGES,
-                    "metrics": summary["scale_metrics_percent"],
-                },
-                file,
-                indent=2,
-            )
-    with (save_dir / "summary_metrics.json").open("w", encoding="utf-8") as file:
-        json.dump(summary, file, indent=2)
 
+if scale_maps:
+    print("\nScale-aware AP metrics (COCO area ranges, AP@0.50:0.95):")
+    for name in ("APS", "APM", "APL"):
+        print(f"{name}: {scale_maps[name] * 100:.2f}%")
 
-if __name__ == "__main__":
-    main()
+    metrics_path = save_dir / "scale_ap_metrics.json"
+    summary["scale_metrics_percent"] = {name: value * 100 for name, value in scale_maps.items()}
+    with open(metrics_path, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "area_ranges_px2": results.scale_area_ranges,
+                "metrics": summary["scale_metrics_percent"],
+            },
+            f,
+            indent=2,
+        )
+    print(f"Scale-aware AP metrics saved to: {metrics_path}")
+
+    class_scale_path = save_dir / "class_scale_ap.json"
+    class_scale_payload = {
+        "area_ranges_px2": results.scale_area_ranges,
+        "classes": getattr(results, "class_scale_maps", {}),
+    }
+    with open(class_scale_path, "w", encoding="utf-8") as f:
+        json.dump(class_scale_payload, f, indent=2)
+    summary["class_scale_ap"] = class_scale_payload["classes"]
+    print(f"Class-scale AP metrics saved to: {class_scale_path}")
+
+summary_path = save_dir / "summary_metrics.json"
+with open(summary_path, "w", encoding="utf-8") as f:
+    json.dump(summary, f, indent=2)
+print(f"Summary metrics saved to: {summary_path}")

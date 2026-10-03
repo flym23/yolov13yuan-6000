@@ -1,4 +1,4 @@
-path: /home/room305/ZZF/URPC2020half
+path: /home/room305/ZZF/URPC2020
 train: images/train
 val: images/test
 test: images/test

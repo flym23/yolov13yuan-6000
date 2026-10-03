@@ -32,7 +32,7 @@ def test_failed_worker_stops_all_siblings(tmp_path, monkeypatch):
     processes = launch_stub(monkeypatch, fail_seed=1)
     with pytest.raises(RuntimeError, match='exited 7'):
         chain.run_batch(tmp_path, 'A0', 'train', lambda *args, **kwargs: None)
-    assert len(processes) == 2
+    assert len(processes) == 3
     assert all(p.poll() is not None for p in processes)
 
 
